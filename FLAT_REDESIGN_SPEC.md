@@ -4,6 +4,8 @@
 
 This document changes no source code. It records what was approved, what was measured, and the order the work must go in.
 
+*Amended after `78d8460`: a throwaway spike measured whether this machine can rasterise a VectorDrawable under Robolectric. It can, but only with `@GraphicsMode(NATIVE)`, which moved Sections 11.1, 11.2, 13, 15 and the Batch 0a and 08 rows. The spike file was deleted; the tree is clean at the commit that carries this text.*
+
 **Source documents used (in order of authority):**
 
 1. The six decisions signed by the human reviewer on 2026-11-04 (Section 1) — highest authority for anything they decide.
@@ -39,6 +41,9 @@ This document changes no source code. It records what was approved, what was mea
 | 13 | Padding geometry change measured and attributed | RESOLVED | 6 |
 | 14 | Ring status hues and pill window route locked | RESOLVED | 10.3, 13 |
 | 15 | Enforcement UI never weakened to pass a test | RESOLVED | 13 |
+| 15a | Invariants proved by pixels, not by an analytic geometry engine | RESOLVED | 11.1 |
+| 15b | Stub-canvas false-green guarded by a non-zero floor in every rasterised test | RESOLVED | 13, 15 |
+| 15c | A lock exists that fails if the old ground tokens survive the repoint | RESOLVED | 11.2 |
 | 16 | Non-goals stated | RESOLVED | 14 |
 | 17 | Verification rules carried forward | RESOLVED | 15 |
 
@@ -293,18 +298,34 @@ The pixel-specific locks become shape-agnostic ones:
 2. **every silhouette and pose visually distinct**
 3. **legible at 24 px**
 
-`AliveCharacterSilhouetteTest` currently parses `pathData` with a **rectangles-only** engine and asserts every `alive_pink_soft #E58CA4` cell touches the body. Non-pink curved bodies make that parser yield zero cells, so `assertTrue("draws no pink at all")` goes hard red — which is the correct failure but the wrong test. It is rewritten to the general rule first, while green means something.
+`AliveCharacterSilhouetteTest` currently parses `pathData` with a **rectangles-only** engine (`Regex("M(-?\\d+),(-?\\d+)((?:[hv]-?\\d+)+)z")`) and asserts every `alive_pink_soft #E58CA4` cell touches the body. It understands only horizontal and vertical runs, so it cannot see a curve — and 11 of the 12 approved silhouettes are curves. Non-pink curved bodies make it yield zero cells, so `assertTrue("$name draws no pink at all")` goes hard red: the correct failure, the wrong test.
+
+**Mechanism — rasterised, not analytic.** Measured on this machine at `78d8460`: under `@Config(sdk = [36])` alone, Robolectric's canvas is a **stub** — `drawRect` on a 32×32 bitmap reported 63 opaque pixels of 1024, and a VectorDrawable reported **0**. Adding `@GraphicsMode(GraphicsMode.Mode.NATIVE)` makes it real: `drawRect` 1024/1024, `GradientDrawable` 1024, `ic_alive_character` at 64×64 → **1216 opaque pixels (29,7 %)**.
+
+So the invariants are computed from pixels, and no Bézier-flattening geometry engine is needed:
+
+| Invariant | How it is proved |
+|---|---|
+| one connected body | rasterise at 24 px, flood-fill 4-neighbour from any opaque pixel, assert every opaque pixel is reached |
+| every silhouette distinct | rasterise all 17 at 24 px, compare pairwise, assert no two exceed an IoU of 0.9 — **this is the lock that proves the five collisions are actually gone** |
+| legible at 24 px | each member keeps ≥ N opaque pixels and its body bbox spans ≥ M px, so nothing collapses to a dot |
+| eyes flip on dark bodies | sample eye pixels against body pixels from the rendered drawable, assert ≥ 4.5:1 — the rule moves off `family-bots.py`'s `_dark()` and onto the artefact |
 
 ### 11.2 Flat locks that do not exist today
 
 The approved flat rules currently have **zero** tests. These are written as red tests in Batch 0b, before the tokens that turn them green:
 
-- no border and no shadow anywhere in the produced drawables
-- the radius scale 28 / 22 / pill, and no sixth radius
-- Space Grotesk 700 for display and numbers
-- ink eyes on light bodies, paper eyes on dark bodies — asserted on the **drawable**, not the generator
-- 24 px legibility
-- ink-on-pastel and paper-on-dark both clear 4.5:1
+| Lock | Proof type |
+|---|---|
+| no border and no shadow anywhere in the produced drawables | resource-set scan |
+| the radius scale 28 / 22 / pill, and no sixth radius | dimens + literal scan |
+| Space Grotesk 700 for display and numbers | `type.xml` on the five re-authored styles |
+| ink eyes on light bodies, paper eyes on dark bodies | rasterised (11.1) |
+| 24 px legibility | rasterised (11.1) |
+| ink-on-pastel **and** paper-on-dark both clear 4.5:1 | arithmetic on real resources |
+| **the ground is one token** — `alive_paper`, `alive_canvas`, `alive_ink`, `alive_white` no longer exist in the resource set | resource-set scan |
+
+The last one is the cheap proof that decision 1 actually stuck. Without it the migration can finish half-done — new `flat_*` tokens added, the 184 old references left pointing at the old creams — and every visible test would still pass, because both palettes would be legible. That is exactly the two-sources-of-truth failure decision 1 was written to prevent, arriving as a green suite.
 
 ### 11.3 Never allowed to regress
 
@@ -318,7 +339,7 @@ Every batch ends with the full suite green and a report. Nothing is committed wi
 
 | # | Batch | Why here | Exit |
 |---|---|---|---|
-| **0a** | Port the three invariants to general form; rewrite the rect-only parser | Must happen while the suite is green, before `res/drawable` or `res/font` is touched | green, and the locks now guard the *rule* |
+| **0a** | Port the invariants to rasterised general form (11.1) and retire the rect-only parser; add the `@GraphicsMode(NATIVE)` + non-zero-floor pattern | Must happen while the suite is green, before `res/drawable` or `res/font` is touched | green, and the locks now guard the *rule* rather than the pixel grid |
 | **0b** | Write the flat locks (11.2) as **red** tests | TDD — they define the target | red, expected, reported |
 | **1** | Tokens + fonts: new `flat_*` ground/field/radius tokens, the **184-site repoint**, deletion of the four old ground tokens, `type.xml` re-authored, 3 TTFs deleted, 3 code files moved off `silkscreen_bold` | **Compile-blocking** — a deleted TTF makes `R.font.*` unresolvable, and a deleted colour makes `R.color.*` unresolvable, which fails the whole test source set so the suite cannot even report what broke. Must go first and alone | 0b turns green |
 | **2** | `AliveComponents` surface model: `framed`/`outline` → flat colour field; edge/shadow split into distance vs elevation; `textOn()` + dark grounds | The design system. Padding moves here, attributable to one change | green |
@@ -327,13 +348,14 @@ Every batch ends with the full suite green and a report. Nothing is committed wi
 | **5** | Guardian flat, 4 poses, `GuardianSpriteTest` re-authored | decision 3 | green |
 | **6** | Island: remove the sprite layer only | decision 4, scoped to `panelCharacter` | green, ring tests untouched |
 | **7** | Geometry components: `BrutalistDonut`, `BrutalistBarChart`, `ArcadeTodayCard`, `widget/AliveWidgetArt`, `activity_main.xml`, `widget_alive_stats.xml` | Last, because it consumes every token above | green |
-| **8** | Full suite + real-device frames for anything visual | Robolectric is not device proof | his verdict |
+| **8** | Full suite + real-device frames for clipping, `RemoteViews`, elevation and motion only — static shape is already proved in 0a | The residual that no JVM test can reach | his verdict |
 
 ---
 
 ## 13. Known hazards
 
 - **Two files cast the card background as a `LayerDrawable` layer 1.** `CriticalWarningCardTest.faceOf()` (~`:59`) returns a nullable `GradientDrawable`; `ArcadeTodayCardTest` (~`:96`) does `background.getDrawable(1) as GradientDrawable` — a hard cast. When a flat colour field replaces the layered background, the Arcade card throws **and the critical warning card — enforcement UI — loses the test that guards "red stays still when the animation dies / back does not dismiss / releases after the countdown"**. `faceOf` must tolerate both shapes. The three rules it also locks are never touched.
+- **A stub canvas produces false greens.** Without `@GraphicsMode(NATIVE)`, Robolectric draws nothing and **throws nothing** — a VectorDrawable rasterised to 0 opaque pixels is a silent, successful no-op. Any assertion of the form "these two shapes are not identical" passes vacuously when both are empty, and "the silhouette is distinct at 24 px" would go green on a family that never rendered. Every rasterised test in 11.1 must therefore open by asserting a non-zero floor on its own bitmap before it measures anything.
 - **The Home-screen widget renders in the launcher process** (`widget_alive_stats.xml`, `AliveWidgetArt`, `AliveStatsWidgetProvider`, `alive_stats_widget_info.xml`). No UI test in this suite can prove it. Real-device frames only, and only with permission.
 - **An install can unbind the guard**, and a same-day gap disqualifies the day. Batch 8 stops at the built APK until he says install.
 - **The host clock can sit 7 h off the phone.** Compare `date -u +%s`, never a timezone conversion.
@@ -354,7 +376,7 @@ Every batch ends with the full suite green and a report. Nothing is committed wi
 ## 15. Verification rules carried forward
 
 1. Baseline is measured, not assumed. At `5d145ed` the seven design classes run **27 tests, 0 failures, 0 errors in 44 s** — so any red later belongs to this project.
-2. Robolectric renders do not prove Android clipping or motion. Visual claims need recorded real frames, with permission.
+2. **What Robolectric can and cannot prove, now that rasterisation works.** Under `@GraphicsMode(NATIVE)` it gives real pixels, so *static shape* claims — connectivity, silhouette distinctness, 24 px legibility, eye contrast — have a runnable proof and belong in the suite. It still does **not** prove Android clipping, `RemoteViews` in the launcher process, elevation, or motion; those need recorded real frames, with permission. The stub-canvas hazard (13) means an un-annotated render test is worse than no test at all.
 3. A self-authored patch gets at least two named-attack review rounds before it is called done.
 4. Nothing is release-ready before a full green suite **and** his word on installing.
 5. Enforcement is never weakened to make a test pass.
