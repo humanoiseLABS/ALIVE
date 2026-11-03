@@ -30,13 +30,13 @@ class AlivePalette(context: Context) {
 
     private val appContext = context.applicationContext
 
-    val paper = color(R.color.alive_paper)
-    val canvas = color(R.color.alive_canvas)
-    val ink = color(R.color.alive_ink)
+    val paper = color(R.color.flat_ground)
+    val canvas = color(R.color.flat_ground)
+    val ink = color(R.color.flat_ink)
     val forest = color(R.color.alive_forest)
     val softForest = color(R.color.alive_soft_forest)
     val warmGray = color(R.color.alive_warm_gray)
-    val white = color(R.color.alive_white)
+    val white = color(R.color.flat_tile)
 
     val inkSecondary = color(R.color.alive_ink_secondary)
     val inkMuted = color(R.color.alive_ink_muted)

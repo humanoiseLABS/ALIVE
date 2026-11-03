@@ -71,7 +71,7 @@ class BrutalistDonut(context: Context) : View(context) {
         color = palette.ink
     }
     private val numberPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        typeface = resources.getFont(R.font.silkscreen_bold)
+        typeface = resources.getFont(R.font.space_grotesk_bold)
         textSize = sp(40f)
         textAlign = Paint.Align.CENTER
         color = palette.ink

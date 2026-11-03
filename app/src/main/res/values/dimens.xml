@@ -47,9 +47,14 @@
     <dimen name="shadow_offset">6dp</dimen>
     <dimen name="shadow_minor">4dp</dimen>
 
-    <dimen name="radius_card">16dp</dimen>
-    <dimen name="radius_field">14dp</dimen>
-    <dimen name="radius_tile">12dp</dimen>
+    <!-- Flat radii, from the approved sheet: a card is 28, and a field or a tile
+         is 22. Two names on 22 because a field and a tile are different objects
+         that happen to share a corner, and `radius_step` stays at 4 for now -
+         seven call sites draw chart bars with it, and the bars are geometry work
+         (Batch 7), not a token swap. A sixth radius is still not allowed. -->
+    <dimen name="radius_card">28dp</dimen>
+    <dimen name="radius_field">22dp</dimen>
+    <dimen name="radius_tile">22dp</dimen>
     <dimen name="radius_step">4dp</dimen>
     <dimen name="radius_pill">999dp</dimen>
 

@@ -5,9 +5,9 @@
      bar that changes shape every day cannot be a fixed drawable. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="@color/alive_paper" />
+    <solid android:color="@color/flat_tile" />
     <stroke
         android:width="2dp"
-        android:color="@color/alive_ink" />
+        android:color="@color/flat_ink" />
     <corners android:radius="4dp" />
 </shape>

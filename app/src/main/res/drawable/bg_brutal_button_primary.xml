@@ -14,7 +14,7 @@
         <layer-list>
             <item>
                 <shape android:shape="rectangle">
-                    <solid android:color="@color/alive_ink" />
+                    <solid android:color="@color/flat_ink" />
                     <corners android:radius="@dimen/radius_tile" />
                 </shape>
             </item>
@@ -23,7 +23,7 @@
                     <solid android:color="@color/alive_amber_action" />
                     <stroke
                         android:width="@dimen/border_bold"
-                        android:color="@color/alive_ink" />
+                        android:color="@color/flat_ink" />
                     <corners android:radius="@dimen/radius_tile" />
                 </shape>
             </item>
@@ -44,7 +44,7 @@
         <layer-list>
             <item>
                 <shape android:shape="rectangle">
-                    <solid android:color="@color/alive_ink" />
+                    <solid android:color="@color/flat_ink" />
                     <corners android:radius="@dimen/radius_tile" />
                 </shape>
             </item>
@@ -55,7 +55,7 @@
                     <solid android:color="@color/alive_amber_action" />
                     <stroke
                         android:width="@dimen/border_bold"
-                        android:color="@color/alive_ink" />
+                        android:color="@color/flat_ink" />
                     <corners android:radius="@dimen/radius_tile" />
                 </shape>
             </item>

@@ -71,11 +71,11 @@ class GuardianSpriteTest {
             "crimson bright" to R.color.alive_red_short_mid,
             "amber eyes" to R.color.alive_amber_action,
             "metal" to R.color.alive_warm_gray,
-            "paper teeth" to R.color.alive_paper
+            "paper teeth" to R.color.flat_paper
         )
 
         poses.forEach { (name, id) ->
-            val body = cells(id, R.color.alive_ink)
+            val body = cells(id, R.color.flat_ink)
             // The rim counts as ground too: an accent nested inside another
             // accent - the amber core inside the staff's crimson head - is held
             // by the drawing, not floating in the air, and the test that says
@@ -106,9 +106,9 @@ class GuardianSpriteTest {
     @Test
     fun `the eyes read on the helmet, and the figure reads on the card`() {
         val eyes = colour(R.color.alive_amber_action)
-        val helmet = colour(R.color.alive_ink)
-        val paper = colour(R.color.alive_paper)
-        val white = colour(R.color.alive_white)
+        val helmet = colour(R.color.flat_ink)
+        val paper = colour(R.color.flat_ground)
+        val white = colour(R.color.flat_tile)
 
         // A face whose eyes cannot be seen is the one thing this character is
         // for. 3:1 is the bar for a non-text graphic that carries meaning.
@@ -125,7 +125,7 @@ class GuardianSpriteTest {
 
     @Test
     fun `the guardian reads on the dark plate it now stands on`() {
-        val ink = colour(R.color.alive_ink)
+        val ink = colour(R.color.flat_ink)
         val rim = colour(R.color.alive_red_short_dark)
         val eyes = colour(R.color.alive_amber_action)
 

@@ -91,7 +91,7 @@ class BrutalistBarChart(context: Context) : View(context) {
         color = palette.inkSecondary
     }
     private val valuePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        typeface = resources.getFont(R.font.silkscreen_bold)
+        typeface = resources.getFont(R.font.space_grotesk_bold)
         textSize = sp(10f)
         textAlign = Paint.Align.CENTER
         color = palette.paper

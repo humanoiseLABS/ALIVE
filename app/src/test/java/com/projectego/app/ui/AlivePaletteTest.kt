@@ -40,9 +40,8 @@ class AlivePaletteTest {
     /** Every surface a token may end up sitting on. */
     private val grounds by lazy {
         listOf(
-            "canvas" to color(R.color.alive_canvas),
-            "paper" to color(R.color.alive_paper),
-            "white" to color(R.color.alive_white),
+            "ground" to color(R.color.flat_ground),
+            "tile" to color(R.color.flat_tile),
             "softForest" to color(R.color.alive_soft_forest),
             "warmGray" to color(R.color.alive_warm_gray),
             "goldPale" to color(R.color.alive_gold_reward_pale),
@@ -54,7 +53,7 @@ class AlivePaletteTest {
     /** Tokens that carry text or draw an edge. */
     private val textAndEdgeTokens by lazy {
         listOf(
-            "ink" to color(R.color.alive_ink),
+            "ink" to color(R.color.flat_ink),
             "forest" to color(R.color.alive_forest),
             "goldDark" to color(R.color.alive_gold_reward_dark),
             "redDark" to color(R.color.alive_red_short_dark),
@@ -81,9 +80,8 @@ class AlivePaletteTest {
         // ink_secondary is 70% ink, so it has to be composited before it is
         // measured - the raw alpha value means nothing on its own.
         listOf(
-            "canvas" to color(R.color.alive_canvas),
-            "paper" to color(R.color.alive_paper),
-            "white" to color(R.color.alive_white)
+            "ground" to color(R.color.flat_ground),
+            "tile" to color(R.color.flat_tile)
         ).forEach { (name, ground) ->
             val ratio = contrast(color(R.color.alive_ink_secondary), ground)
             assertTrue("$name = $ratio", ratio >= 4.5)
@@ -108,7 +106,7 @@ class AlivePaletteTest {
     fun `warm gray never carries text`() {
         // The house rule, as a number: warm gray on paper is about 1.2:1, which
         // is why it is allowed to be a surface and not a sentence.
-        val ratio = contrast(color(R.color.alive_warm_gray), color(R.color.alive_paper))
+        val ratio = contrast(color(R.color.alive_warm_gray), color(R.color.flat_ground))
         assertTrue("warmGray on paper = $ratio", ratio < 1.6)
     }
 
@@ -132,7 +130,7 @@ class AlivePaletteTest {
             R.color.alive_cat_other,
             R.color.alive_amber_action
         )
-        val ink = color(R.color.alive_ink)
+        val ink = color(R.color.flat_ink)
         fills.forEach { id ->
             val name = context.resources.getResourceName(id)
             val ratio = contrast(ink, color(id))
@@ -149,7 +147,7 @@ class AlivePaletteTest {
         // measured against the tone actually written on it - and the pink is the
         // reason that is per-face rather than one rule: secondary ink is 3.9:1 on
         // it, which is why a caption on that face is full ink.
-        val ink = color(R.color.alive_ink)
+        val ink = color(R.color.flat_ink)
         val faces = listOf(
             "pinkSoft" to (ink to color(R.color.alive_pink_soft)),
             "goldMid" to (ink to color(R.color.alive_gold_reward_mid)),
@@ -168,11 +166,11 @@ class AlivePaletteTest {
         // sits on. The old soft-forest body failed the second half (1.1:1 on
         // paper) and read as a grey smudge - this test would have caught it.
         val pink = color(R.color.alive_pink_soft)
-        val ink = color(R.color.alive_ink)
+        val ink = color(R.color.flat_ink)
         assertTrue("ink on pink = ${contrast(ink, pink)}", contrast(ink, pink) >= 4.5)
         listOf(
-            "paper" to color(R.color.alive_paper),
-            "white" to color(R.color.alive_white)
+            "ground" to color(R.color.flat_ground),
+            "tile" to color(R.color.flat_tile)
         ).forEach { (name, ground) ->
             val ratio = contrast(pink, ground)
             assertTrue("pink on $name = $ratio", ratio >= 1.8)

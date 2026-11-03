@@ -68,8 +68,8 @@ object AliveWidgetArt {
 
         val bitmap = Bitmap.createBitmap(widthPx, heightPx, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
-        val ink = ContextCompat.getColor(context, R.color.alive_ink)
-        val paper = ContextCompat.getColor(context, R.color.alive_paper)
+        val ink = ContextCompat.getColor(context, R.color.flat_ink)
+        val paper = ContextCompat.getColor(context, R.color.flat_tile)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
         val faceW = widthPx - shadow
@@ -108,17 +108,18 @@ object AliveWidgetArt {
     private const val METER_SEAM_PX = 10
 
     /**
-     * The day's duration in the pixel face, at the largest size that still fits
-     * the card. Silkscreen is a fixed grid, so the text size is stepped down
-     * rather than the picture scaled - that is what keeps its edges on whole
-     * pixels instead of turning a pixel font into a blur.
+     * The day's duration in the display face, at the largest size that still fits
+     * the card. The size is stepped down rather than the picture scaled: this is
+     * a bitmap the launcher will draw at its own density, so scaling it blurs it
+     * whatever font is inside - which used to be the reason for the rule and has
+     * nothing to do with the face that moved here.
      */
     fun figure(context: Context, text: String, @ColorInt colour: Int): Bitmap {
         val density = context.resources.displayMetrics.density
         val maxWidth = FIGURE_MAX_DP * density
 
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            typeface = ResourcesCompat.getFont(context, R.font.silkscreen_bold)
+            typeface = ResourcesCompat.getFont(context, R.font.space_grotesk_bold)
                 ?: Typeface.DEFAULT_BOLD
             color = colour
             letterSpacing = 0f
@@ -158,7 +159,7 @@ object AliveWidgetArt {
 
         // The seams come last: two solid colours touching is one wider colour,
         // and the whole point of the seam is that these are separate apps.
-        paint.color = ContextCompat.getColor(context, R.color.alive_ink)
+        paint.color = ContextCompat.getColor(context, R.color.flat_ink)
         edge = 0f
         slices.dropLast(1).forEach { slice ->
             edge += METER_CANVAS_PX * slice.share

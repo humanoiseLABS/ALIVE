@@ -5,5 +5,5 @@
      from making the words unreadable. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:color="@color/alive_ink_secondary" android:state_enabled="false" />
-    <item android:color="@color/alive_ink" />
+    <item android:color="@color/flat_ink" />
 </selector>

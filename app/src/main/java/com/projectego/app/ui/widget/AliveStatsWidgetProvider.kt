@@ -123,7 +123,7 @@ class AliveStatsWidgetProvider : AppWidgetProvider() {
                 AliveWidgetArt.figure(
                     context,
                     figure,
-                    ContextCompat.getColor(context, R.color.alive_ink)
+                    ContextCompat.getColor(context, R.color.flat_ink)
                 )
             )
             // The figure is a picture, so the sentence it carries is said here

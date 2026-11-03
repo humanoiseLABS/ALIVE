@@ -1,24 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- ALIVE Design Constitution palette (authoritative) -->
-    <color name="alive_paper">#F5F1E8</color>
-    <!-- The working surface: paper taken one step deeper so the grid on top of
-         it stays faint, and blocks filled with alive_white read as laid on it. -->
-    <color name="alive_canvas">#F1EBDC</color>
-    <color name="alive_ink">#1D1D1B</color>
+    <!-- ALIVE palette. The four grounds retired with the flat redesign - the
+         page is flat_ground, a face on it is flat_tile, the sentence is flat_ink
+         - and they are deleted rather than left as aliases, because a surviving
+         alias is how a palette grows a second source of truth. Flat did not
+         replace forest, its resting tint, or warm gray, so those stay here. -->
     <color name="alive_forest">#315C45</color>
     <color name="alive_soft_forest">#DCE5DC</color>
     <color name="alive_warm_gray">#D8D2C7</color>
-    <color name="alive_white">#FFFDF8</color>
 
     <!-- Ink with alpha. These are the same ink hue, not new colors, so the
          palette stays six colors while still having a readable hierarchy.
-         Warm gray is ~1.2:1 on paper and is never used for text. -->
-    <color name="alive_ink_secondary">#B31D1D1B</color>
-    <color name="alive_ink_muted">#991D1D1B</color>
-    <color name="alive_ink_disabled">#611D1D1B</color>
-    <color name="alive_ink_hairline">#4D1D1D1B</color>
-    <color name="alive_ink_ripple">#1A1D1D1B</color>
+         Warm gray is ~1.2:1 on paper and is never used for text.
+
+         Re-derived from the flat ink #141414: the names survive the ground
+         swap because 33 call sites ask for a tone, not for a colour - only the
+         hue underneath them moves. -->
+    <color name="alive_ink_secondary">#B3141414</color>
+    <color name="alive_ink_muted">#99141414</color>
+    <color name="alive_ink_disabled">#61141414</color>
+    <color name="alive_ink_hairline">#4D141414</color>
+    <color name="alive_ink_ripple">#1A141414</color>
     <color name="alive_forest_soft">#33315C45</color>
 
     <!-- ============ GAME ROLES: three more hues, one job each ============
@@ -104,5 +106,57 @@
          purpose: gold is what a quest paid out, amber is what a button offers,
          and the two are never on the same object. -->
     <color name="alive_amber_action">#F7C948</color>
+
+    <!-- ============ FLAT: the approved language ============
+
+         From FLAT_REDESIGN_SPEC.md sec.03, which takes its numbers from the
+         approved `flat-system.css` - the artefact the renders were made with.
+         Colour fields are the structure here: a card is a pastel, not a white
+         box with an edge, so the field has to carry ink on its own and every
+         one of these is measured to do it (`FlatDesignLocksTest`).
+
+         These are added beside the old grounds rather than replacing them in
+         one move, so the 151 references can be repointed one build at a time
+         and a red suite always names the file that did not move. The old four
+         are deleted at the end of the same batch, and `FlatDesignLocksTest`
+         fails the build if any of them is still there afterwards. -->
+    <color name="flat_ground">#FBFAF8</color>
+    <color name="flat_tile">#FFFFFF</color>
+    <!-- One value, two roles: a tile is a face on the page, paper is what a
+         sentence is written in on a dark ground. Aliased rather than repeated,
+         so the second cannot drift from the first. -->
+    <color name="flat_paper">@color/flat_tile</color>
+    <color name="flat_ink">#141414</color>
+
+    <color name="flat_field_peach">#FFD6C2</color>
+    <color name="flat_field_lilac">#D9C6FF</color>
+    <color name="flat_field_mint">#B9F0A6</color>
+    <color name="flat_field_sky">#BFD9FF</color>
+    <color name="flat_field_butter">#FFE9A8</color>
+    <color name="flat_field_rose">#FFC7DE</color>
+    <color name="flat_field_lime">#C8F06E</color>
+    <color name="flat_field_coral">#FFB3A7</color>
+    <color name="flat_field_grape">#C7B2F0</color>
+    <color name="flat_field_aqua">#A8E6D8</color>
+    <color name="flat_field_blossom">#FFB8D6</color>
+    <color name="flat_field_leaf">#9FD98A</color>
+    <color name="flat_field_sun">#FFD36B</color>
+    <color name="flat_field_clay">#F0A888</color>
+
+    <!-- The two screens the approved renders put in ink-dark clothes, and the
+         one field that is dark inside. Everything on these is paper, never ink,
+         and that is the direction FlatDesignLocksTest measures. -->
+    <color name="flat_deep">#2A2F7A</color>
+    <color name="flat_deep2">#1A1F54</color>
+    <color name="flat_navy">#3A4090</color>
+
+    <!-- Varied page grounds: the renders do not put every screen on the same
+         cream, which is the one thing that made flat pass 1 read as "kurang". -->
+    <color name="flat_g_lav">#EFE7FB</color>
+    <color name="flat_g_mint">#E6F6E4</color>
+    <color name="flat_g_blush">#FBE9F0</color>
+    <color name="flat_g_butter">#FBF3DC</color>
+    <color name="flat_g_sky">#E6EEF9</color>
+    <color name="flat_g_peach">#FDEDE4</color>
 </resources>
 

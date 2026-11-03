@@ -1142,14 +1142,14 @@ class InfoPillService : Service() {
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
         }
-        val kicker = text("", 9.5f, R.font.manrope_medium, R.color.alive_paper).apply {
+        val kicker = text("", 9.5f, R.font.manrope_medium, R.color.flat_paper).apply {
             setTextColor(accent)
             letterSpacing = 0.12f
         }
         reminderKicker = kicker
         column.addView(kicker)
 
-        val title = text("", 17.5f, R.font.space_grotesk_bold, R.color.alive_paper).apply {
+        val title = text("", 17.5f, R.font.space_grotesk_bold, R.color.flat_paper).apply {
             setTextColor(PillTheme.TIMER_COLOR)
             maxLines = 1
             maxWidth = px(130)
@@ -1419,14 +1419,14 @@ class InfoPillService : Service() {
         }
         // White is the reading's colour everywhere: the compact timer is white,
         // so the panel's figure is too. Amber is left to the one action.
-        val total = text("", 26f, R.font.space_grotesk_bold, R.color.alive_paper)
+        val total = text("", 26f, R.font.space_grotesk_bold, R.color.flat_paper)
             .apply { setTextColor(PillTheme.TIMER_COLOR) }
         panelTotal = total
         val unit = text(
             getString(R.string.pill_panel_left_suffix),
             11.5f,
             R.font.manrope_medium,
-            R.color.alive_paper
+            R.color.flat_paper
         ).apply {
             setPadding(px(7), 0, 0, px(4))
             alpha = 0.72f
@@ -1583,7 +1583,7 @@ class InfoPillService : Service() {
     }
 
     private fun pageKicker(accent: Int): TextView =
-        text("", 9.5f, R.font.manrope_medium, R.color.alive_paper).apply {
+        text("", 9.5f, R.font.manrope_medium, R.color.flat_paper).apply {
             text = getString(R.string.pill_reminder_kicker)
             setTextColor(accent)
             letterSpacing = 0.12f
@@ -1591,7 +1591,7 @@ class InfoPillService : Service() {
         }
 
     private fun pageTitle(value: String): TextView =
-        text(value, 19f, R.font.space_grotesk_bold, R.color.alive_paper).apply {
+        text(value, 19f, R.font.space_grotesk_bold, R.color.flat_paper).apply {
             setTextColor(PillTheme.TIMER_COLOR)
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.END
@@ -1616,7 +1616,7 @@ class InfoPillService : Service() {
             textSize = 12f
             typeface = ResourcesCompat.getFont(this@InfoPillService, R.font.manrope_medium)
             setTextColor(
-                if (primary) colour(R.color.alive_ink) else PillTheme.TIMER_COLOR
+                if (primary) colour(R.color.flat_ink) else PillTheme.TIMER_COLOR
             )
             includeFontPadding = false
             gravity = Gravity.CENTER
@@ -1728,7 +1728,7 @@ class InfoPillService : Service() {
     }
 
     private fun smallText(value: String, sizeSp: Float, alpha: Float): TextView =
-        text(value, sizeSp, R.font.manrope_medium, R.color.alive_paper).apply {
+        text(value, sizeSp, R.font.manrope_medium, R.color.flat_paper).apply {
             this.alpha = alpha
         }
 
@@ -2595,7 +2595,7 @@ class InfoPillService : Service() {
                 AppLabels.labelFor(this@InfoPillService, row.packageName) + " " +
                     minutesText(row.minutes)
             }
-            setTextColor(colour(R.color.alive_paper))
+            setTextColor(colour(R.color.flat_paper))
             alpha = 0.8f
         }
         val rowKeys = model.rows.map { it.packageName to it.minutes }

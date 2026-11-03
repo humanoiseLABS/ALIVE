@@ -8,7 +8,7 @@
     android:viewportWidth="16"
     android:viewportHeight="16">
     <path
-        android:fillColor="@color/alive_ink"
+        android:fillColor="@color/flat_ink"
         android:pathData="M10,1h3v1h-3zM9,2h4v1h-4zM9,3h3v1h-3zM9,4h2v1h-2zM9,5h2v1h-2zM9,6h3v1h-3zM10,7h3v1h-3z" />
     <path
         android:fillColor="@color/alive_gold_reward_mid"

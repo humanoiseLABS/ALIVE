@@ -8,17 +8,17 @@
     <style name="Theme.ProjectEgo" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/alive_forest</item>
         <item name="colorPrimaryVariant">@color/alive_forest</item>
-        <item name="colorOnPrimary">@color/alive_white</item>
+        <item name="colorOnPrimary">@color/flat_tile</item>
         <item name="colorSecondary">@color/alive_forest</item>
         <item name="colorSecondaryVariant">@color/alive_forest</item>
-        <item name="colorOnSecondary">@color/alive_white</item>
-        <item name="android:colorBackground">@color/alive_canvas</item>
-        <item name="colorSurface">@color/alive_paper</item>
-        <item name="colorOnSurface">@color/alive_ink</item>
+        <item name="colorOnSecondary">@color/flat_tile</item>
+        <item name="android:colorBackground">@color/flat_ground</item>
+        <item name="colorSurface">@color/flat_ground</item>
+        <item name="colorOnSurface">@color/flat_ink</item>
         <item name="android:windowBackground">@drawable/bg_canvas</item>
-        <item name="android:statusBarColor">@color/alive_paper</item>
+        <item name="android:statusBarColor">@color/flat_ground</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:navigationBarColor">@color/alive_paper</item>
+        <item name="android:navigationBarColor">@color/flat_ground</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
 
         <!-- The loading splash: the same canvas the app opens onto, with the
@@ -28,7 +28,7 @@
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_hourglass</item>
         <item name="android:windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
         <item name="android:windowSplashScreenAnimationDuration">300</item>
-        <item name="android:textColorPrimary">@color/alive_ink</item>
+        <item name="android:textColorPrimary">@color/flat_ink</item>
         <item name="android:textColorSecondary">@color/alive_ink_secondary</item>
         <item name="android:textColorHint">@color/alive_ink_muted</item>
 
@@ -46,7 +46,7 @@
         <item name="colorControlNormal">@color/alive_ink_hairline</item>
         <item name="colorControlActivated">@color/alive_forest</item>
         <item name="colorControlHighlight">@color/alive_ink_ripple</item>
-        <item name="colorOnBackground">@color/alive_ink</item>
+        <item name="colorOnBackground">@color/flat_ink</item>
 
         <!-- Every action button starts from this style. The outline and quiet
              variants are built in AliveComponents. -->

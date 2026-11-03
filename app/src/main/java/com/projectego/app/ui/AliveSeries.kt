@@ -24,7 +24,7 @@ object AliveSeries {
 
     @ColorRes
     val donut = listOf(
-        R.color.alive_ink,
+        R.color.flat_ink,
         R.color.alive_gold_reward_mid,
         R.color.alive_blue_work_mid,
         R.color.alive_soft_forest
@@ -43,7 +43,7 @@ object AliveSeries {
      */
     @ColorRes
     val tile = listOf(
-        R.color.alive_white,
+        R.color.flat_tile,
         R.color.alive_gold_reward_pale,
         R.color.alive_blue_work_pale,
         R.color.alive_soft_forest
