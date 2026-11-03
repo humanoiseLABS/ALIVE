@@ -32,7 +32,7 @@ This document changes no source code. It records what was approved, what was mea
 | 6c | Derived — a separate solid silhouette for status-bar art | RESOLVED | 1.2, 8 |
 | 6d | Derived — `snap()` and `spritePx()` are two rules, removed in two batches | RESOLVED | 1.7, 12 |
 | 7 | `sprite()` snap removed, in its own attributable batch | RESOLVED | 1.7, 12 |
-| 8 | The 184 ground-token references repointed, old tokens deleted | RESOLVED | 3, 12 |
+| 8 | The 151 ground-token references repointed, old tokens deleted | RESOLVED | 3, 12 |
 | 8 | Batch order follows the 2026-11-02 invariant-first ruling | RESOLVED | 12 |
 | 9 | Compile-blocking batch isolated | RESOLVED | 12 (Batch 1) |
 | 10 | Invariants ported before `res/drawable` is touched | RESOLVED | 11.1, 12 (Batch 0a) |
@@ -142,7 +142,7 @@ Measured at `5d145ed`:
 | Kotlin files in `app/src/main/java` | **125** |
 | `AliveComponents.kt` | **1.292 lines** |
 | Test files locking this surface | **16**, 2.023 lines |
-| References to the four retiring ground tokens | **184** |
+| References to the four retiring ground tokens | **151** (132 XML + 19 Kotlin) |
 | `ALIVE_DESIGN_CONSTITUTION.md` | 501 lines |
 
 The UI is built programmatically. The 65 drawables are the smaller half of the surface; `AliveComponents.kt` is the design system and every card, button, chip, tile and notice in the app is produced by it.
@@ -165,9 +165,16 @@ From `flat-system.css`, the approved artefact.
 
 **Ground and faces.** `ground #FBFAF8`, `tile #FFFFFF`, `ink #141414`, ink alphas 72 / 52 / 34.
 
-**The real cost of decision 1, measured.** The retiring tokens are not dead — they carry **184 references**: `alive_ink` 131, `alive_white` 30, `alive_paper` 19, `alive_canvas` 4. So "change the ground" is a 184-site mechanical repoint, and it is the largest single edit in this project. It is done as its own step inside Batch 1, never smeared across batches.
+**The real cost of decision 1, measured.** The retiring tokens are not dead. Measured at `f6a4d69` the four retiring grounds carry **151 references** — 132 in XML and 19 in Kotlin. An earlier count of 184 was wrong in its own favour: it matched `alive_ink` as a prefix and swept up the five alpha-variant tokens, which are **not** retired. The corrected picture is:
 
-**Strategy — introduce, repoint, then delete.** New `flat_*` tokens become the single source of truth; every app-side reference moves to them; the old tokens are then **deleted once nothing references them**. Deleting is what makes decision 1 stick — a leftover alias is exactly how two sources of truth come back. Mutating the old tokens' values in place was rejected: it bundles a 131-site colour shift with everything else, so a red test could not be attributed.
+| Token | Fate | References |
+|---|---|---|
+| `alive_ink`, `alive_paper`, `alive_canvas`, `alive_white` | deleted | **151** to repoint |
+| `alive_ink_secondary/muted/disabled/hairline/ripple` | name kept, **value** re-derived from `#141414` | 33, untouched |
+
+So "change the ground" is a 151-site mechanical repoint plus one value block in `colors.xml`. It is still the largest single edit in this project, and it stays one step inside Batch 1, never smeared across batches.
+
+**Strategy — introduce, repoint, then delete.** New `flat_*` tokens become the single source of truth; every app-side reference moves to them; the old tokens are then **deleted once nothing references them**. Deleting is what makes decision 1 stick — a leftover alias is exactly how two sources of truth come back. Mutating the old tokens' values in place was rejected: it bundles a 151-site colour shift with everything else, so a red test could not be attributed.
 
 **The pill's 8 `alive_paper` references are not a ground.** They are text on the black shell — an on-ink foreground, which Derived 1a makes `#FFFFFF`. They migrate to `flat_paper` in Batch 6, the only batch that opens the pill. This does not create a second source of truth: it is one token answering a different question.
 
@@ -300,32 +307,43 @@ The pixel-specific locks become shape-agnostic ones:
 
 `AliveCharacterSilhouetteTest` currently parses `pathData` with a **rectangles-only** engine (`Regex("M(-?\\d+),(-?\\d+)((?:[hv]-?\\d+)+)z")`) and asserts every `alive_pink_soft #E58CA4` cell touches the body. It understands only horizontal and vertical runs, so it cannot see a curve — and 11 of the 12 approved silhouettes are curves. Non-pink curved bodies make it yield zero cells, so `assertTrue("$name draws no pink at all")` goes hard red: the correct failure, the wrong test.
 
-**Mechanism — rasterised, not analytic.** Measured on this machine at `78d8460`: under `@Config(sdk = [36])` alone, Robolectric's canvas is a **stub** — `drawRect` on a 32×32 bitmap reported 63 opaque pixels of 1024, and a VectorDrawable reported **0**. Adding `@GraphicsMode(GraphicsMode.Mode.NATIVE)` makes it real: `drawRect` 1024/1024, `GradientDrawable` 1024, `ic_alive_character` at 64×64 → **1216 opaque pixels (29,7 %)**.
+**Mechanism — authored geometry for connectivity, pixels for the rest.** Measured on this machine at `78d8460`: under `@Config(sdk = [36])` alone, Robolectric's canvas is a **stub** — `drawRect` on a 32×32 bitmap reported 63 opaque pixels of 1024, and a VectorDrawable reported **0**. Adding `@GraphicsMode(GraphicsMode.Mode.NATIVE)` makes it real: `drawRect` 1024/1024, `GradientDrawable` 1024, `ic_alive_character` at 64×64 → **1216 opaque pixels (29,7 %)**.
 
-So the invariants are computed from pixels, and no Bézier-flattening geometry engine is needed:
+Connectivity, however, **cannot be measured on a composite**, and four red runs proved why:
 
-| Invariant | How it is proved |
-|---|---|
-| one connected body | rasterise at 24 px, flood-fill 4-neighbour from any opaque pixel, assert every opaque pixel is reached |
-| every silhouette distinct | rasterise all 17 at 24 px, compare pairwise, assert no two exceed an IoU of 0.9 — **this is the lock that proves the five collisions are actually gone** |
-| legible at 24 px | each member keeps ≥ N opaque pixels and its body bbox spans ≥ M px, so nothing collapses to a dot |
-| eyes flip on dark bodies | sample eye pixels against body pixels from the rendered drawable, assert ≥ 4.5:1 — the rule moves off `family-bots.py`'s `_dark()` and onto the artefact |
+1. At 24 px the pixel art is a 0,5× downscale of its 48 grid and scatters into sub-cell fragments — connectivity is a property of the artwork, not of a downscale, so it is measured at the authored size.
+2. The flood fill seeded on an anti-aliased alpha-1 speck and reported a whole body adrift, so only pixels at ≥ 50 % coverage count as geometry.
+3. `ic_alive_face_happy` carries four forest-green sparkles the design deliberately floats above the head; "every pixel connected" would outlaw them.
+4. `ic_alive_pose_book` renders its body in three pieces because the held book occludes it — the occluded pink is gone from the raster and present in the XML.
+
+So the body is rebuilt as a real `Path` from its own `pathData` (M/L/H/V/C/Z, throwing on anything else so a future curve command fails loudly instead of being skipped) and drawn **alone**, then flood-filled 8-way — 8 because pixel art joins its arms to the torso on the diagonal. The body is the colour that owns the raster, so nothing hardcodes `alive_pink_soft`.
+
+| Invariant | How it is proved | Status today |
+|---|---|---|
+| one connected body | authored body paths drawn alone, flood-filled 8-way | **green on the legacy art** |
+| legible at 24 px | rasterised: opaque floor + bbox span at the strip's size | **green on the legacy art** |
+| eyes keep 4.5:1 on their body | rasterised histogram: body = dominant colour, eyes = darkest solid colour | **green on the legacy art** |
+| every silhouette distinct at 24 px | rasterised pairwise IoU over the 17 members | **red until Batch 3** — the property belongs to the new family; the legacy set is 17 expressions of one body and is meant to share a silhouette |
+| no part floats off a member | every solid component touches the body component | **red until Batch 3** — the legacy art floats sparkles on purpose; the flat DNA forbids it |
 
 ### 11.2 Flat locks that do not exist today
 
 The approved flat rules currently have **zero** tests. These are written as red tests in Batch 0b, before the tokens that turn them green:
 
-| Lock | Proof type |
-|---|---|
-| no border and no shadow anywhere in the produced drawables | resource-set scan |
-| the radius scale 28 / 22 / pill, and no sixth radius | dimens + literal scan |
-| Space Grotesk 700 for display and numbers | `type.xml` on the five re-authored styles |
-| ink eyes on light bodies, paper eyes on dark bodies | rasterised (11.1) |
-| 24 px legibility | rasterised (11.1) |
-| ink-on-pastel **and** paper-on-dark both clear 4.5:1 | arithmetic on real resources |
-| **the ground is one token** — `alive_paper`, `alive_canvas`, `alive_ink`, `alive_white` no longer exist in the resource set | resource-set scan |
+| Lock | Proof type | Status |
+|---|---|---|
+| no border and no shadow anywhere in the produced drawables | resource-set scan | red until Batch 2 |
+| the radius scale 28 / 22 / pill, and no sixth radius | dimens + literal scan | red until Batch 1 |
+| Space Grotesk 700 for display and numbers | `type.xml` on the five re-authored styles | red until Batch 1 |
+| ink eyes on light bodies, paper eyes on dark bodies | rasterised (11.1) | **delivered in 0a, green on legacy art** |
+| 24 px legibility | rasterised (11.1) | **delivered in 0a, green on legacy art** |
+| one connected body | authored paths (11.1) | **delivered in 0a, green on legacy art** |
+| every member silhouette distinct at 24 px | rasterised pairwise IoU | red until Batch 3 |
+| no part floats off a member | component adjacency to the body | red until Batch 3 |
+| ink-on-pastel **and** paper-on-dark both clear 4.5:1 | arithmetic on real resources | red until Batch 1 |
+| **the ground is one token** — `alive_paper`, `alive_canvas`, `alive_ink`, `alive_white` no longer exist in the resource set | resource-set scan | red until Batch 1 |
 
-The last one is the cheap proof that decision 1 actually stuck. Without it the migration can finish half-done — new `flat_*` tokens added, the 184 old references left pointing at the old creams — and every visible test would still pass, because both palettes would be legible. That is exactly the two-sources-of-truth failure decision 1 was written to prevent, arriving as a green suite.
+The last one is the cheap proof that decision 1 actually stuck. Without it the migration can finish half-done — new `flat_*` tokens added, the 151 old references left pointing at the old creams — and every visible test would still pass, because both palettes would be legible. That is exactly the two-sources-of-truth failure decision 1 was written to prevent, arriving as a green suite.
 
 ### 11.3 Never allowed to regress
 
@@ -341,7 +359,7 @@ Every batch ends with the full suite green and a report. Nothing is committed wi
 |---|---|---|---|
 | **0a** | Port the invariants to rasterised general form (11.1) and retire the rect-only parser; add the `@GraphicsMode(NATIVE)` + non-zero-floor pattern | Must happen while the suite is green, before `res/drawable` or `res/font` is touched | green, and the locks now guard the *rule* rather than the pixel grid |
 | **0b** | Write the flat locks (11.2) as **red** tests | TDD — they define the target | red, expected, reported |
-| **1** | Tokens + fonts: new `flat_*` ground/field/radius tokens, the **184-site repoint**, deletion of the four old ground tokens, `type.xml` re-authored, 3 TTFs deleted, 3 code files moved off `silkscreen_bold` | **Compile-blocking** — a deleted TTF makes `R.font.*` unresolvable, and a deleted colour makes `R.color.*` unresolvable, which fails the whole test source set so the suite cannot even report what broke. Must go first and alone | 0b turns green |
+| **1** | Tokens + fonts: new `flat_*` ground/field/radius tokens, the **151-site repoint**, deletion of the four old ground tokens, `type.xml` re-authored, 3 TTFs deleted, 3 code files moved off `silkscreen_bold` | **Compile-blocking** — a deleted TTF makes `R.font.*` unresolvable, and a deleted colour makes `R.color.*` unresolvable, which fails the whole test source set so the suite cannot even report what broke. Must go first and alone | 0b turns green |
 | **2** | `AliveComponents` surface model: `framed`/`outline` → flat colour field; edge/shadow split into distance vs elevation; `textOn()` + dark grounds | The design system. Padding moves here, attributable to one change | green |
 | **3** | Rebuild the sheet generator → 17 members + 6 new silhouettes → VectorDrawable XML; remove `sprite()` snap | Only batch that moves geometry | green |
 | **4** | Hourglass flat + status-bar silhouette, 16 + 3 + 2 refs | Derived 1c | green |
