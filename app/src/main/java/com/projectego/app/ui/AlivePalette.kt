@@ -30,6 +30,20 @@ class AlivePalette(context: Context) {
 
     private val appContext = context.applicationContext
 
+    /**
+     * The flat surfaces. The field is the structure now - a card is the colour it
+     * is - so these are the four every surface answers to: the ground a page
+     * stands on, the white a field wears, the paper a dark field's text is
+     * written in, and the ink everything else reads in.
+     */
+    val ground = color(R.color.flat_ground)
+    val tile = color(R.color.flat_tile)
+    val flatPaper = color(R.color.flat_paper)
+    val flatInk = color(R.color.flat_ink)
+
+    /** The mint a landed field wears: quiet, and not one of the family's status hues. */
+    val flatMint = color(R.color.flat_field_mint)
+
     val paper = color(R.color.flat_ground)
     val canvas = color(R.color.flat_ground)
     val ink = color(R.color.flat_ink)

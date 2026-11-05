@@ -349,11 +349,15 @@ class AliveComponents(private val context: Context) {
     /** A column of rows whose cells can be one shared size. */
     fun equalGrid(): EqualGrid = EqualGrid(context)
 
-    /** The thinnest ink rule, for between the rows of one list. */
-    fun rowRule(): View = View(context).apply {
-        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dimens.borderThin)
-        setBackgroundColor(palette.inkHairline)
-    }
+    /**
+     * Between the rows of one list.
+     *
+     * This used to be the thinnest ink line ALIVE drew. Flat separates with air
+     * instead of with a line - a hairline between rows is a border wearing a
+     * smaller hat - so the rule becomes the same amount of space a list line
+     * already breathes, and the rows keep their own padding to stay apart.
+     */
+    fun rowRule(): View = vgap(dimens.lineGap)
 
     // ---------- SURFACES ----------
 
@@ -361,85 +365,69 @@ class AliveComponents(private val context: Context) {
      * What a surface looks like, decided by two independent questions: how heavy
      * (`weight`) and what happened (`tone`).
      *
-     * Composed in code rather than in XML because the matrix would otherwise be
-     * twelve drawables, each a copy of the next with two numbers changed - and a
-     * drawable cannot express the rule that a closed door never wins the weight
-     * contest, which is the whole reason QUIET overrides the shadow here.
+     * Flat changed the answer to both. A surface is now one colour field with one
+     * corner - no edge, no shadow, no ink layer under it - so a surface is
+     * described by the colour it is and how round it is, and by nothing else.
+     * Weight is no longer drawn: it is rationed by how many fields a screen
+     * carries and which one is the darkest, not by how thick a line surrounds a
+     * box. A screen still gets exactly one MAJOR, but a MAJOR is now the field
+     * that is loudest, not the one with the heaviest edge.
      *
-     * No face is dark: white-on-forest would force every child TextView to be
-     * recoloured, and the calm reading order would go with it. Weight comes from
-     * the edge and the shadow, never from an inverted fill.
+     * No face is dark by default. The screens the approved renders put in ink
+     * clothes set their own face and take their text colour from [textOn].
      */
-    private class Surface(val edge: Int, val shadow: Int, val radius: Int, @ColorInt val face: Int?)
+    private class Surface(val radius: Int, @ColorInt val face: Int?)
 
     private fun surfaceFor(weight: SurfaceWeight, tone: StatusTone): Surface = when {
-        // Ordinary content sits straight on the canvas - no edge, no shadow, and
-        // no hidden padding either.
-        tone == StatusTone.NEUTRAL || weight == SurfaceWeight.PLAIN -> Surface(0, 0, 0, null)
+        // Ordinary content sits straight on the ground - no field at all.
+        tone == StatusTone.NEUTRAL || weight == SurfaceWeight.PLAIN -> Surface(0, null)
 
-        // A closed door: a hairline and no shadow, whatever weight asked for.
-        tone == StatusTone.QUIET -> Surface(dimens.borderThin, 0, dimens.radiusCard, Color.TRANSPARENT)
+        // A closed door is still a field, just the quietest one: white on the
+        // ground, saying nothing happened. An edge would be a border, and flat
+        // has none.
+        tone == StatusTone.QUIET -> Surface(dimens.radiusCard, palette.tile)
 
         else -> Surface(
-            edge = if (weight == SurfaceWeight.MAJOR) dimens.borderBold else dimens.borderButton,
-            shadow = if (weight == SurfaceWeight.MAJOR) dimens.shadow else dimens.shadowMinor,
             radius = dimens.radiusCard,
-            face = if (tone == StatusTone.LANDED) palette.softForest else palette.white
+            face = if (tone == StatusTone.LANDED) palette.flatMint else palette.tile
         )
     }
 
-    private fun drawableFor(surface: Surface): Drawable? {
-        val face = surface.face ?: return null
-        val radius = surface.radius.toFloat()
-        // A QUIET surface asks for a hairline, a transparent face and no shadow.
-        // Without the shadow it must not get the ink layer at all, because that
-        // layer is what a hard shadow is made of - and an ink rectangle under a
-        // transparent face is a black card, not an empty one.
-        if (surface.shadow == 0) return outline(surface.edge, radius, face)
-        return framed(face, surface.edge, surface.shadow, radius)
-    }
+    private fun drawableFor(surface: Surface): Drawable? =
+        surface.face?.let { field(it, surface.radius.toFloat()) }
 
-    /** The face itself: a fill, an ink edge, one corner. */
-    private fun outline(edge: Int, radius: Float, @ColorInt face: Int): GradientDrawable =
+    /**
+     * The whole surface language: one flat colour, one corner.
+     *
+     * There is no edge and no layer underneath. The colour field is the structure
+     * here - the thing a card is made of - so the field has to carry its own
+     * text, which is what [textOn] decides.
+     */
+    private fun field(@ColorInt face: Int, radius: Float): GradientDrawable =
         GradientDrawable().apply {
             setColor(face)
-            setStroke(edge, palette.ink)
             cornerRadius = radius
         }
 
     /**
-     * A face with an edge and a hard shadow to its bottom-right - the one picture
-     * every raised object in this app wears, shared by cards, tiles and chips so a
-     * 10sp tag and a whole card are unmistakably the same kind of thing.
+     * The text colour a field is allowed to carry: ink on the pastels, paper on
+     * the dark grounds.
      *
-     * Both layers are rounded, not just the face: a square shadow behind a round
-     * card shows up as two black corners, which is the first thing the eye catches.
-     *
-     * [rim] is ink everywhere except on Guardian's plate, which is itself ink and
-     * needs a rim it can be seen against. Changing the colour changes the stroke
-     * too, because an edge drawn in a colour the shadow is not reads as a mistake.
+     * One threshold, and it is the one the character family already answers to -
+     * the family flips its eyes to paper below a luminance of 0.32 - so the
+     * characters and the surfaces obey a single number instead of two rules that
+     * can drift apart. Measured, not eyeballed: `FlatDesignLocksTest` fails the
+     * build if any field lets its own text fall under 4.5:1.
      */
-    private fun framed(
-        @ColorInt face: Int,
-        edge: Int,
-        shadow: Int,
-        radius: Float,
-        @ColorInt rim: Int = palette.ink
-    ): Drawable {
-        val under = GradientDrawable().apply {
-            setColor(rim)
-            cornerRadius = radius
+    fun textOn(@ColorInt field: Int): Int =
+        if (luminance(field) < DARK_FIELD_LUMINANCE) palette.flatPaper else palette.flatInk
+
+    private fun luminance(@ColorInt rgb: Int): Double {
+        fun channel(shift: Int): Double {
+            val value = (rgb ushr shift and 0xFF) / 255.0
+            return if (value <= 0.03928) value / 12.92 else Math.pow((value + 0.055) / 1.055, 2.4)
         }
-        val panel = GradientDrawable().apply {
-            setColor(face)
-            setStroke(edge, rim)
-            cornerRadius = radius
-        }
-        // The face covers the under-layer everywhere but bottom-right, which is
-        // what leaves a hard shadow rather than a blurred one.
-        return LayerDrawable(arrayOf(under, panel)).apply {
-            setLayerInset(1, 0, 0, shadow, shadow)
-        }
+        return 0.2126 * channel(16) + 0.7152 * channel(8) + 0.0722 * channel(0)
     }
 
     /**
@@ -455,21 +443,24 @@ class AliveComponents(private val context: Context) {
         @ColorInt rim: Int,
         weight: SurfaceWeight = SurfaceWeight.MAJOR
     ): LinearLayout {
-        val edge = if (weight == SurfaceWeight.MAJOR) dimens.borderBold else dimens.borderButton
-        val shadow = if (weight == SurfaceWeight.MAJOR) dimens.shadow else dimens.shadowMinor
-        val inset = dimens.cardInset
+        // The rim outlived its job: it existed so an ink plate could be seen
+        // against an ink ground. A flat field is seen by being a different colour
+        // from the ground, so the parameter stays for the callers and the drawing
+        // no longer needs it.
         return column().apply {
-            background = framed(face, edge, shadow, dimens.radiusCard.toFloat(), rim)
-            setPadding(edge + inset, edge + inset, edge + shadow + inset, edge + shadow + inset)
+            background = field(face, dimens.radiusCard.toFloat())
+            setPadding(dimens.cardInset, dimens.cardInset, dimens.cardInset, dimens.cardInset)
         }
     }
 
     /**
      * A block whose dress comes from its weight and its tone.
      *
-     * Padding is measured from the face, not from the view's bounds: the right
-     * and bottom carry the shadow's width as well, so the interior is optically
-     * square and no glyph ever sits on a shadow.
+     * Padding is one number on all four sides now. It used to be measured from
+     * the face plus the edge plus the shadow, because the shadow lived inside the
+     * bounds and a glyph sitting on it looked like a mistake; with no edge and no
+     * shadow there is nothing to compensate for, and the interior is square by
+     * construction.
      */
     fun block(
         weight: SurfaceWeight = SurfaceWeight.MINOR,
@@ -479,12 +470,7 @@ class AliveComponents(private val context: Context) {
         return column().apply {
             background = drawableFor(surface)
             val inset = dimens.cardInset
-            setPadding(
-                surface.edge + inset,
-                surface.edge + inset,
-                surface.edge + surface.shadow + inset,
-                surface.edge + surface.shadow + inset
-            )
+            setPadding(inset, inset, inset, inset)
         }
     }
 
@@ -514,19 +500,16 @@ class AliveComponents(private val context: Context) {
         addView(cardTitle(title))
     }
 
-    /** Uppercase, extra bold, thick ink rule underneath: a card's name. */
+    /**
+     * A card's name.
+     *
+     * Flat names its blocks with type alone: a thick ink rule under a title is an
+     * edge, and flat has none. The header keeps the air the rule used to occupy,
+     * so a card's contents do not climb into its name.
+     */
     fun cardTitle(value: CharSequence): LinearLayout = column().apply {
         addView(sectionHeader(value))
         addView(vgap(dimens.lineGap))
-        addView(
-            View(context).apply {
-                layoutParams = LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    dimens.borderBold
-                )
-                setBackgroundColor(palette.ink)
-            }
-        )
     }
 
     /**
@@ -540,16 +523,15 @@ class AliveComponents(private val context: Context) {
         layoutParams = LinearLayout.LayoutParams(sizePx, sizePx).apply {
             marginEnd = dimens.m
         }
-        background = GradientDrawable().apply {
-            setColor(color)
-            setStroke(dimens.borderButton, palette.ink)
-            cornerRadius = dimens.radiusStep.toFloat()
-        }
+        // A legend swatch copies the chart's fill, and the chart's fill no longer
+        // wears an edge - so neither does the swatch, or a key and its picture
+        // would disagree.
+        background = field(color, dimens.radiusStep.toFloat())
     }
 
     /**
-     * A category's tile: the hue that kind of doing wears, an ink edge, a hard
-     * shadow, and the pixel mark sitting inside it.
+     * A category's tile: the hue that kind of doing wears, and the mark sitting
+     * inside it.
      *
      * This is the object the whole board is scanned by. A list of nine quests is
      * nine sentences that all start the same way, and the tile is what makes
@@ -559,15 +541,18 @@ class AliveComponents(private val context: Context) {
         ImageView(context).apply {
             setImageResource(glyph)
             scaleType = ImageView.ScaleType.CENTER_INSIDE
-            background = framed(hue, dimens.borderButton, dimens.shadowMinor, dimens.radiusTile.toFloat())
-            val inset = (sizePx - dimens.shadowMinor) / 5
-            setPadding(inset, inset, inset + dimens.shadowMinor, inset + dimens.shadowMinor)
+            background = field(hue, dimens.radiusTile.toFloat())
+            // One inset on all four sides. It used to leave room for the shadow on
+            // two of them; with no shadow the mark sits in the middle of its hue
+            // by construction.
+            val inset = sizePx / 5
+            setPadding(inset, inset, inset, inset)
             layoutParams = LinearLayout.LayoutParams(sizePx, sizePx)
         }
 
     /** Repaint a tile's face. The Focus picker swaps hue along with the mark. */
     fun tintTile(tile: ImageView, @ColorInt hue: Int) {
-        tile.background = framed(hue, dimens.borderButton, dimens.shadowMinor, dimens.radiusTile.toFloat())
+        tile.background = field(hue, dimens.radiusTile.toFloat())
     }
 
     /**
@@ -575,16 +560,18 @@ class AliveComponents(private val context: Context) {
      *
      * This is the reference's logo square, drawn with what ALIVE actually knows:
      * the initial the device gives us, or the rank a row holds in a list. ALIVE
-     * does not ship app icons and will not pretend to have them.
+     * does not ship app icons and will not pretend to have them. The text takes
+     * its colour from the hue it sits on, because a tile is a field now and a
+     * field carries its own text.
      */
     fun textTile(value: CharSequence, @ColorInt hue: Int, sizePx: Int = dimens.markSmallSize): TextView =
         TextView(context).apply {
             text = value
             setTextAppearance(R.style.TextAppearance_ALIVE_Number)
-            setTextColor(palette.ink)
+            setTextColor(textOn(hue))
             gravity = Gravity.CENTER
             includeFontPadding = false
-            background = framed(hue, dimens.borderButton, dimens.shadowMinor, dimens.radiusTile.toFloat())
+            background = field(hue, dimens.radiusTile.toFloat())
             layoutParams = LinearLayout.LayoutParams(sizePx, sizePx)
         }
 
@@ -592,13 +579,14 @@ class AliveComponents(private val context: Context) {
      * One proportional bar: this row's share of the whole it belongs to.
      *
      * A ranking is only readable if the gap between first and second is visible,
-     * and minutes alone make someone do the arithmetic.
+     * and minutes alone make someone do the arithmetic. The track is a white field
+     * with no edge: the fill is the only thing in it that means anything.
      */
     fun meter(share: Float, @ColorInt fill: Int): View =
         LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dimens.s)
-            background = outline(dimens.borderButton, dimens.radiusStep.toFloat(), palette.white)
+            background = field(palette.tile, dimens.radiusStep.toFloat())
             val safe = share.coerceIn(0f, 1f)
             addView(
                 View(context).apply {
@@ -616,18 +604,17 @@ class AliveComponents(private val context: Context) {
         }
 
     /**
-     * A block that wears a colour of its own rather than paper.
+     * A block that wears a colour of its own rather than white.
      *
      * For the one card on a screen that is raised without being asked - the
-     * coverage banner - where a white face would make it just another card.
+     * coverage banner - where a white face would make it just another card. The
+     * colour is loud enough to be the raise; it needs no edge to say so.
      */
     fun tintedBlock(@ColorInt face: Int, weight: SurfaceWeight = SurfaceWeight.MINOR): LinearLayout {
-        val edge = if (weight == SurfaceWeight.MAJOR) dimens.borderBold else dimens.borderButton
-        val shadow = if (weight == SurfaceWeight.MAJOR) dimens.shadow else dimens.shadowMinor
         val inset = dimens.cardInset
         return column().apply {
-            background = framed(face, edge, shadow, dimens.radiusCard.toFloat())
-            setPadding(edge + inset, edge + inset, edge + shadow + inset, edge + shadow + inset)
+            background = field(face, dimens.radiusCard.toFloat())
+            setPadding(inset, inset, inset, inset)
         }
     }
 
@@ -677,25 +664,23 @@ class AliveComponents(private val context: Context) {
     fun statTile(
         name: CharSequence,
         value: CharSequence,
-        @ColorInt face: Int = palette.white,
+        @ColorInt face: Int = palette.tile,
         unit: CharSequence? = null,
         @DrawableRes mark: Int? = null
     ): LinearLayout = column().apply {
-        background = framed(face, dimens.borderButton, dimens.shadowMinor, dimens.radiusTile.toFloat())
+        background = field(face, dimens.radiusTile.toFloat())
+        // One inset on all four sides, and every word in the tile takes its colour
+        // from the face it sits on - a tile is a field, and a field carries its own
+        // text.
         val inset = dimens.ledgerInset
-        val edge = dimens.borderButton
-        setPadding(
-            inset + edge,
-            inset + edge,
-            inset + edge + dimens.shadowMinor,
-            inset + edge + dimens.shadowMinor
-        )
-        addView(tileLabel(name))
+        setPadding(inset, inset, inset, inset)
+        val on = textOn(face)
+        addView(tileLabel(name).apply { setTextColor(on) })
         addView(vgap(dimens.pairGap))
         if (unit == null && mark == null) {
-            addView(number(value))
+            addView(number(value).apply { setTextColor(on) })
         } else {
-            val figure = number(value)
+            val figure = number(value).apply { setTextColor(on) }
             addView(
                 row().apply {
                     gravity = Gravity.BOTTOM
@@ -705,6 +690,7 @@ class AliveComponents(private val context: Context) {
                         addView(hgap(dimens.xs))
                         addView(
                             meta(unit).apply {
+                                setTextColor(on)
                                 setPadding(0, 0, 0, dimens.xs)
                             }
                         )
@@ -742,12 +728,6 @@ class AliveComponents(private val context: Context) {
             scaleType = ImageView.ScaleType.FIT_CENTER
             contentDescription = null
         }
-    }
-
-    /** A thick ink rule between the parts of one card. */
-    fun rule(): View = View(context).apply {
-        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dimens.borderButton)
-        setBackgroundColor(palette.ink)
     }
 
     /**
@@ -853,10 +833,9 @@ class AliveComponents(private val context: Context) {
         }
     }
 
-    /** One block of a meter: a face with an ink edge, drawn so the edge stays ink. */
+    /** One block of a meter: a face, and nothing around it. */
     private fun step(@ColorInt face: Int): GradientDrawable = GradientDrawable().apply {
         setColor(face)
-        setStroke(dimens.borderButton, palette.ink)
         cornerRadius = dimens.radiusStep.toFloat()
     }
 
@@ -899,16 +878,10 @@ class AliveComponents(private val context: Context) {
      */
     fun rewardChip(value: CharSequence): TextView = meta(value).apply {
         setTextColor(palette.rewardDark)
-        background = framed(palette.rewardPale, dimens.borderButton, dimens.shadowMinor, dimens.radiusPill.toFloat())
-        val inset = dimens.s
-        // The shadow is inside these bounds, so the right and bottom carry its
-        // width as padding or the gold sits on the glyph.
-        setPadding(
-            dimens.borderButton + inset,
-            dimens.borderButton + dimens.xs,
-            dimens.borderButton + dimens.shadowMinor + inset,
-            dimens.borderButton + dimens.shadowMinor + dimens.xs
-        )
+        background = field(palette.rewardPale, dimens.radiusPill.toFloat())
+        // A pill's padding is one number on all four sides; there is no shadow
+        // inside these bounds to make room for any more.
+        setPadding(dimens.s, dimens.xs, dimens.s, dimens.xs)
     }
 
     private fun Float.roundToIntClamped(max: Int): Int =
@@ -1054,15 +1027,11 @@ class AliveComponents(private val context: Context) {
         // appearance cannot undo it - only the widget can. So the type ladder's
         // "say it in words, not in stamps" rule is enforced here, on every button.
         isAllCaps = false
-        // Centred on the *face*, not on the bounds: the shadow is inside the
-        // bounds on the right and bottom, so a label centred on the bounds sits
-        // visibly low and to the left of the box it is written on.
-        setPadding(
-            dimens.xl + dimens.borderBold,
-            dimens.m,
-            dimens.xl + dimens.borderBold + dimens.shadow,
-            dimens.m + dimens.shadow
-        )
+        // One padding on all four sides. It used to be measured off the face
+        // because the shadow lived inside the bounds and a label centred on the
+        // bounds sat visibly off the box it was written on; with no shadow the
+        // bounds are the face and centring is centring.
+        setPadding(dimens.xl, dimens.m, dimens.xl, dimens.m)
         includeFontPadding = false
     }
 
@@ -1110,13 +1079,14 @@ class AliveComponents(private val context: Context) {
         // tall on a 48dp tile. The image is fitted into a content box that is
         // exactly one sprite-grid arrow (48px here, 16 cells of 3px).
         val arrowSize = dimens.spriteDp(24)
-        val face = dimens.touchMin - dimens.shadow
+        // The face is the whole tile now. It used to stop short of the shadow on
+        // two sides, and the arrow was centred on that smaller face; with no
+        // shadow the tile and the face are the same box.
+        val face = dimens.touchMin
         minimumWidth = dimens.touchMin
         minimumHeight = dimens.touchMin
         val side = ((face - arrowSize) / 2).coerceAtLeast(dimens.xs)
-        // Centred on the face, not the bounds: the hard shadow occupies the
-        // right and bottom inside the box.
-        setPadding(side, side, side + dimens.shadow, side + dimens.shadow)
+        setPadding(side, side, side, side)
         scaleType = ImageView.ScaleType.FIT_CENTER
         setImageResource(R.drawable.ic_arrow_back_pixel)
     }
@@ -1143,7 +1113,6 @@ class AliveComponents(private val context: Context) {
             setPadding(dimens.m, dimens.xs, dimens.m, dimens.xs)
             val swatch = GradientDrawable().apply {
                 setColor(swatchColor)
-                setStroke(dimens.borderButton, palette.ink)
                 cornerRadius = dimens.radiusStep.toFloat()
                 setBounds(0, 0, swatchPx, swatchPx)
             }
@@ -1152,7 +1121,7 @@ class AliveComponents(private val context: Context) {
             background = StateListDrawable().apply {
                 addState(
                     intArrayOf(android.R.attr.state_checked),
-                    outline(dimens.borderBold, dimens.radiusTile.toFloat(), palette.white)
+                    field(palette.tile, dimens.radiusTile.toFloat())
                 )
                 addState(intArrayOf(), ColorDrawable(Color.TRANSPARENT))
             }
@@ -1183,12 +1152,7 @@ class AliveComponents(private val context: Context) {
             buttonDrawable = null
             gravity = Gravity.CENTER_VERTICAL
             minHeight = dimens.touchMin
-            setPadding(
-                dimens.l + dimens.borderBold,
-                dimens.m,
-                dimens.l + dimens.borderBold + dimens.shadowMinor,
-                dimens.m + dimens.shadowMinor
-            )
+            setPadding(dimens.l, dimens.m, dimens.l, dimens.m)
             val mark = if (glyph == 0) null else ContextCompat.getDrawable(context, glyph)?.apply {
                 setBounds(0, 0, dimens.l, dimens.l)
             }
@@ -1197,13 +1161,13 @@ class AliveComponents(private val context: Context) {
             background = StateListDrawable().apply {
                 addState(
                     intArrayOf(android.R.attr.state_checked),
-                    framed(hue, dimens.borderBold, dimens.shadowMinor, dimens.radiusTile.toFloat())
+                    field(hue, dimens.radiusTile.toFloat())
                 )
-                addState(intArrayOf(), outline(dimens.borderButton, dimens.radiusTile.toFloat(), palette.white))
+                addState(intArrayOf(), field(palette.tile, dimens.radiusTile.toFloat()))
             }
         }
 
-    /** The goal field: an ink frame, not a bare line of hint text. */
+    /** The goal field: a white field, not a bare line of hint text. */
     fun input(hint: CharSequence): EditText = EditText(context).apply {
         setTextAppearance(R.style.TextAppearance_ALIVE_Input)
         this.hint = hint
@@ -1211,14 +1175,7 @@ class AliveComponents(private val context: Context) {
         setHintTextColor(palette.inkDisabled)
         setBackgroundResource(R.drawable.bg_brutal_input)
         minHeight = dimens.touchMin
-        // Measured from the face: the frame is 3dp thick and its shadow 4dp, so
-        // the text starts the same distance from the ink on every side.
-        setPadding(
-            dimens.l + dimens.borderBold,
-            dimens.m,
-            dimens.l + dimens.borderBold + dimens.shadowMinor,
-            dimens.m + dimens.shadowMinor
-        )
+        setPadding(dimens.l, dimens.m, dimens.l, dimens.m)
     }
 
     // ---------- ACCENTS ----------
@@ -1271,6 +1228,12 @@ class AliveComponents(private val context: Context) {
         }
 
     private companion object {
+        /**
+         * Below this luminance a field is dark, and dark fields carry paper text.
+         * The same number the character family flips its eyes at, on purpose.
+         */
+        const val DARK_FIELD_LUMINANCE = 0.32
+
         /** The sprites are drawn on a 16x16 grid, so one cell is the smallest honest step. */
         const val SPRITE_GRID = 16f
 

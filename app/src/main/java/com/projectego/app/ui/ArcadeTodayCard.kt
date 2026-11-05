@@ -64,19 +64,14 @@ object ArcadeTodayCard {
             tag = ArcadeTags.CARD
         }
         card.addView(titleRow(context, ui))
-        card.addView(titleRule(context, ui))
         card.addView(ui.vgap(ui.dimens.lineGap))
         card.addView(scoreboard(context, ui, report, closed, critical, last))
         card.addView(ui.vgap(ui.dimens.lineGap))
-        // The reference rules the scoreboard off from the facts, and the facts
-        // off from today's sentence. Two weights: a full ink rule above, a
-        // hairline below.
-        card.addView(ui.rule())
-        card.addView(ui.vgap(ui.dimens.lineGap))
+        // The reference ruled the scoreboard off from the facts. Flat rules with
+        // air instead of ink, so the rule becomes a wider gap.
+        card.addView(ui.vgap(ui.dimens.groupGap))
         card.addView(factGrid(context, ui, report))
-        card.addView(ui.vgap(ui.dimens.lineGap))
-        card.addView(hairline(context, ui))
-        card.addView(ui.vgap(ui.dimens.lineGap))
+        card.addView(ui.vgap(ui.dimens.groupGap))
         card.addView(
             ui.metaSmall(
                 context.getString(
@@ -109,22 +104,6 @@ object ArcadeTodayCard {
         addView(ui.sectionHeader(context.getString(R.string.today_card_title)))
     }
 
-    private fun titleRule(context: Context, ui: AliveComponents): View = View(context).apply {
-        layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            ui.dimens.borderBold
-        )
-        setBackgroundColor(ui.palette.ink)
-    }
-
-    private fun hairline(context: Context, ui: AliveComponents): View = View(context).apply {
-        layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            ui.dimens.borderThin
-        )
-        setBackgroundColor(ui.palette.inkHairline)
-    }
-
     private fun scoreboard(
         context: Context,
         ui: AliveComponents,
@@ -143,8 +122,6 @@ object ArcadeTodayCard {
             context,
             ui,
             face = face,
-            edgePx = ui.dimens.borderButton,
-            shadowPx = ui.dimens.shadowMinor,
             radiusPx = ui.dimens.dp(11),
             insetPx = ui.dimens.s
         ).apply { tag = ArcadeTags.SCOREBOARD }
@@ -281,8 +258,8 @@ object ArcadeTodayCard {
         pips: Int = -1
     ): LinearLayout = ui.column().apply {
         tag = tagValue
-        background = framed(ui, face, ui.dimens.borderButton, ui.dimens.dp(3), ui.dimens.dp(9))
-        setPadding(ui.dimens.dp(10), ui.dimens.dp(10), ui.dimens.dp(13), ui.dimens.dp(13))
+        background = field(face, ui.dimens.dp(9))
+        setPadding(ui.dimens.dp(10), ui.dimens.dp(10), ui.dimens.dp(10), ui.dimens.dp(10))
         addView(ui.scoreLabel(context.getString(labelRes)))
         addView(ui.vgap(ui.dimens.pairGap))
         val valueRow = ui.row().apply {
@@ -322,10 +299,8 @@ object ArcadeTodayCard {
                         layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(12), ui.dimens.dp(12)).apply {
                             marginEnd = if (index == 6) 0 else ui.dimens.dp(2)
                         }
-                        background = outline(
-                            ui,
+                        background = field(
                             if (index < filled) ui.palette.rewardMid else ui.palette.white,
-                            ui.dimens.borderThin,
                             ui.dimens.dp(2)
                         )
                     }
@@ -368,7 +343,7 @@ object ArcadeTodayCard {
         face: Int
     ): TextView = ui.tag(text).apply {
         setTextColor(ui.palette.ink)
-        background = outline(ui, face, ui.dimens.borderThin, ui.dimens.dp(4))
+        background = field(face, ui.dimens.dp(4))
         setPadding(ui.dimens.xs, ui.dimens.xs, ui.dimens.xs, ui.dimens.xs)
     }
 
@@ -376,49 +351,16 @@ object ArcadeTodayCard {
         context: Context,
         ui: AliveComponents,
         face: Int,
-        edgePx: Int,
-        shadowPx: Int,
         radiusPx: Int,
         insetPx: Int
     ): LinearLayout = ui.column().apply {
-        background = if (shadowPx <= 0) {
-            outline(ui, face, edgePx, radiusPx)
-        } else {
-            framed(ui, face, edgePx, shadowPx, radiusPx)
-        }
-        setPadding(
-            edgePx + insetPx,
-            edgePx + insetPx,
-            edgePx + shadowPx + insetPx,
-            edgePx + shadowPx + insetPx
-        )
+        background = field(face, radiusPx)
+        setPadding(insetPx, insetPx, insetPx, insetPx)
     }
 
-    private fun framed(
-        ui: AliveComponents,
-        face: Int,
-        edgePx: Int,
-        shadowPx: Int,
-        radiusPx: Int
-    ): Drawable {
-        val under = GradientDrawable().apply {
-            setColor(ui.palette.ink)
-            cornerRadius = radiusPx.toFloat()
-        }
-        val faceDrawable = GradientDrawable().apply {
-            setColor(face)
-            setStroke(edgePx, ui.palette.ink)
-            cornerRadius = radiusPx.toFloat()
-        }
-        return LayerDrawable(arrayOf(under, faceDrawable)).apply {
-            setLayerInset(1, 0, 0, shadowPx, shadowPx)
-        }
-    }
-
-    private fun outline(ui: AliveComponents, face: Int, edgePx: Int, radiusPx: Int): Drawable =
+    private fun field(face: Int, radiusPx: Int): Drawable =
         GradientDrawable().apply {
             setColor(face)
-            setStroke(edgePx, ui.palette.ink)
             cornerRadius = radiusPx.toFloat()
         }
 }

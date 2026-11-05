@@ -57,12 +57,12 @@ class BrutalistDonut(context: Context) : View(context) {
     private val face = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val edge = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        strokeWidth = dimens.borderButton.toFloat()
+        strokeWidth = dp(2f) // ponytail: Batch 7 re-authors donut ring without stroke
         color = palette.ink
     }
     private val holeEdge = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        strokeWidth = dimens.borderBold.toFloat()
+        strokeWidth = dp(3f) // ponytail: Batch 7 re-authors donut hole without stroke
         color = palette.ink
     }
     private val hatchPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {

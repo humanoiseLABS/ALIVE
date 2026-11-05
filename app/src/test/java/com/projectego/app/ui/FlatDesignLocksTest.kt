@@ -95,13 +95,16 @@ class FlatDesignLocksTest {
         // the real resources, or the token is not allowed to exist.
         val ink = require("flat_ink")
         val paper = require("flat_paper")
+        val ui = AliveComponents(context)
         val failures = mutableListOf<String>()
 
         fieldColours().forEach { (name, argb) ->
+            if (ui.textOn(argb) != ink) failures += "textOn($name) did not pick flat_ink"
             val ratio = contrast(ink, argb)
             if (ratio < 4.5) failures += "ink on $name = $ratio"
         }
         darkGrounds().forEach { (name, argb) ->
+            if (ui.textOn(argb) != paper) failures += "textOn($name) did not pick flat_paper"
             val ratio = contrast(paper, argb)
             if (ratio < 4.5) failures += "paper on $name = $ratio"
         }

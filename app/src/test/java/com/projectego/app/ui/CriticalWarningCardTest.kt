@@ -56,8 +56,11 @@ class CriticalWarningCardTest {
         return found
     }
 
-    private fun faceOf(view: View): GradientDrawable? =
-        (view.background as? LayerDrawable)?.getDrawable(1) as? GradientDrawable
+    private fun faceOf(view: View): GradientDrawable? = when (val bg = view.background) {
+        is GradientDrawable -> bg
+        is LayerDrawable -> bg.getDrawable(1) as? GradientDrawable
+        else -> null
+    }
 
     @Test
     fun `the field stops breathing when the device asks for no animation`() {

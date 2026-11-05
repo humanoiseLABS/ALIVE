@@ -46,7 +46,7 @@ class BackButtonTest {
         val limit = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST)
         back.measure(limit, limit)
 
-        val face = ui.dimens.touchMin - ui.dimens.shadow
+        val face = ui.dimens.touchMin
         val arrow = back.measuredWidth - back.paddingLeft - back.paddingRight
         val arrowCentre = back.paddingLeft + arrow / 2f
         assertEquals(face / 2f, arrowCentre, 0.51f)

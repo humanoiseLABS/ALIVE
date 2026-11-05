@@ -4095,7 +4095,7 @@ class MainActivity : AppCompatActivity() {
                     ui.dimens.s,
                     ui.dimens.m,
                     ui.dimens.s,
-                    ui.dimens.m + ui.dimens.shadowMinor
+                    ui.dimens.m
                 )
                 layoutParams = RadioGroup.LayoutParams(
                     0,

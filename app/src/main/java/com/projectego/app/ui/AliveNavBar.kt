@@ -263,21 +263,12 @@ class AliveNavBar @JvmOverloads constructor(
         ImageViewCompat.setImageTintList(circleGlyph, ColorStateList.valueOf(slot.onFace))
     }
 
-    /** The circle is raised, so it casts like every other raised thing here. */
-    private fun circleFace(@ColorInt face: Int): LayerDrawable {
-        val base = GradientDrawable().apply {
-            shape = GradientDrawable.OVAL
-            setColor(palette.ink)
-        }
-        val fill = GradientDrawable().apply {
+    /** The circle is a flat colour field: no stroke, no shadow. */
+    private fun circleFace(@ColorInt face: Int): GradientDrawable =
+        GradientDrawable().apply {
             shape = GradientDrawable.OVAL
             setColor(face)
-            setStroke(dimens.borderButton, palette.ink)
         }
-        return LayerDrawable(arrayOf(base, fill)).apply {
-            setLayerInset(1, 0, 0, dimens.shadowMinor, dimens.shadowMinor)
-        }
-    }
 
     /** The device decides, not us: "remove animated transitions" stills the bar. */
     private fun animationsAllowed(): Boolean = Settings.Global.getFloat(
@@ -287,10 +278,10 @@ class AliveNavBar @JvmOverloads constructor(
     ) > 0f
 
     /**
-     * The strip itself: paper, a bold contour along the top, and the contour
-     * dips around the circle's resting place. Drawn in the bar body's own
-     * coordinates, whose top line is y = 0 - the notch circle's centre lives
-     * just above it, so the arc reads as an opening cut from the edge.
+     * The strip itself: paper, and its top edge dips around the circle's
+     * resting place. Drawn in the bar body's own coordinates, whose top line is
+     * y = 0 - the notch circle's centre lives just above it, so the arc reads as
+     * an opening cut from the edge.
      */
     private inner class NotchBody : View(context) {
 
@@ -298,14 +289,7 @@ class AliveNavBar @JvmOverloads constructor(
             style = Paint.Style.FILL
             color = palette.paper
         }
-        private val edge = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            style = Paint.Style.STROKE
-            strokeWidth = dimens.borderBold.toFloat()
-            color = palette.ink
-            strokeJoin = Paint.Join.ROUND
-        }
         private val bodyPath = Path()
-        private val contourPath = Path()
         private val notchRect = RectF()
 
         override fun onDraw(canvas: Canvas) {
@@ -331,13 +315,6 @@ class AliveNavBar @JvmOverloads constructor(
             bodyPath.lineTo(0f, height.toFloat())
             bodyPath.close()
             canvas.drawPath(bodyPath, fill)
-
-            contourPath.reset()
-            contourPath.moveTo(0f, 0f)
-            contourPath.lineTo(cx - half, 0f)
-            contourPath.arcTo(notchRect, startDeg, sweep, false)
-            contourPath.lineTo(width.toFloat(), 0f)
-            canvas.drawPath(contourPath, edge)
         }
     }
 }

@@ -173,6 +173,9 @@ object CriticalWarningCard {
      * The red layer of the MAJOR block, which is the second layer of the pair the
      * app builds for every raised surface: ink underneath, face on top.
      */
-    private fun faceOf(view: View): GradientDrawable? =
-        ((view.background as? LayerDrawable)?.getDrawable(1) as? GradientDrawable)?.apply { mutate() }
+    private fun faceOf(view: View): GradientDrawable? = when (val bg = view.background) {
+        is GradientDrawable -> bg.apply { mutate() }
+        is LayerDrawable -> (bg.getDrawable(1) as? GradientDrawable)?.apply { mutate() }
+        else -> null
+    }
 }

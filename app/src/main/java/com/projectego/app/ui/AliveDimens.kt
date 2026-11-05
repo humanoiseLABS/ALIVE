@@ -54,21 +54,6 @@ class AliveDimens(context: Context) {
 
     val touchMin = px(R.dimen.touch_min)
 
-    /** Thick ink edge on a MAJOR block. */
-    val borderBold = px(R.dimen.border_bold)
-
-    /** Edge of a button face, and of a MINOR card - the same object family. */
-    val borderButton = px(R.dimen.border_button)
-
-    /** Hairline edge on a quiet surface. */
-    val borderThin = px(R.dimen.border_hairline)
-
-    /** How far a MAJOR shadow sits from its face. */
-    val shadow = px(R.dimen.shadow_offset)
-
-    /** How far a MINOR shadow sits: present, so the face still lifts, quiet. */
-    val shadowMinor = px(R.dimen.shadow_minor)
-
     /**
      * The corner of each object family, in pixels. A pill is 999dp wide on
      * purpose: half of it is always more than its own height, so it stays a

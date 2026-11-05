@@ -131,14 +131,8 @@ object Guardian {
     fun <T : TextView> inCrimson(text: T, ui: AliveComponents): T =
         text.apply { setTextColor(ui.palette.shortPale) }
 
-    /** A rule for a surface that is not paper: an ink rule would draw nothing here. */
-    fun rule(context: Context, ui: AliveComponents): View = View(context).apply {
-        layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            ui.dimens.borderBold
-        )
-        setBackgroundColor(ui.palette.shortDark)
-    }
+    /** Between parts of a dark plate: flat separates with air, not a line. */
+    fun rule(context: Context, ui: AliveComponents): View = ui.vgap(ui.dimens.lineGap)
 
     /**
      * The character as a bitmap, for the notification's large icon.

@@ -33,20 +33,6 @@
     <dimen name="card_inset">16dp</dimen>
     <dimen name="ledger_inset">12dp</dimen>
 
-    <!-- Structure: a thick ink edge, a hard offset shadow and a rounded corner.
-         A MINOR edge is a button's edge, so a card and a control read as the same
-         family of objects at different weights. The shadow is generous on
-         purpose: a rounded square with a 2dp shadow reads as a sticker, and with
-         a 6dp one it reads as something you can press.
-         One radius per object size and nothing in between - a card, a field, a
-         tile, a step and a pill are four different things, and the corner tells
-         you which one you are holding before the label renders. -->
-    <dimen name="border_bold">3dp</dimen>
-    <dimen name="border_button">2dp</dimen>
-    <dimen name="border_hairline">1dp</dimen>
-    <dimen name="shadow_offset">6dp</dimen>
-    <dimen name="shadow_minor">4dp</dimen>
-
     <!-- Flat radii, from the approved sheet: a card is 28, and a field or a tile
          is 22. Two names on 22 because a field and a tile are different objects
          that happen to share a corner, and `radius_step` stays at 4 for now -
