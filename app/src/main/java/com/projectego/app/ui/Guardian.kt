@@ -104,15 +104,6 @@ object Guardian {
         GuardianState.RESTORED -> R.string.cd_guardian_restored
     }
 
-    /**
-     * The plate a broken watch stands on.
-     *
-     * Ink face, deep crimson rim and shadow - because the app's own ink-on-ink
-     * edge vanishes on the one surface that is itself ink. This is the single
-     * place in ALIVE where a raised card is not paper, and it is the same plate
-     * the site hangs the poster on, so the app and the legend are visibly one
-     * object.
-     */
     fun plate(ui: AliveComponents, weight: SurfaceWeight = SurfaceWeight.MAJOR): LinearLayout =
         ui.rimmedBlock(ui.palette.ink, ui.palette.shortDark, weight)
 
@@ -134,14 +125,6 @@ object Guardian {
     /** Between parts of a dark plate: flat separates with air, not a line. */
     fun rule(context: Context, ui: AliveComponents): View = ui.vgap(ui.dimens.lineGap)
 
-    /**
-     * The character as a bitmap, for the notification's large icon.
-     *
-     * A launcher and the shade cannot load a font or resolve an app vector in
-     * another process, and a notification is drawn by SystemUI - so the sprite
-     * arrives as pixels, at four screen pixels per sprite cell, which keeps every
-     * edge on the grid the way the vectors do.
-     */
     fun bitmap(context: Context, state: GuardianState, sizePx: Int = SPRITE_PX * 4): Bitmap {
         val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
         val drawable = AppCompatResources.getDrawable(context, spriteFor(state))
@@ -152,6 +135,5 @@ object Guardian {
         return bitmap
     }
 
-    /** The sprite grid, so an icon can be sized as a whole number of cells. */
     const val SPRITE_PX = 16
 }

@@ -2,6 +2,12 @@ package com.projectego.app.ui
 
 import android.content.Context
 import android.content.res.XmlResourceParser
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Path
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.PathParser
 import androidx.test.core.app.ApplicationProvider
 import com.projectego.app.R
 import org.junit.Assert.assertEquals
@@ -11,242 +17,240 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
+import java.io.File
 import java.util.ArrayDeque
 
-/**
- * The four Guardian poses, measured rather than admired.
- *
- * Three of these rules are the ones the critter's sheet already lives by, moved
- * onto a second character: a body is one connected piece, nothing decorative
- * floats off it, and the figure has to read against the surface it is drawn on.
- * The fourth is the brief's own requirement made checkable: idle, alert,
- * recovery and restored must be four different drawings, because a state a
- * person cannot tell apart from the last one is not a state.
- */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [36])
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 class GuardianSpriteTest {
-
     private lateinit var context: Context
-
-    @Before
-    fun setUp() {
-        context = ApplicationProvider.getApplicationContext()
-    }
-
     private val poses = linkedMapOf(
         "idle" to R.drawable.ic_guardian_idle,
         "alert" to R.drawable.ic_guardian_alert,
         "recovery" to R.drawable.ic_guardian_recovery,
         "restored" to R.drawable.ic_guardian_restored
     )
+    private data class Part(val name: String, val colour: Int, val path: Path)
+    private data class Art(val viewport: Int, val parts: List<Part>)
+
+    @Before
+    fun setUp() {
+        context = ApplicationProvider.getApplicationContext()
+    }
 
     @Test
-    fun `the whole figure is one connected shape in every pose`() {
+    fun `every pose is one flat body and two capsule eyes`() {
         poses.forEach { (name, id) ->
-            // Every painted cell, whatever colour: the helm is joined to the body
-            // through the visor band, and a floating limb is a floating limb
-            // whichever ink it is drawn in.
-            val drawn = paintedCells(id)
-            assertTrue("$name draws nothing at all", drawn.isNotEmpty())
+            val art = art(id)
+            assertEquals("$name has extra parts or no capsule eyes", listOf("body", "eye_left", "eye_right"), art.parts.map { it.name })
+            assertEquals("$name body must use crimson", colour(R.color.alive_red_short_mid), art.parts[0].colour)
+            art.parts.drop(1).forEach { eye ->
+                assertEquals("$name ${eye.name} must use ink", colour(R.color.flat_ink), eye.colour)
+            }
+        }
+    }
 
-            val seen = mutableSetOf(drawn.first())
-            val queue = ArrayDeque(listOf(drawn.first()))
+    @Test
+    fun `the authored body is connected without its eyes`() {
+        poses.forEach { (name, id) ->
+            val art = art(id)
+            val body = pixels(partRaster(art, "body", art.viewport))
+            assertTrue("$name body draws nothing", body.size >= art.viewport * art.viewport / 8)
+            assertEquals("$name has a detached body part", 1, components(body).size)
+        }
+    }
+
+    @Test
+    fun `every eye is contained in the body and nothing floats`() {
+        poses.forEach { (name, id) ->
+            val art = art(id)
+            val body = pixels(partRaster(art, "body", 144))
+            assertTrue("$name body draws nothing", body.size >= 144 * 144 / 8)
+            listOf("eye_left", "eye_right").forEach { eye ->
+                val eyePixels = pixels(partRaster(art, eye, 144))
+                assertTrue("$name $eye draws nothing", eyePixels.size >= 24)
+                assertTrue("$name $eye leaves the body", eyePixels.all { (x, y) ->
+                    listOf(x to y, x - 1 to y, x + 1 to y, x to y - 1, x to y + 1).all { it in body }
+                })
+            }
+            val drawn = pixels(raster(id, 144))
+            assertTrue("$name composite draws nothing", drawn.size >= 144 * 144 / 8)
+            assertEquals("$name has a floating accent", 1, components(drawn).size)
+            assertTrue("$name paints outside its body", (drawn - body).isEmpty())
+        }
+    }
+
+    @Test
+    fun `the figure and both eyes survive at 24 pixels`() {
+        val output = File("build/reports/guardian-native").apply { mkdirs() }
+        poses.forEach { (name, id) ->
+            val art = art(id)
+            val bitmap = raster(id, 24)
+            val drawn = pixels(bitmap)
+            assertTrue("$name draws only ${drawn.size} pixels", drawn.size >= 72)
+            assertTrue("$name is too narrow", drawn.maxOf { it.first } - drawn.minOf { it.first } + 1 >= 12)
+            assertTrue("$name is too short", drawn.maxOf { it.second } - drawn.minOf { it.second } + 1 >= 12)
+            assertTrue("$name clips at the viewport edge", drawn.all { (x, y) -> x in 1..22 && y in 1..22 })
+            val eyes = pixels(bitmap) { it == art.parts.first { p -> p.name == "eye_left" }.colour }
+            val clusters = components(eyes)
+            assertEquals("$name needs two separate visible eyes at 24px", 2, clusters.size)
+            clusters.forEach { eye ->
+                assertTrue("$name eye has only ${eye.size} solid pixels", eye.size >= 4)
+                assertTrue("$name eye is narrower than 2px", eye.maxOf { it.first } - eye.minOf { it.first } + 1 >= 2)
+                assertTrue("$name eye is shorter than 3px", eye.maxOf { it.second } - eye.minOf { it.second } + 1 >= 3)
+            }
+            listOf(24, 96).forEach { size ->
+                File(output, "$name-$size.png").outputStream().use {
+                    assertTrue("$name PNG export failed", raster(id, size).compress(Bitmap.CompressFormat.PNG, 100, it))
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `every pose has a distinct silhouette at 24 pixels`() {
+        val silhouettes = poses.mapValues { (name, id) ->
+            val mask = pixels(raster(id, 24))
+            assertTrue("$name draws nothing", mask.size >= 72)
+            // Translation is placement, not a different pose; keep width and height unchanged.
+            val left = mask.minOf { it.first }
+            val top = mask.minOf { it.second }
+            mask.map { (x, y) -> x - left to y - top }.toSet()
+        }.toList()
+        for (i in silhouettes.indices) for (j in i + 1 until silhouettes.size) {
+            val (a, first) = silhouettes[i]
+            val (b, second) = silhouettes[j]
+            val iou = (first intersect second).size.toDouble() / (first union second).size
+            println("Guardian silhouette $a/$b IoU=$iou")
+            assertTrue("$a and $b collide at 24px: IoU=$iou", iou < 0.95)
+        }
+    }
+
+    @Test
+    fun `rendered eyes keep 4_5 contrast on the rendered body`() {
+        poses.forEach { (name, id) ->
+            val art = art(id)
+            val bitmap = raster(id, 96)
+            val body = art.parts.first { it.name == "body" }.colour
+            assertTrue("$name has no visible body", pixels(bitmap) { it == body }.size >= 96 * 96 / 8)
+            art.parts.filter { it.name.startsWith("eye_") }.forEach { eye ->
+                assertTrue("$name ${eye.name} is not visible", pixels(bitmap) { it == eye.colour }.size >= 32)
+                val ratio = contrast(eye.colour, body)
+                println("Guardian $name eyes/body=$ratio")
+                assertTrue("$name eyes on body = $ratio", ratio >= 4.5)
+            }
+        }
+    }
+
+    @Test
+    fun `the rendered body reads on light cards and the actual dark plate`() {
+        val ui = AliveComponents(context)
+        val plate = Guardian.plate(ui).background as android.graphics.drawable.GradientDrawable
+        val grounds = listOf(colour(R.color.flat_ground), colour(R.color.flat_tile), ui.palette.softForest, plate.color!!.defaultColor)
+        poses.forEach { (name, id) ->
+            val body = art(id).parts.first { it.name == "body" }.colour
+            assertTrue("$name body draws nothing", pixels(raster(id, 96)) { it == body }.size >= 96 * 96 / 8)
+            grounds.forEach { ground ->
+                val ratio = contrast(body, ground)
+                println("Guardian $name body/ground=${ground.toUInt().toString(16)} ratio=$ratio")
+                assertTrue("$name body does not separate from its ground: $ratio", ratio >= 3.0)
+            }
+        }
+    }
+
+    private fun art(id: Int): Art {
+        var viewport = 0
+        val parts = mutableListOf<Part>()
+        val ns = "http://schemas.android.com/apk/res/android"
+        context.resources.getXml(id).use { parser ->
+            while (parser.next() != XmlResourceParser.END_DOCUMENT) {
+                if (parser.eventType != XmlResourceParser.START_TAG) continue
+                assertTrue("unexpected ${parser.name} in flat Guardian", parser.name in listOf("vector", "path"))
+                if (parser.name == "vector") {
+                    viewport = parser.getAttributeValue(ns, "viewportWidth").toFloat().toInt()
+                    assertTrue("missing viewport", viewport > 0)
+                    assertEquals("viewport must be square", viewport.toFloat(), parser.getAttributeValue(ns, "viewportHeight").toFloat())
+                    assertEquals("Guardian must be opaque", 1f, parser.getAttributeFloatValue(ns, "alpha", 1f))
+                    assertTrue("Guardian must not be tinted", parser.getAttributeValue(ns, "tint") == null)
+                } else {
+                    assertTrue("flat Guardian cannot have a stroke", parser.getAttributeValue(ns, "strokeColor") == null)
+                    assertEquals("flat Guardian must be opaque", 1f, parser.getAttributeFloatValue(ns, "fillAlpha", 1f))
+                    assertTrue("flat Guardian cannot trim paths", (0 until parser.attributeCount).none { parser.getAttributeName(it).startsWith("trimPath") })
+                    val fill = parser.getAttributeResourceValue(ns, "fillColor", 0)
+                    assertTrue("Guardian must use a colour resource", fill != 0)
+                    val data = parser.getAttributeValue(ns, "pathData")
+                    assertTrue("Guardian must use curves, not pixel runs", data.contains('C'))
+                    val path = PathParser.createPathFromPathData(data)!!
+                    path.fillType = if (parser.getAttributeIntValue(ns, "fillType", 0) == 1) Path.FillType.EVEN_ODD else Path.FillType.WINDING
+                    parts += Part(parser.getAttributeValue(ns, "name") ?: "", colour(fill), path)
+                }
+            }
+        }
+        val drawable = ContextCompat.getDrawable(context, id)!!
+        assertTrue("drawable must be square", drawable.intrinsicWidth > 0 && drawable.intrinsicWidth == drawable.intrinsicHeight)
+        return Art(viewport, parts)
+    }
+
+    private fun partRaster(art: Art, name: String, size: Int): Bitmap {
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        canvas.scale(size.toFloat() / art.viewport, size.toFloat() / art.viewport)
+        val part = art.parts.single { it.name == name }
+        canvas.drawPath(part.path, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = part.colour })
+        return bitmap
+    }
+
+    private fun raster(id: Int, size: Int): Bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888).also {
+        ContextCompat.getDrawable(context, id)!!.apply {
+            setBounds(0, 0, size, size)
+            draw(Canvas(it))
+        }
+    }
+
+    private fun pixels(bitmap: Bitmap, accepts: (Int) -> Boolean = { true }): Set<Pair<Int, Int>> = buildSet {
+        for (y in 0 until bitmap.height) for (x in 0 until bitmap.width) {
+            val pixel = bitmap.getPixel(x, y)
+            if (pixel ushr 24 >= 128 && accepts(pixel)) add(x to y)
+        }
+    }
+
+    private fun components(pixels: Set<Pair<Int, Int>>): List<Set<Pair<Int, Int>>> {
+        val remaining = pixels.toMutableSet()
+        val groups = mutableListOf<Set<Pair<Int, Int>>>()
+        while (remaining.isNotEmpty()) {
+            val seed = remaining.first()
+            remaining.remove(seed)
+            val group = mutableSetOf(seed)
+            val queue = ArrayDeque(listOf(seed))
             while (queue.isNotEmpty()) {
                 val (x, y) = queue.remove()
-                listOf(x + 1 to y, x - 1 to y, x to y + 1, x to y - 1).forEach { step ->
-                    if (step in drawn && seen.add(step)) queue.add(step)
-                }
-            }
-
-            val orphans = (drawn - seen).sortedBy { (x, y) -> y * 16 + x }
-            assertTrue("$name has pixels floating off the figure: $orphans", orphans.isEmpty())
-        }
-    }
-
-    @Test
-    fun `no accent floats off the body`() {
-        val accents = listOf(
-            "crimson" to R.color.alive_red_short_dark,
-            "crimson bright" to R.color.alive_red_short_mid,
-            "amber eyes" to R.color.alive_amber_action,
-            "metal" to R.color.alive_warm_gray,
-            "paper teeth" to R.color.flat_paper
-        )
-
-        poses.forEach { (name, id) ->
-            val body = cells(id, R.color.flat_ink)
-            // The rim counts as ground too: an accent nested inside another
-            // accent - the amber core inside the staff's crimson head - is held
-            // by the drawing, not floating in the air, and the test that says
-            // "attached to ink only" would fail a figure that is perfectly well
-            // put together.
-            val anchors = body + cells(id, R.color.alive_red_short_dark)
-
-            accents.forEach { (label, colour) ->
-                val cluster = cells(id, colour)
-                if (cluster.isEmpty()) return@forEach
-
-                val seen = mutableSetOf<Pair<Int, Int>>()
-                val queue = ArrayDeque(listOf(cluster.first()))
-                seen += cluster.first()
-                var anchored = false
-                while (queue.isNotEmpty()) {
-                    val (x, y) = queue.remove()
-                    listOf(x + 1 to y, x - 1 to y, x to y + 1, x to y - 1).forEach { step ->
-                        if (step in anchors) anchored = true
-                        if (step in cluster && seen.add(step)) queue.add(step)
+                for (dx in -1..1) for (dy in -1..1) {
+                    val point = x + dx to y + dy
+                    if (remaining.remove(point)) {
+                        group += point
+                        queue.add(point)
                     }
                 }
-                assertTrue("$name: $label is not attached to the figure", anchored)
             }
+            groups += group
         }
+        return groups
     }
 
-    @Test
-    fun `the eyes read on the helmet, and the figure reads on the card`() {
-        val eyes = colour(R.color.alive_amber_action)
-        val helmet = colour(R.color.flat_ink)
-        val paper = colour(R.color.flat_ground)
-        val white = colour(R.color.flat_tile)
+    private fun colour(id: Int): Int = ContextCompat.getColor(context, id)
 
-        // A face whose eyes cannot be seen is the one thing this character is
-        // for. 3:1 is the bar for a non-text graphic that carries meaning.
-        val onHelmet = contrast(eyes, helmet)
-        assertTrue("amber on charcoal = $onHelmet", onHelmet >= 3.0)
-
-        // And the whole figure has to be a figure on the surfaces it is drawn on,
-        // rather than a smudge the colour of the card.
-        listOf("paper" to paper, "white" to white).forEach { (name, ground) ->
-            val ratio = contrast(helmet, ground)
-            assertTrue("charcoal on $name = $ratio", ratio >= 8.0)
-        }
-    }
-
-    @Test
-    fun `the guardian reads on the dark plate it now stands on`() {
-        val ink = colour(R.color.flat_ink)
-        val rim = colour(R.color.alive_red_short_dark)
-        val eyes = colour(R.color.alive_amber_action)
-
-        // The popup and the Home card are ink now, so the figure has to be
-        // visible against ink - and it is the crimson rim that does that work,
-        // which is why it may not be a shade away from the body.
-        assertTrue(
-            "crimson rim on ink = ${contrast(rim, ink)}",
-            contrast(rim, ink) >= 1.3
-        )
-
-        // The eyes are the only thing allowed to be brighter than the rim.
-        assertTrue(
-            "amber eyes on ink = ${contrast(eyes, ink)}",
-            contrast(eyes, ink) >= 4.5
-        )
-    }
-
-    @Test
-    fun `every pose is a different drawing`() {
-        val drawings = poses.mapValues { (_, id) -> paintedCells(id).toString() }
-        val distinct = drawings.values.toSet()
-        assertEquals("two poses draw the same pixels", drawings.size, distinct.size)
-    }
-
-    /** Cells of one colour, read straight out of the compiled vector. */
-    private fun cells(id: Int, colourRes: Int): Set<Pair<Int, Int>> {
-        val cells = linkedSetOf<Pair<Int, Int>>()
-        val parser = context.resources.getXml(id)
-        try {
-            while (parser.next() != XmlResourceParser.END_DOCUMENT) {
-                if (parser.eventType != XmlResourceParser.START_TAG) continue
-                var fill: String? = null
-                var path: String? = null
-                for (i in 0 until parser.attributeCount) {
-                    when (parser.getAttributeName(i)) {
-                        "fillColor" -> fill = parser.getAttributeValue(i)
-                        "pathData" -> path = parser.getAttributeValue(i)
-                    }
-                }
-                if (path == null || !isColour(fill, colourRes)) continue
-                rectangles(path).forEach { (x, y, w, h) ->
-                    for (dy in 0 until h) for (dx in 0 until w) cells += x + dx to y + dy
-                }
+    private fun contrast(first: Int, second: Int): Double {
+        fun luminance(rgb: Int): Double {
+            fun channel(shift: Int): Double {
+                val value = (rgb ushr shift and 255) / 255.0
+                return if (value <= 0.04045) value / 12.92 else Math.pow((value + 0.055) / 1.055, 2.4)
             }
-        } finally {
-            parser.close()
+            return 0.2126 * channel(16) + 0.7152 * channel(8) + 0.0722 * channel(0)
         }
-        return cells
-    }
-
-    /** Every cell the sprite paints, whatever colour it is painted. */
-    private fun paintedCells(id: Int): Set<Pair<Int, Int>> {
-        val drawn = linkedSetOf<Pair<Int, Int>>()
-        val parser = context.resources.getXml(id)
-        try {
-            while (parser.next() != XmlResourceParser.END_DOCUMENT) {
-                if (parser.eventType != XmlResourceParser.START_TAG) continue
-                var path: String? = null
-                for (i in 0 until parser.attributeCount) {
-                    if (parser.getAttributeName(i) == "pathData") path = parser.getAttributeValue(i)
-                }
-                if (path == null) continue
-                rectangles(path).forEach { (x, y, w, h) ->
-                    for (dy in 0 until h) for (dx in 0 until w) drawn += x + dx to y + dy
-                }
-            }
-        } finally {
-            parser.close()
-        }
-        return drawn
-    }
-
-    /**
-     * A compiled vector stores its fill as `@2131034166`, not as a colour name,
-     * so the reference has to be read as an id. The name form is kept for the
-     * day a sprite is authored without a colour token.
-     */
-    private fun isColour(fill: String?, colourRes: Int): Boolean {
-        val token = fill?.removePrefix("@") ?: return false
-        token.toIntOrNull()?.let { return it == colourRes }
-        return false
-    }
-
-    /** The bounding box of each `Mx,yhwvh-wz` run in a pathData string. */
-    private fun rectangles(path: String): List<IntArray> =
-        Regex("M(-?\\d+),(-?\\d+)((?:[hv]-?\\d+)+)z").findAll(path).map { run ->
-            var x = run.groupValues[1].toInt()
-            var y = run.groupValues[2].toInt()
-            var left = x
-            var top = y
-            var right = x
-            var bottom = y
-            Regex("[hv](-?\\d+)").findAll(run.groupValues[3]).forEach { step ->
-                val amount = step.groupValues[1].toInt()
-                if (step.value[0] == 'h') x += amount else y += amount
-                left = minOf(left, x)
-                right = maxOf(right, x)
-                top = minOf(top, y)
-                bottom = maxOf(bottom, y)
-            }
-            intArrayOf(left, top, right - left, bottom - top)
-        }.toList()
-
-    private fun colour(id: Int): Int = androidx.core.content.ContextCompat.getColor(context, id)
-
-    /** WCAG 2.1 relative luminance ratio; every token here is fully opaque. */
-    private fun contrast(foreground: Int, background: Int): Double {
-        fun channel(value: Int): Double {
-            val ratio = value / 255.0
-            return if (ratio <= 0.03928) ratio / 12.92 else Math.pow((ratio + 0.055) / 1.055, 2.4)
-        }
-        fun luminance(rgb: Int): Double =
-            0.2126 * channel(rgb shr 16 and 0xFF) +
-                0.7152 * channel(rgb shr 8 and 0xFF) +
-                0.0722 * channel(rgb and 0xFF)
-
-        val first = luminance(foreground)
-        val second = luminance(background)
-        val lighter = maxOf(first, second)
-        val darker = minOf(first, second)
-        return ((lighter + 0.05) / (darker + 0.05) * 100).toInt() / 100.0
+        val a = luminance(first)
+        val b = luminance(second)
+        return (maxOf(a, b) + 0.05) / (minOf(a, b) + 0.05)
     }
 }

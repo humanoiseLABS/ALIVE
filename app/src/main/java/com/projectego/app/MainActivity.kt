@@ -824,10 +824,7 @@ class MainActivity : AppCompatActivity() {
         val whole = state == GuardianState.RESTORED
         val weight = if (homeMajor == HomeMajor.GUARD) SurfaceWeight.MAJOR else SurfaceWeight.MINOR
 
-        // While the watch is broken this is the one card in ALIVE that is not
-        // paper: an ink plate with a crimson rim, the same object the site hangs
-        // its poster on. Restored keeps the app's calm surface, because a watch
-        // that is whole again has nothing left to be loud about.
+        // A restored watch returns to the calm surface rather than the dark warning plate.
         val card = if (whole) {
             ui.tintedBlock(ui.palette.softForest, weight)
         } else {
@@ -851,9 +848,6 @@ class MainActivity : AppCompatActivity() {
         line.addView(
             ui.mark(
                 Guardian.spriteFor(state),
-                // The figure is 48 cells tall, so it gets more room than a face
-                // sprite would: below about a hundred dp the cloak stops reading
-                // as a cloak.
                 ui.dimens.dp(104),
                 getString(Guardian.descriptionFor(state))
             )
