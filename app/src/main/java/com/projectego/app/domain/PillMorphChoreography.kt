@@ -13,11 +13,16 @@ package com.projectego.app.domain
  * is testable without a window, and the service cannot drift from the tests
  * because both ask the same question.
  *
- * The stagger is the reading order: the shell grows first, then the character
- * and the day's figure, then the app rows, then the way out - each element
- * arrives slightly after the one the eye is already on. On collapse the order
- * reverses and everything is gone well before the window finishes shrinking,
+ * The stagger is the reading order: the shell grows first, then the day's
+ * figure, then the app rows, then the way out - each element arrives slightly
+ * after the one the eye is already on. On collapse the order reverses and
+ * everything is gone well before the window finishes shrinking,
  * so a collapsing pill never shows an empty black shell.
+ *
+ * There used to be a character in that list. The panel held a sprite layer that
+ * only ever appeared inside it, and the notch owns the face, so the layer went
+ * with the flat redesign and took the two channels that drove it; what is left
+ * is the same clock over fewer parts.
  *
  * Both directions take a [from] frame because a morph can be interrupted at any
  * fraction. Starting from wherever the picture actually is - rather than from
@@ -36,8 +41,6 @@ object PillMorphChoreography {
         /** 0 = compact corner, 1 = expanded corner; the service lerps the radius. */
         val radius: Float,
         val panelAlpha: Float,
-        val characterAlpha: Float,
-        val characterScale: Float,
         val rowsAlpha: Float,
         val rowsShiftDp: Float,
         val actionAlpha: Float,
@@ -78,8 +81,6 @@ object PillMorphChoreography {
         return Frame(
             radius = between(from.radius, to.radius, ramps.radius.at(x)),
             panelAlpha = between(from.panelAlpha, to.panelAlpha, ramps.panel.at(x)),
-            characterAlpha = between(from.characterAlpha, to.characterAlpha, ramps.character.at(x)),
-            characterScale = between(from.characterScale, to.characterScale, ramps.scale.at(x)),
             rowsAlpha = between(from.rowsAlpha, to.rowsAlpha, ramps.rows.at(x)),
             rowsShiftDp = between(from.rowsShiftDp, to.rowsShiftDp, ramps.rowsShift.at(x)),
             actionAlpha = between(from.actionAlpha, to.actionAlpha, ramps.action.at(x)),
@@ -91,17 +92,14 @@ object PillMorphChoreography {
     private fun between(from: Float, to: Float, at: Float): Float = from + (to - from) * at
 
     /**
-     * The pose a collapsed pill parks its content in - hidden, small, and
-     * dropped below the panel by exactly the distance the arrival lifts it.
-     * Nothing of it is visible while the panel is gone, and it is the launch
-     * pose an expansion leaves from, which is why the offsets live here rather
-     * than in the curve.
+     * The pose a collapsed pill parks its content in - hidden, and dropped below
+     * the panel by exactly the distance the arrival lifts it. Nothing of it is
+     * visible while the panel is gone, and it is the launch pose an expansion
+     * leaves from, which is why the offsets live here rather than in the curve.
      */
     private val COMPACT = Frame(
         radius = 0f,
         panelAlpha = 0f,
-        characterAlpha = 0f,
-        characterScale = 0.72f,
         rowsAlpha = 0f,
         rowsShiftDp = ROWS_DROP_DP,
         actionAlpha = 0f,
@@ -111,8 +109,6 @@ object PillMorphChoreography {
     private val EXPANDED = Frame(
         radius = 1f,
         panelAlpha = 1f,
-        characterAlpha = 1f,
-        characterScale = 1f,
         rowsAlpha = 1f,
         rowsShiftDp = 0f,
         actionAlpha = 1f,
@@ -126,8 +122,6 @@ object PillMorphChoreography {
     private val DEPARTURE = Frame(
         radius = 0f,
         panelAlpha = 0f,
-        characterAlpha = 0f,
-        characterScale = 1f - DEPARTURE_SCALE_LOSS,
         rowsAlpha = 0f,
         rowsShiftDp = -ROWS_LIFT_DP,
         actionAlpha = 0f,
@@ -140,14 +134,12 @@ object PillMorphChoreography {
      * Fractions of the run's progress, not of its time: the ease covers most of
      * its distance early, so the late values map to the long part of the clock.
      * On the current 420 ms open these land at roughly:
-     * panel 15-66 ms, character 60-170 ms, rows 150-350 ms, action 220-420 ms -
+     * panel 15-66 ms, rows 150-350 ms, action 220-420 ms -
      * the rows and the way out are still arriving while the shell settles.
      */
     private val ARRIVAL = Ramps(
         radius = Span(0f, 1f),
         panel = Span(0.08f, 0.38f),
-        character = Span(0.44f, 0.84f),
-        scale = Span(0.42f, 0.84f),
         rows = Span(0.80f, 0.998f),
         rowsShift = Span(0.76f, 0.995f),
         action = Span(0.93f, 1f),
@@ -158,8 +150,6 @@ object PillMorphChoreography {
     private val DEPARTURE_RAMPS = Ramps(
         radius = Span(0f, 1f),
         panel = Span(0f, 0.45f),
-        character = Span(0f, 0.40f),
-        scale = Span(0f, 0.45f),
         rows = Span(0f, 0.34f),
         rowsShift = Span(0f, 0.50f),
         action = Span(0f, 0.30f),
@@ -169,8 +159,6 @@ object PillMorphChoreography {
     private data class Ramps(
         val radius: Span,
         val panel: Span,
-        val character: Span,
-        val scale: Span,
         val rows: Span,
         val rowsShift: Span,
         val action: Span,
@@ -192,7 +180,4 @@ object PillMorphChoreography {
 
     /** How far the action rides up into the header on the way back. */
     private const val ACTION_LIFT_DP = 8f
-
-    /** How much the character gives up as the panel closes. */
-    private const val DEPARTURE_SCALE_LOSS = 0.15f
 }

@@ -28,7 +28,6 @@ class PillMorphChoreographyTest {
         val start = PillMorphChoreography.expand(0f)
         assertEquals(0f, start.radius, 0f)
         assertEquals(0f, start.panelAlpha, 0f)
-        assertEquals(0f, start.characterAlpha, 0f)
         assertEquals(0f, start.rowsAlpha, 0f)
         assertEquals(0f, start.actionAlpha, 0f)
 
@@ -40,7 +39,6 @@ class PillMorphChoreographyTest {
         val end = PillMorphChoreography.collapse(1f)
         assertEquals(0f, end.radius, 0f)
         assertEquals(0f, end.panelAlpha, 0f)
-        assertEquals(0f, end.characterAlpha, 0f)
         assertEquals(0f, end.rowsAlpha, 0f)
         assertEquals(0f, end.actionAlpha, 0f)
         assertTrue("nothing may still be dropping in at the end", end.rowsShiftDp <= 0f)
@@ -52,16 +50,12 @@ class PillMorphChoreographyTest {
         fractions.forEach { f ->
             val frame = PillMorphChoreography.expand(f)
             assertTrue("panel alpha out of range at $f", frame.panelAlpha in 0f..1f)
-            assertTrue("character alpha out of range at $f", frame.characterAlpha in 0f..1f)
-            assertTrue("character scale out of range at $f", frame.characterScale in 0.72f..1f)
             assertTrue("rows alpha out of range at $f", frame.rowsAlpha in 0f..1f)
             assertTrue("action alpha out of range at $f", frame.actionAlpha in 0f..1f)
             assertTrue("radius out of range at $f", frame.radius in 0f..1f)
 
             val back = PillMorphChoreography.collapse(f)
             assertTrue("panel alpha out of range at $f", back.panelAlpha in 0f..1f)
-            assertTrue("character alpha out of range at $f", back.characterAlpha in 0f..1f)
-            assertTrue("character scale out of range at $f", back.characterScale in 0.72f..1f)
             assertTrue("rows alpha out of range at $f", back.rowsAlpha in 0f..1f)
             assertTrue("action alpha out of range at $f", back.actionAlpha in 0f..1f)
             assertTrue("radius out of range at $f", back.radius in 0f..1f)
@@ -72,8 +66,7 @@ class PillMorphChoreographyTest {
     fun `content appears in reading order on the way out`() {
         fractions.forEach { f ->
             val frame = PillMorphChoreography.expand(f)
-            assertTrue("panel must lead the character at $f", frame.panelAlpha >= frame.characterAlpha)
-            assertTrue("character must lead the rows at $f", frame.characterAlpha >= frame.rowsAlpha)
+            assertTrue("panel must lead the rows at $f", frame.panelAlpha >= frame.rowsAlpha)
             assertTrue("rows must lead the action at $f", frame.rowsAlpha >= frame.actionAlpha)
         }
     }
@@ -83,8 +76,7 @@ class PillMorphChoreographyTest {
         fractions.forEach { f ->
             val frame = PillMorphChoreography.collapse(f)
             assertTrue("action must leave first at $f", frame.actionAlpha <= frame.rowsAlpha)
-            assertTrue("rows must leave before the character at $f", frame.rowsAlpha <= frame.characterAlpha)
-            assertTrue("character must leave before the panel at $f", frame.characterAlpha <= frame.panelAlpha)
+            assertTrue("rows must leave before the panel at $f", frame.rowsAlpha <= frame.panelAlpha)
         }
     }
 
@@ -95,7 +87,6 @@ class PillMorphChoreographyTest {
         // shows an empty shell.
         val frame = PillMorphChoreography.collapse(0.45f)
         assertEquals(0f, frame.panelAlpha, 0f)
-        assertEquals(0f, frame.characterAlpha, 0f)
         assertEquals(0f, frame.rowsAlpha, 0f)
         assertEquals(0f, frame.actionAlpha, 0f)
     }
@@ -151,8 +142,6 @@ class PillMorphChoreographyTest {
 
         val expands = fractions.map { PillMorphChoreography.expand(it) }
         assertTrue(nonDecreasing(expands.map { it.panelAlpha }))
-        assertTrue(nonDecreasing(expands.map { it.characterAlpha }))
-        assertTrue(nonDecreasing(expands.map { it.characterScale }))
         assertTrue(nonDecreasing(expands.map { it.rowsAlpha }))
         assertTrue(nonDecreasing(expands.map { it.actionAlpha }))
         assertTrue(nonDecreasing(expands.map { -it.rowsShiftDp }))
@@ -160,7 +149,6 @@ class PillMorphChoreographyTest {
 
         val collapses = fractions.map { PillMorphChoreography.collapse(it) }
         assertTrue(nonDecreasing(collapses.map { -it.panelAlpha }))
-        assertTrue(nonDecreasing(collapses.map { -it.characterAlpha }))
         assertTrue(nonDecreasing(collapses.map { -it.rowsAlpha }))
         assertTrue(nonDecreasing(collapses.map { -it.actionAlpha }))
     }
@@ -169,19 +157,16 @@ class PillMorphChoreographyTest {
 
     @Test
     fun `the arrival still lands in reading order at its halfway mark`() {
-        // Not a shape test, a drift guard: at half the clock the panel and the
-        // character are in, the rows are on their way, and the way out waits -
-        // measured through the ease, because the staging lives in progress.
+        // Not a shape test, a drift guard: at half the clock the panel is in, the
+        // rows are on their way, and the way out waits - measured through the
+        // ease, because the staging lives in progress.
         val frame = PillMorphChoreography.expand(PillMorphEngine.decelerate(0.5f))
         assertEquals(1f, frame.panelAlpha, EPS)
-        assertEquals(1f, frame.characterAlpha, EPS)
         assertTrue("rows at ${frame.rowsAlpha}", frame.rowsAlpha in 0.3f..0.8f)
         assertEquals(0f, frame.actionAlpha, EPS)
         assertTrue(
             "reading order",
-            frame.panelAlpha >= frame.characterAlpha &&
-                frame.characterAlpha >= frame.rowsAlpha &&
-                frame.rowsAlpha >= frame.actionAlpha
+            frame.panelAlpha >= frame.rowsAlpha && frame.rowsAlpha >= frame.actionAlpha
         )
     }
 
@@ -190,10 +175,8 @@ class PillMorphChoreographyTest {
         val frame = PillMorphChoreography.collapse(0.5f)
         assertEquals(0.5f, frame.radius, EPS)
         assertEquals(0f, frame.panelAlpha, EPS)
-        assertEquals(0f, frame.characterAlpha, EPS)
         assertEquals(0f, frame.rowsAlpha, EPS)
         assertEquals(0f, frame.actionAlpha, EPS)
-        assertEquals(0.85f, frame.characterScale, EPS)
         assertEquals(-5f, frame.rowsShiftDp, EPS)
         assertEquals(-8f, frame.actionShiftDp, EPS)
     }
@@ -224,7 +207,6 @@ class PillMorphChoreographyTest {
         fractions.forEach { f ->
             val frame = PillMorphChoreography.collapse(f, halfOpen)
             assertTrue("panel went up at $f", frame.panelAlpha <= halfOpen.panelAlpha + EPS)
-            assertTrue("character went up at $f", frame.characterAlpha <= halfOpen.characterAlpha + EPS)
             assertTrue("rows went up at $f", frame.rowsAlpha <= halfOpen.rowsAlpha + EPS)
             assertTrue("action went up at $f", frame.actionAlpha <= halfOpen.actionAlpha + EPS)
             assertTrue("shell opened back up at $f", frame.radius <= halfOpen.radius + EPS)
@@ -242,7 +224,6 @@ class PillMorphChoreographyTest {
         fractions.forEach { f ->
             val frame = PillMorphChoreography.expand(f, halfGone)
             assertTrue("panel went down at $f", frame.panelAlpha >= halfGone.panelAlpha - EPS)
-            assertTrue("character went down at $f", frame.characterAlpha >= halfGone.characterAlpha - EPS)
             assertTrue("rows went down at $f", frame.rowsAlpha >= halfGone.rowsAlpha - EPS)
             assertTrue("action went down at $f", frame.actionAlpha >= halfGone.actionAlpha - EPS)
             assertTrue("shell closed back down at $f", frame.radius >= halfGone.radius - EPS)
@@ -270,6 +251,82 @@ class PillMorphChoreographyTest {
     fun `a run of taps ends open however it was interrupted`() {
         val frame = walk(listOf(0.3f, 0.6f, 0.2f, 0.8f, 1f))
         assertFrame(PillMorphChoreography.rest(true), frame, "five taps, ending open")
+    }
+
+    // ---------- the freeze, for the sprite layer's removal ----------
+
+    @Test
+    fun `the six surviving channels are frozen against the pre-cleanup baseline`() {
+        // Batch 6 removed the panel's dead sprite layer and the two channels that
+        // only ever drove it. The six that survive are frozen here, one digest per
+        // channel so a failure names the channel that moved instead of only saying
+        // "something did".
+        //
+        // What this lock is for is the future, not this batch. Recording these six
+        // digests after the removal produced exactly the strings a recording before
+        // it would have given, because the surviving channels are computed by lines
+        // the patch never touches - so the digests cannot be the proof that nothing
+        // moved; they are a forward guard against drift, and nothing more. The
+        // proof is the diff: in production it deletes the two fields, their two
+        // Spans, the constant that fed one of them, and the code that read them, and
+        // adds no statement. A reviewer also rebuilt the ramp arithmetic in strict
+        // float32 and reproduced all six digests from both the pre- and post-patch
+        // choreography, which is the strongest form of that claim this machine has.
+        val frames = frames()
+        assertEquals(
+            "the freeze and its baseline must name the same six channels",
+            setOf("radius", "panelAlpha", "rowsAlpha", "rowsShiftDp", "actionAlpha", "actionShiftDp"),
+            channels().map { it.first }.toSet() + BASELINE.keys.toSet()
+        )
+        val moved = channels().mapNotNull { (name, pick) ->
+            val actual = digestOf(frames.map(pick))
+            if (actual == BASELINE.getValue(name)) null else "$name = $actual"
+        }
+        assertEquals("the choreography moved: $moved", emptyList<String>(), moved)
+    }
+
+    /** The six surviving channels, in the order their digests were recorded. */
+    private fun channels(): List<Pair<String, (PillMorphChoreography.Frame) -> Float>> = listOf(
+        "radius" to { it.radius },
+        "panelAlpha" to { it.panelAlpha },
+        "rowsAlpha" to { it.rowsAlpha },
+        "rowsShiftDp" to { it.rowsShiftDp },
+        "actionAlpha" to { it.actionAlpha },
+        "actionShiftDp" to { it.actionShiftDp }
+    )
+
+    /**
+     * The frames the freeze covers: both rests, both clamped ends, a full
+     * millisecond grid in each direction from rest, the same grid from a live
+     * mid-morph frame, and the two tap walks.
+     */
+    private fun frames(): List<PillMorphChoreography.Frame> {
+        val grid = (0..1000).map { it / 1000f }
+        val halfOpen = PillMorphChoreography.expand(0.35f)
+        val halfGone = PillMorphChoreography.collapse(0.2f)
+        return listOf(
+            PillMorphChoreography.rest(true),
+            PillMorphChoreography.rest(false),
+            PillMorphChoreography.expand(-0.6f),
+            PillMorphChoreography.expand(1.4f),
+            PillMorphChoreography.collapse(-1f),
+            PillMorphChoreography.collapse(2f)
+        ) + grid.map { PillMorphChoreography.expand(it) } +
+            grid.map { PillMorphChoreography.collapse(it) } +
+            grid.map { PillMorphChoreography.collapse(it, halfOpen) } +
+            grid.map { PillMorphChoreography.expand(it, halfGone) } +
+            listOf(walk(listOf(0.45f, 0.3f, 0.7f, 0.2f, 0.6f, 1f)), walk(listOf(0.3f, 0.6f, 0.2f, 0.8f, 1f)))
+    }
+
+    /** SHA-256 over one channel's values, as raw float bits, in order. */
+    private fun digestOf(values: List<Float>): String {
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        val buffer = java.nio.ByteBuffer.allocate(4)
+        values.forEach {
+            buffer.clear()
+            digest.update(buffer.putFloat(it).array())
+        }
+        return digest.digest().joinToString("") { "%02x".format(it.toInt() and 0xFF) }
     }
 
     /**
@@ -309,8 +366,6 @@ class PillMorphChoreographyTest {
         )
         check("radius", from.radius, to.radius, actual.radius)
         check("panel", from.panelAlpha, to.panelAlpha, actual.panelAlpha)
-        check("character", from.characterAlpha, to.characterAlpha, actual.characterAlpha)
-        check("scale", from.characterScale, to.characterScale, actual.characterScale)
         check("rows", from.rowsAlpha, to.rowsAlpha, actual.rowsAlpha)
         check("rows shift", from.rowsShiftDp, to.rowsShiftDp, actual.rowsShiftDp)
         check("action", from.actionAlpha, to.actionAlpha, actual.actionAlpha)
@@ -324,8 +379,6 @@ class PillMorphChoreographyTest {
     ) {
         assertEquals("$label: radius", expected.radius, actual.radius, EPS)
         assertEquals("$label: panel alpha", expected.panelAlpha, actual.panelAlpha, EPS)
-        assertEquals("$label: character alpha", expected.characterAlpha, actual.characterAlpha, EPS)
-        assertEquals("$label: character scale", expected.characterScale, actual.characterScale, EPS)
         assertEquals("$label: rows alpha", expected.rowsAlpha, actual.rowsAlpha, EPS)
         assertEquals("$label: rows shift", expected.rowsShiftDp, actual.rowsShiftDp, EPS)
         assertEquals("$label: action alpha", expected.actionAlpha, actual.actionAlpha, EPS)
@@ -338,5 +391,15 @@ class PillMorphChoreographyTest {
     private companion object {
         /** Fractions are read to four decimals; anything finer is not motion. */
         const val EPS = 0.0001f
+
+        /** The freeze: one digest per surviving channel, over the frames above. */
+        val BASELINE = mapOf(
+            "radius" to "b143b72625127373bf05e353db9d98897fd602cc110d314339616d6a82ad1883",
+            "panelAlpha" to "62045f9d732b3aa98997f9511587756a3758aa864d44a1c0f2db7c6184290be6",
+            "rowsAlpha" to "f4cfd609c66f7e8c4d093976a5275e34c063d8f32d573709ca49f41b50ee3cf9",
+            "rowsShiftDp" to "49746ba478ef17eb98044dccadaad481b43564ce244228222459c0f1b53d6ac6",
+            "actionAlpha" to "66e6fe6a4df3cddd377682d562bc34ec935c721cd92978a3609efde4f4b35d1f",
+            "actionShiftDp" to "2ede56dd7fc54bd393c543858ad75d7aa6c4797c33acab56ecbd8c611d29d297"
+        )
     }
 }

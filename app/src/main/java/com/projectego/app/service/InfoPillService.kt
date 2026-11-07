@@ -42,7 +42,6 @@ import android.view.animation.LinearInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.app.NotificationCompat
@@ -68,8 +67,6 @@ import com.projectego.app.domain.PillPanelPolicy
 import com.projectego.app.domain.BatteryWarningPolicy
 import com.projectego.app.domain.PillAccent
 import com.projectego.app.domain.PillCharacterCycle
-import com.projectego.app.domain.PillPose
-import com.projectego.app.domain.PillPosePolicy
 import com.projectego.app.domain.PillReportSchedule
 import com.projectego.app.domain.PillRowUpdate
 import com.projectego.app.domain.PillStatusRingPolicy
@@ -84,8 +81,6 @@ import com.projectego.app.domain.UsageRead
 import com.projectego.app.domain.UsageReport
 import com.projectego.app.domain.UsageTracker
 import com.projectego.app.model.AppCategory
-import com.projectego.app.ui.AliveFace
-import com.projectego.app.ui.AliveStates
 import com.projectego.app.ui.AppLabels
 import com.projectego.app.ui.Durations
 import com.projectego.app.ui.PermissionChecks
@@ -195,7 +190,6 @@ class InfoPillService : Service() {
     private var panelPromiseLine: TextView? = null
     /** Which of the three pages is in view; the chevrons follow it. */
     private var panelPageIndex = 0
-    private var panelCharacter: ImageView? = null
     private var panelTotal: TextView? = null
     private var panelUnit: TextView? = null
     private var panelRemaining: TextView? = null
@@ -253,9 +247,6 @@ class InfoPillService : Service() {
     // Who owns the arrival transform, and whether a tap has already shortened it.
     private val arrival = PillArrival()
 
-    /** True while a face swap is waiting for its dip to land. See [applyCharacter]. */
-    private var crossfadePlacement = false
-
     // The one moving part of the shape: the corner travels between the pill's
     // radius and the panel's while the window resizes, so the shape morphs
     // instead of a box growing inside another box. Tracked across interruption
@@ -265,7 +256,6 @@ class InfoPillService : Service() {
 
     // What the panel already shows, so a 20-second refresh does not rebuild
     // views that did not change (and cannot flicker while it is open).
-    private var renderedFace: AliveFace? = null
     private var renderedRows: List<Pair<String, Long>> = emptyList()
     private var renderedCurrent: String? = null
 
@@ -316,8 +306,8 @@ class InfoPillService : Service() {
      * The panel's first attention, paid while the pill idles.
      *
      * The first tap used to pay for everything the panel had never done - the
-     * app labels, the text layout, the character's sprite, the first measure -
-     * and that measured 77 ms against 4 ms on every later tap, which is a
+     * app labels, the text layout, the first measure - and that measured 77 ms
+     * against 4 ms on every later tap, which is a
      * hitch exactly once and always on the open people see first. Doing it
      * here, after the arrival has finished, moves that cost to a moment
      * nobody is looking at; the panel stays hidden and the next tap finds a
@@ -415,8 +405,6 @@ class InfoPillService : Service() {
         panel?.animate()?.cancel()
         reminderPanel?.animate()?.cancel()
         contentRow?.animate()?.cancel()
-        panelCharacter?.animate()?.cancel()
-        crossfadePlacement = false
         val leaving = pill
         pill = null
         leaving?.animate()?.cancel()
@@ -550,7 +538,6 @@ class InfoPillService : Service() {
         panelDrinkLine = null
         panelPromiseLine = null
         panelPageIndex = 0
-        panelCharacter = null
         panelTotal = null
         panelUnit = null
         panelRemaining = null
@@ -570,7 +557,6 @@ class InfoPillService : Service() {
         reminderSecondary = null
         rootBackground = null
         currentRadiusPx = 0
-        renderedFace = null
         renderedRows = emptyList()
         renderedCurrent = null
         rowViews = emptyList()
@@ -1095,12 +1081,6 @@ class InfoPillService : Service() {
     }
 
     /**
-     * A reminder is two lines and two answers, in the same shell, the same
-     * insets and the same ink as the usage panel. White is the sentence; amber
-     * is the one action. "Later" is deliberately not amber - it is an answer,
-     * not the offer.
-     */
-    /**
      * A reminder's own card: the character's eyes in a lit tile, a kicker, a
      * title and one line of sense - exactly one row, the same height as the
      * day's page. The two answers do not live here; they sit in the header
@@ -1292,18 +1272,6 @@ class InfoPillService : Service() {
     private fun activePanel(): LinearLayout? =
         if (reminderKind != null) reminderPanel else panel
 
-    /**
-     * The expanded state: the character, the day's real figures, and the way
-     * back into the app. Black continues the pill; the character keeps its
-     * paper tile because its ink features would disappear on the dark ground.
-     */
-    /**
-     * The expanded state: one figure, one line under it, one way back.
-     *
-     * No divider, no full-width bar, no second ring: the header's ring already
-     * carries the day's proportion, and the panel's job is the number that is
-     * left with the app that spent it.
-     */
     /**
      * The expanded state, the way NUSA's notch carries its modules: one page
      * in view at a time, and two chevrons either side to step between pages.
@@ -2002,16 +1970,6 @@ class InfoPillService : Service() {
         waveform?.alpha = if (!eyesOnScreen && musicPlaying && !expanded) 1f else 0f
     }
 
-    /**
-     * A sprite size snapped to whole 16-cell device pixels, so the character
-     * and the panel's arrow keep the same crisp grid as every other ALIVE
-     * sprite instead of being resampled into blur.
-     */
-    private fun spritePx(dp: Int): Int {
-        val raw = px(dp)
-        return (raw + SPRITE_HALF) / SPRITE_CELL * SPRITE_CELL
-    }
-
     private fun colour(id: Int): Int = ContextCompat.getColor(this, id)
 
     private fun rounded(fill: Int, radiusPx: Int): GradientDrawable =
@@ -2039,9 +1997,6 @@ class InfoPillService : Service() {
         // An interrupted animation is not stacked: the next state starts from
         // wherever the window and the content currently are.
         stopMorph()
-        // The morph owns the content's alpha from here, so a face swap that is
-        // still dipping finishes now rather than fading in behind the shell.
-        settleCharacterCrossfade()
         if (expanded) trace("pill.collapse") { collapse() } else trace("pill.expand") { expand() }
     }
 
@@ -2126,12 +2081,10 @@ class InfoPillService : Service() {
             // panel shows the last good report, or the honest "no numbers yet"
             // state.
             requestReport()
-            // The opening sets the pose directly and lets the entrance carry it;
-            // only changes while open crossfade. This is the first-use-heavy part:
-            // labels, the sprite and the row views are all built here, on the tap.
+            // This is the first-use-heavy part: the labels and the row views are
+            // all built here, on the tap.
             trace("pill.expand.content") {
                 renderTraffic()
-                renderedFace = null
                 renderPanel(lastReport, usageTracker.lockStateManager.isLocked())
             }
         } else {
@@ -2430,11 +2383,6 @@ class InfoPillService : Service() {
         currentFrame = frame
         panel?.alpha = frame.panelAlpha
         reminderPanel?.alpha = frame.panelAlpha
-        panelCharacter?.apply {
-            alpha = frame.characterAlpha
-            scaleX = frame.characterScale
-            scaleY = frame.characterScale
-        }
         val density = resources.displayMetrics.density
         panelRows?.apply {
             alpha = frame.rowsAlpha
@@ -2556,14 +2504,6 @@ class InfoPillService : Service() {
 
     private fun renderPanel(report: UsageReport?, locked: Boolean) {
         val model = PillPanelPolicy.from(report, locked)
-        val face = faceFor(
-            PillPosePolicy.poseFor(report, locked, watchedPackage)
-        )
-        // During the expansion the face is set directly and the panel's own
-        // entrance carries it. Only a pose change while the panel is already
-        // open crossfades.
-        trace("pill.face") { applyCharacter(face, crossfade = expanded && sizeAnimator == null) }
-
         lastProgress = model.progress
         trace("pill.bar") { updateProgressBar(model.progress, model.mood) }
         val hasTotal = model.totalMinutes != null
@@ -2634,58 +2574,6 @@ class InfoPillService : Service() {
         }
     }
 
-    private fun applyCharacter(face: AliveFace, crossfade: Boolean) {
-        val image = panelCharacter ?: return
-        if (renderedFace == face) return
-        val hadFace = renderedFace != null
-        renderedFace = face
-        if (!crossfade || !hadFace || !animationsAllowed()) {
-            crossfadePlacement = false
-            image.animate().cancel()
-            placeFace(image, face)
-            // The morph owns this view's alpha. A swap that is not a crossfade
-            // hands it back to whatever the clock says now, never to 1 - which
-            // is how a refresh landing mid-morph used to light the character up
-            // inside a closing pill.
-            image.alpha = currentFrame.characterAlpha
-            return
-        }
-        // The dip, the swap, the fade back in. A morph that starts mid-dip takes
-        // the swap over in [settleCharacterCrossfade], so this end action only
-        // runs while the crossfade still owns the character.
-        crossfadePlacement = true
-        image.animate().cancel()
-        image.animate()
-            .alpha(0f)
-            .setDuration(70L)
-            .withEndAction {
-                if (!crossfadePlacement) return@withEndAction
-                crossfadePlacement = false
-                placeFace(image, face)
-                image.animate().alpha(1f).setDuration(110L).start()
-            }
-            .start()
-    }
-
-    private fun placeFace(image: ImageView, face: AliveFace) {
-        image.setImageResource(AliveStates.faceSpriteFor(face))
-        image.contentDescription = getString(AliveStates.faceDescription(face))
-    }
-
-    /**
-     * Called when a morph takes the content in hand: the character's own
-     * animator is retired so it cannot keep animating alpha behind the shell's
-     * clock, and a swap that had not landed yet lands now.
-     */
-    private fun settleCharacterCrossfade() {
-        val image = panelCharacter ?: return
-        val waiting = crossfadePlacement
-        crossfadePlacement = false
-        image.animate().cancel()
-        if (waiting) renderedFace?.let { placeFace(image, it) }
-        image.alpha = currentFrame.characterAlpha
-    }
-
     private fun updateProgressBar(progress: Float?, mood: PillMood) {
         val track = progressTrack ?: return
         if (progress == null) {
@@ -2711,20 +2599,6 @@ class InfoPillService : Service() {
         val width = (inner * progress.coerceIn(0f, 1f)).toInt().coerceIn(0, inner)
         fill.layoutParams = FrameLayout.LayoutParams(width, FrameLayout.LayoutParams.MATCH_PARENT)
         fill.requestLayout()
-    }
-
-    private fun faceFor(pose: PillPose): AliveFace = when (pose) {
-        // VIDEO and SOCIAL share the phone pose: the app name is the only
-        // context the system can prove, and the sprite set has no separate
-        // activity for either. It is the character holding a phone, not a claim
-        // about scrolling or watching.
-        PillPose.VIDEO, PillPose.SOCIAL -> AliveFace.PHONE
-        PillPose.GAMING -> AliveFace.EXCITED
-        PillPose.BROWSING -> AliveFace.THINKING
-        PillPose.APPROACHING -> AliveFace.WORRIED
-        PillPose.LIMIT -> AliveFace.ANGRY
-        PillPose.RECOVERY -> AliveFace.SLEEPY
-        PillPose.IDLE -> AliveFace.NORMAL
     }
 
     private data class RowHolder(val view: View, val minutes: TextView)
@@ -3310,10 +3184,6 @@ class InfoPillService : Service() {
          */
         private const val TRAFFIC_PULSE_HALF_MILLIS = 600L
         private const val TRAFFIC_PULSE_MIN_GLOW = 0.35f
-
-        /** Every sprite is drawn on 16 cells, exactly like the app's sprites. */
-        private const val SPRITE_CELL = 16
-        private const val SPRITE_HALF = 8
 
         /** The island widens sideways: this is a strip's budget, not a page's. */
         private const val PANEL_MAX_WIDTH_DP = 340

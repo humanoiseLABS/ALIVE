@@ -293,6 +293,12 @@ The adaptive-icon foreground and the 96 dp splash stay square-cropped — `Alive
 
 `PillMorphChoreographyTest` asserts `characterAlpha` ranges at 4 sites — those assertions retire with the channel, and the rest of that choreography (shell, ring, bar, text) stays.
 
+**Batch 6 as actually landed (2026-11-07).** Measured at `9a7b594` and at this spec's own baseline `5d145ed`: `panelCharacter` was **declared and never constructed** — no assignment, no `addView`, so `applyCharacter` returned on its first line and `placeFace` never ran. Batch 6 therefore removed dead code and changed nothing on screen; `PillPanelTest` had already been locking that absence by reflection. Three consequences the section above did not state:
+
+- **`characterScale` went with `characterAlpha`.** §10.1 names one channel; the frame carried two, and the only consumer of both was the same dead layer. Removing one and keeping the other would have left a channel no view reads.
+- **The numbers are frozen per channel, not proven by the freeze.** Six SHA-256 digests (one per surviving channel, over both rests, both clamped ends, a 1001-point grid in each direction, both mid-morph `from` frames and both tap walks) are literals in `PillMorphChoreographyTest`. Recording them after the removal yields the same strings, because the surviving channels are computed by lines the patch never touches — so they are a **forward** guard against drift. The proof that nothing moved is the diff: in production it deletes only dead code and prose and adds no statement. A reviewer independently rebuilt the ramp arithmetic in strict float32 and reproduced all six digests from both the pre- and post-patch choreography.
+- **`PillPosePolicy` / `PillPose` now have no production caller.** The pill was their last consumer. Deleting a shared domain policy is outside §10.1 ("the sprite layer only"), so it is recorded as a follow-up: `PillPosePolicyTest` is now green over code nothing ships.
+
 ### 10.2 Kept untouched
 
 `PillEyesView`, `PillCharacterCycle`, `PillStatusRingView`, `PillShellDrawable`, and every line of `PillStatusRingTest`. The compact pill keeps its drawn eyes.
