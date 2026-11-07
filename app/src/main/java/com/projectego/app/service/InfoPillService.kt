@@ -3149,7 +3149,7 @@ class InfoPillService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_alive_hourglass)
+            .setSmallIcon(R.drawable.ic_alive_mark)
             .setContentTitle(getString(R.string.pill_channel_name))
             .setContentText(getString(R.string.pill_channel_description))
             .setContentIntent(open)

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ALIVE flat family: state recovery. Body cross, eyes wide, gloss,
+     hue flat_field_leaf. One solid body, no outline, no shadow, no mouth,
+     no limbs. Drawn by family/generate.mjs from the approved family-bots.py geometry -
+     regenerate, do not edit paths. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="72"
+    android:viewportHeight="72">
+    <path
+        android:fillColor="@color/flat_field_leaf"
+        android:pathData="M 36 9 C 40.97 9 45 13.03 45 18 L 45 54 C 45 58.97 40.97 63 36 63 C 31.03 63 27 58.97 27 54 L 27 18 C 27 13.03 31.03 9 36 9 Z M 18 27 L 54 27 C 58.97 27 63 31.03 63 36 C 63 40.97 58.97 45 54 45 L 18 45 C 13.03 45 9 40.97 9 36 C 9 31.03 13.03 27 18 27 Z" />
+    <path
+        android:fillColor="@color/flat_ink"
+        android:pathData="M 29.5 29 C 31.43 29 33 30.57 33 32.5 L 33 39.5 C 33 41.43 31.43 43 29.5 43 C 27.57 43 26 41.43 26 39.5 L 26 32.5 C 26 30.57 27.57 29 29.5 29 Z M 43.5 29 C 45.43 29 47 30.57 47 32.5 L 47 39.5 C 47 41.43 45.43 43 43.5 43 C 41.57 43 40 41.43 40 39.5 L 40 32.5 C 40 30.57 41.57 29 43.5 29 Z" />
+    <path
+        android:fillColor="@color/flat_paper"
+        android:fillAlpha="0.55"
+        android:pathData="M 41.1 14.29 C 42.29 14.68 42.93 15.95 42.55 17.13 L 40.23 24.26 C 39.85 25.44 38.58 26.09 37.4 25.71 C 36.21 25.32 35.57 24.05 35.95 22.87 L 38.27 15.74 C 38.65 14.56 39.92 13.91 41.1 14.29 Z" />
+</vector>

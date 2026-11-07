@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ALIVE's mark: the critter. One flat body, two eyes cut OUT of it rather than
+     drawn on it - a notification small icon and the adaptive icon's monochrome
+     layer keep only alpha, so eyes in a second colour would vanish exactly where
+     the mark is most often seen. No outline, no shadow, no second fill.
+     Shape approved by the human reviewer as D1b generation 1; regenerate with
+     mark/generate.mjs rather than editing paths. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="72"
+    android:viewportHeight="72">
+    <path
+        android:fillColor="@color/flat_ink"
+        android:fillType="evenOdd"
+        android:pathData="M 64 36 C 64 51.46 51.46 64 36 64 C 20.54 64 8 51.46 8 36 C 8 20.54 20.54 8 36 8 C 51.46 8 64 20.54 64 36 Z M 26.5 25 L 26.5 25 C 29.54 25 32 27.46 32 30.5 L 32 42.5 C 32 45.54 29.54 48 26.5 48 L 26.5 48 C 23.46 48 21 45.54 21 42.5 L 21 30.5 C 21 27.46 23.46 25 26.5 25 Z M 45.5 25 L 45.5 25 C 48.54 25 51 27.46 51 30.5 L 51 42.5 C 51 45.54 48.54 48 45.5 48 L 45.5 48 C 42.46 48 40 45.54 40 42.5 L 40 30.5 C 40 27.46 42.46 25 45.5 25 Z" />
+</vector>

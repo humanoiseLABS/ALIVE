@@ -130,7 +130,7 @@ object AccessibilityWatch {
         val body = context.getString(Guardian.bodyFor(state))
 
         return NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_alive_hourglass)
+            .setSmallIcon(R.drawable.ic_alive_mark)
             .setLargeIcon(Guardian.bitmap(context, state))
             .setContentTitle(headline)
             .setContentText(body)

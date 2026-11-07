@@ -68,7 +68,7 @@ object PromiseWatch {
         NotificationManagerCompat.from(context).notify(
             NOTIFICATION_ID,
             NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_alive_hourglass)
+                .setSmallIcon(R.drawable.ic_alive_mark)
                 .setContentTitle(context.getString(R.string.promise_notif_title))
                 .setContentText(context.getString(R.string.promise_notif_body))
                 .setStyle(

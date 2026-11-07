@@ -160,7 +160,7 @@ object DrinkReminderWatch {
         NotificationManagerCompat.from(context).notify(
             NOTIFICATION_ID,
             NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_alive_hourglass)
+                .setSmallIcon(R.drawable.ic_alive_mark)
                 .setContentTitle(context.getString(R.string.drink_notif_title))
                 .setContentText(context.getString(R.string.drink_notif_body))
                 .setStyle(
@@ -172,12 +172,12 @@ object DrinkReminderWatch {
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setCategory(NotificationCompat.CATEGORY_REMINDER)
                 .addAction(
-                    R.drawable.ic_alive_hourglass,
+                    R.drawable.ic_alive_mark,
                     context.getString(R.string.drink_action_done),
                     actionIntent(context, ACTION_DRANK, REQUEST_DRANK)
                 )
                 .addAction(
-                    R.drawable.ic_alive_hourglass,
+                    R.drawable.ic_alive_mark,
                     context.getString(R.string.drink_action_later),
                     actionIntent(context, ACTION_SNOOZE, REQUEST_SNOOZE)
                 )

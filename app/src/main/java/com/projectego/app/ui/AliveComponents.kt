@@ -27,6 +27,7 @@ import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import com.projectego.app.R
+import kotlin.math.roundToInt
 
 /**
  * How much a surface weighs - a separate question from what happened.
@@ -913,7 +914,11 @@ class AliveComponents(private val context: Context) {
         val image = pose(res, sizePx, description)
         if (!animationsAllowed) return image
 
-        val step = sizePx / SPRITE_GRID
+        // One cell of the sprite's own grid, in whole pixels. Batch 3 removed
+        // the size snap, so sizePx is no longer guaranteed to be a multiple of
+        // 16; a half-pixel bob puts still-pixel art on a half pixel and reads as
+        // blur, so the step is rounded rather than trusted.
+        val step = (sizePx / SPRITE_GRID).roundToInt()
         val handler = Handler(Looper.getMainLooper())
         var raised = false
         val bob = object : Runnable {
@@ -939,44 +944,27 @@ class AliveComponents(private val context: Context) {
     }
 
     /**
-     * The hourglass beside the wordmark.
+     * The mark beside the wordmark.
      *
-     * It turns a quarter step at a time rather than smoothly: a pixel mark
-     * rotated through 45 degrees resamples every edge and turns to mush, while
-     * snapped to quarter turns it stays crisp and ticks like the rest of the
-     * pixel chrome. It replaced the blinking block cursor, which said "this is
-     * running" about a word that was never running anything.
+     * It used to turn a quarter step at a time, and the reason was the pixel
+     * grid: rotating pixel art through 45 degrees resamples every edge and turns
+     * to mush, while snapped to quarter turns it stayed crisp. That reason died
+     * with the grid, and so did the shape. The mark is now a face, and a face
+     * that rotates is a head that is dizzy: at 90 and 270 degrees the eyes are
+     * horizontal bars and nothing reads as a creature any more.
+     *
+     * So it is still. It replaced the blinking block cursor long ago, which said
+     * "this is running" about a word that was never running anything; nothing is
+     * being said here, and that is the point - the mark is a nameplate, not a
+     * progress indicator. The pill already owns motion.
      */
-    fun hourglassMark(sizePx: Int): ImageView {
-        val mark = ImageView(context).apply {
-            layoutParams = LinearLayout.LayoutParams(sizePx, sizePx).apply {
-                marginStart = dimens.s
-            }
-            setImageResource(R.drawable.ic_alive_hourglass)
-            // Decorative: the name it belongs to is written next to it.
-            contentDescription = null
+    fun brandMark(sizePx: Int): ImageView = ImageView(context).apply {
+        layoutParams = LinearLayout.LayoutParams(sizePx, sizePx).apply {
+            marginStart = dimens.s
         }
-        if (!animationsAllowed) return mark
-
-        val handler = Handler(Looper.getMainLooper())
-        var step = 0
-        val turn = object : Runnable {
-            override fun run() {
-                step = (step + 1) % 4
-                mark.rotation = step * 90f
-                handler.postDelayed(this, HOURGLASS_STEP_MILLIS)
-            }
-        }
-        mark.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-            override fun onViewAttachedToWindow(view: View) {
-                handler.postDelayed(turn, HOURGLASS_STEP_MILLIS)
-            }
-
-            override fun onViewDetachedFromWindow(view: View) {
-                handler.removeCallbacks(turn)
-            }
-        })
-        return mark
+        setImageResource(R.drawable.ic_alive_mark)
+        // Decorative: the name it belongs to is written next to it.
+        contentDescription = null
     }
 
     /**
@@ -1077,7 +1065,9 @@ class AliveComponents(private val context: Context) {
         // ImageButton, not Button: a wide control needs no text, and an empty
         // TextView still reserves a font line - the first version measured 57dp
         // tall on a 48dp tile. The image is fitted into a content box that is
-        // exactly one sprite-grid arrow (48px here, 16 cells of 3px).
+        // exactly 24dp - 42 px at a density of 1,75. It used to be snapped up to
+        // 48 px, a whole 16 sprite cells of 3 px; Batch 3 removed that rounding,
+        // and the arrow it sizes is `ic_arrow_back_pixel`, which Batch 7 redraws.
         val arrowSize = dimens.spriteDp(24)
         // The face is the whole tile now. It used to stop short of the shadow on
         // two sides, and the arrow was centred on that smaller face; with no
@@ -1230,7 +1220,16 @@ class AliveComponents(private val context: Context) {
     private companion object {
         /**
          * Below this luminance a field is dark, and dark fields carry paper text.
-         * The same number the character family flips its eyes at, on purpose.
+         *
+         * This used to be the same number the character family flipped its eyes
+         * at, and the two were claimed to be one rule. They are not: the family
+         * now measures the thing this number only guesses at - whether ink
+         * actually clears 4.5:1 on that hue, and if it does not, whether paper
+         * does. A weighted luminance with a hard cut is a proxy, and the proxy
+         * gets `#FF5F57` wrong: it calls it dark, and paper on it is 2,99:1.
+         * Fields keep the proxy because every field token in the palette is
+         * either a pastel or a deep ground, where the two answers agree; a new
+         * hue in between is where this number would start lying.
          */
         const val DARK_FIELD_LUMINANCE = 0.32
 
@@ -1242,8 +1241,6 @@ class AliveComponents(private val context: Context) {
 
         const val BOB_UP_MILLIS = 240L
         const val BOB_DOWN_MILLIS = 1_500L
-        /** One quarter turn of the hourglass. Four of them is one full turn. */
-        const val HOURGLASS_STEP_MILLIS = 700L
 
         /** A tile mark beside a figure, sized against a 28sp number. */
         const val MARK_DP = 26

@@ -50,7 +50,9 @@ class BackButtonTest {
         val arrow = back.measuredWidth - back.paddingLeft - back.paddingRight
         val arrowCentre = back.paddingLeft + arrow / 2f
         assertEquals(face / 2f, arrowCentre, 0.51f)
-        // Pixel art: the fitted arrow must still be whole sprite cells.
-        assertEquals(0, arrow % 16)
+        // The third rule this test used to carry - `arrow % 16 == 0` - was a
+        // pixel-grid rule, and Batch 3 removed the grid with the sprite snap.
+        // Centring is what keeps the title on the page's axis; whole sprite
+        // cells are nothing the flat family can be asked to land on.
     }
 }

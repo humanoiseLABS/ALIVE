@@ -56,7 +56,7 @@ object QuestWatch {
         NotificationManagerCompat.from(context).notify(
             NOTIFICATION_ID,
             NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_alive_hourglass)
+                .setSmallIcon(R.drawable.ic_alive_mark)
                 .setContentTitle(context.getString(R.string.quest_watch_title))
                 .setContentText(context.getString(R.string.quest_watch_body, questTitle))
                 .setStyle(

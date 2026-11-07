@@ -54,8 +54,10 @@ object CriticalWarningCard {
 
     /**
      * Builds the warning, already ticking. It starts and stops with its own
-     * attachment, the same way the hourglass mark does, so the Activity that hosts
-     * it owns no timers and nothing keeps ticking after the window is gone.
+     * attachment, so the Activity that hosts it owns no timers and nothing keeps
+     * ticking after the window is gone. (It used to say "the same way the
+     * hourglass mark does"; the mark stopped turning in Batch 4, so the
+     * comparison pointed at code that no longer exists.)
      */
     fun build(
         context: Context,

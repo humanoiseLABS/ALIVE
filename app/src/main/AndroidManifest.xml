@@ -119,7 +119,7 @@
         <service
             android:name=".service.InfoPillTile"
             android:exported="true"
-            android:icon="@drawable/ic_alive_hourglass"
+            android:icon="@drawable/ic_alive_mark"
             android:label="@string/pill_tile_label"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>

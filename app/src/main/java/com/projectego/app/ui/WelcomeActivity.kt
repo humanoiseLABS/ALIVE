@@ -96,7 +96,7 @@ class WelcomeActivity : AppCompatActivity() {
             ui.row().apply {
                 gravity = Gravity.BOTTOM
                 addView(ui.display(getString(R.string.alive_wordmark)))
-                addView(ui.hourglassMark(ui.dimens.hourglassSize))
+                addView(ui.brandMark(ui.dimens.brandMarkSize))
             }
         )
         content.addView(

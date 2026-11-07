@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ALIVE flat family: member study. Body teardrop, eyes upright, gloss,
+     hue alive_cat_study. One solid body, no outline, no shadow, no mouth,
+     no limbs. Drawn by family/generate.mjs from the approved family-bots.py geometry -
+     regenerate, do not edit paths. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="72"
+    android:viewportHeight="72">
+    <path
+        android:fillColor="@color/alive_cat_study"
+        android:pathData="M 36 7 C 36 7 58 30 58 44 C 58 58 48 66 36 66 C 24 66 14 58 14 44 C 14 30 36 7 36 7 Z" />
+    <path
+        android:fillColor="@color/flat_ink"
+        android:pathData="M 30.5 32 C 32.43 32 34 33.57 34 35.5 L 34 43.5 C 34 45.43 32.43 47 30.5 47 C 28.57 47 27 45.43 27 43.5 L 27 35.5 C 27 33.57 28.57 32 30.5 32 Z M 43.5 32 C 45.43 32 47 33.57 47 35.5 L 47 43.5 C 47 45.43 45.43 47 43.5 47 C 41.57 47 40 45.43 40 43.5 L 40 35.5 C 40 33.57 41.57 32 43.5 32 Z" />
+    <path
+        android:fillColor="@color/flat_paper"
+        android:fillAlpha="0.55"
+        android:pathData="M 46.1 24.29 C 47.29 24.68 47.93 25.95 47.55 27.13 L 45.23 34.26 C 44.85 35.44 43.58 36.09 42.4 35.71 C 41.21 35.32 40.57 34.05 40.95 32.87 L 43.27 25.74 C 43.65 24.56 44.92 23.91 46.1 24.29 Z" />
+</vector>

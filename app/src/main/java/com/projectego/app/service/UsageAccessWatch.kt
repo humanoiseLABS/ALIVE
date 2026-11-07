@@ -67,7 +67,7 @@ object UsageAccessWatch {
         manager.notify(
             NOTIFICATION_ID,
             NotificationCompat.Builder(context, AccessibilityWatch.CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_alive_hourglass)
+                .setSmallIcon(R.drawable.ic_alive_mark)
                 .setContentTitle(context.getString(R.string.permissions_heading))
                 .setContentText(context.getString(R.string.permissions_usage_action))
                 .setContentIntent(open)

@@ -29,3 +29,7 @@ local.properties
 keystore.properties
 *.jks
 *.keystore
+
+# Bytecode from family/preview.py, the sheet renderer. It regenerates on the
+# next run, so it is never a file anyone should commit.
+__pycache__/

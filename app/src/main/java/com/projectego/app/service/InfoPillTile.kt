@@ -63,7 +63,7 @@ class InfoPillTile : TileService() {
             !Settings.canDrawOverlays(this) -> Tile.STATE_UNAVAILABLE
             else -> Tile.STATE_INACTIVE
         }
-        tile.icon = Icon.createWithResource(this, R.drawable.ic_alive_hourglass)
+        tile.icon = Icon.createWithResource(this, R.drawable.ic_alive_mark)
         tile.label = getString(R.string.pill_tile_label)
         tile.updateTile()
     }

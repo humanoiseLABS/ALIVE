@@ -709,9 +709,9 @@ class MainActivity : AppCompatActivity() {
                                 }
                             }
                         })
-                        // The hourglass turns beside the name: it is the app's
-                        // mark on the launcher, so the header carries the same one.
-                        addView(ui.hourglassMark(ui.dimens.hourglassSize))
+                        // The mark beside the name: the same one the launcher
+                        // carries, and it no longer turns - it is a face now.
+                        addView(ui.brandMark(ui.dimens.brandMarkSize))
                     }
                 )
                 addView(ui.vgap(ui.dimens.lineGap))

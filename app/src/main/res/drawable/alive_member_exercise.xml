@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ALIVE flat family: member exercise. Body circle, eyes wide, gloss,
+     hue alive_cat_exercise. One solid body, no outline, no shadow, no mouth,
+     no limbs. Drawn by family/generate.mjs from the approved family-bots.py geometry -
+     regenerate, do not edit paths. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="72"
+    android:viewportHeight="72">
+    <path
+        android:fillColor="@color/alive_cat_exercise"
+        android:pathData="M 63 37 C 63 51.91 50.91 64 36 64 C 21.09 64 9 51.91 9 37 C 9 22.09 21.09 10 36 10 C 50.91 10 63 22.09 63 37 Z" />
+    <path
+        android:fillColor="@color/flat_ink"
+        android:pathData="M 24 33 C 26.21 33 28 34.79 28 37 L 28 45 C 28 47.21 26.21 49 24 49 C 21.79 49 20 47.21 20 45 L 20 37 C 20 34.79 21.79 33 24 33 Z M 49 33 C 51.21 33 53 34.79 53 37 L 53 45 C 53 47.21 51.21 49 49 49 C 46.79 49 45 47.21 45 45 L 45 37 C 45 34.79 46.79 33 49 33 Z" />
+    <path
+        android:fillColor="@color/flat_paper"
+        android:fillAlpha="0.55"
+        android:pathData="M 50.1 18.29 C 51.29 18.68 51.93 19.95 51.55 21.13 L 49.23 28.26 C 48.85 29.44 47.58 30.09 46.4 29.71 C 45.21 29.32 44.57 28.05 44.95 26.87 L 47.27 19.74 C 47.65 18.56 48.92 17.91 50.1 18.29 Z" />
+</vector>

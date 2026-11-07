@@ -102,7 +102,7 @@ object QuestDeadlineWatch {
         NotificationManagerCompat.from(context).notify(
             NOTIFICATION_ID,
             NotificationCompat.Builder(context, QuestWatch.CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_alive_hourglass)
+                .setSmallIcon(R.drawable.ic_alive_mark)
                 .setContentTitle(context.getString(R.string.quest_deadline_title))
                 .setContentText(body)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(body))

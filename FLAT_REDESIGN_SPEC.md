@@ -71,9 +71,9 @@ The mark becomes flat geometry like everything else. Its surface is large and wa
 | `ic_splash_hourglass` (alias) | **3** | `values/themes.xml:27`, `values-night/themes.xml:28`, `xml/alive_stats_widget_info.xml:11` previewImage |
 | `hourglassMark()` call sites | **2** | `MainActivity.kt:714`, `WelcomeActivity.kt:99` |
 
-`ic_launcher_foreground` serves **foreground and monochrome from one drawable**, so a single redraw changes both.
+`ic_launcher_foreground` serves **foreground and monochrome from one drawable**, so a single redraw changes both. *Amended in Batch 4: the monochrome layer got its own vector, `ic_launcher_monochrome`, so this sentence is now false of the shipped tree — see Section 8. The table above is a measurement at `5d145ed` and is kept as history; the names in it are the ones the batch repointed.*
 
-**Derived 1c — the status-bar and QS-tile copy must be a solid silhouette, not the pastel mark.** Android alpha-masks `setSmallIcon` art: only the alpha channel survives, so thin strokes and soft edges read as a grey blob. Two flat marks are produced: `ic_alive_hourglass` (brand, full colour, used in-app and in the widget) and a solid opaque silhouette for the 9 `setSmallIcon` refs + QS tile. Reminders and the guard must not go invisible — a gap can disqualify the day.
+**Derived 1c — the status-bar and QS-tile copy must be a solid silhouette, not the pastel mark.** Android alpha-masks `setSmallIcon` art: only the alpha channel survives, so thin strokes and soft edges read as a grey blob. Two flat marks are produced: `ic_alive_hourglass` (brand, full colour, used in-app and in the widget) and a solid opaque silhouette for the 9 `setSmallIcon` refs + QS tile. Reminders and the guard must not go invisible — a gap can disqualify the day. *Amended in Batch 4: the requirement was "survive the alpha mask", and the shipped mark satisfies it as ONE drawing whose eyes are cut out rather than painted — see Section 8. The second artefact that survives is `ic_launcher_monochrome`, which exists to keep the themed-icon layer off a layer-list.*
 
 ### 1.3 Guardian — in scope
 
@@ -255,14 +255,21 @@ The `*_mid` exclusion is not widened to make a new token pass.
 
 ---
 
-## 8. The hourglass, flat
+## 8. The mark — amended while Batch 4 was being built
 
-Two marks, per Derived 1c:
+This section promised a flat hourglass plus a separate solid silhouette (Derived 1c). **The human reviewer replaced that decision when he saw the candidates**: he was shown the hourglass redrawn flat in five readings, said it did not fit, and was then shown five brand directions built from what the app already is. He approved one shape — **the critter**: a circular body with two capsule eyes cut out of it — and re-approved it after being shown the alternatives measured as heavier at small sizes. Decision 2 ("the hourglass retires as pixel and is rebuilt flat") stands in its intent, which was to stop shipping a pixel mark; its chosen shape does not.
 
-- **`ic_alive_hourglass`** — flat brand mark, full colour. Feeds `hourglassMark()` (MainActivity, Welcome), the widget layout, the manifest activity icon, and through aliases the launcher foreground + monochrome and the splash (day + night + widget preview).
-- **A solid silhouette** for the 9 `setSmallIcon` refs and the QS tile — opaque, chunky, reads as a shape once Android throws away its colour.
+What shipped, as one artefact rather than two:
 
-The adaptive-icon foreground and the 96 dp splash stay square-cropped — `AliveMarkTest:44` already locks that, and it survives the redraw unchanged.
+- **`ic_alive_mark`** — one path, `@color/flat_ink`, `android:fillType="evenOdd"`, three subpaths: body r=28 at (36,36) on a 72 viewport, two eye capsules 11×23 at x=21 and x=40. The eyes are **holes, not a second colour**, because a notification small icon and the themed-icon layer keep only alpha. That is what replaces Derived 1c's second mark: the requirement was never "a different drawing", it was "survive the alpha mask", and one drawing with holes meets it everywhere.
+- **`ic_launcher_monochrome`** — the same path inset to the adaptive-icon's 64-of-108 box, as its own vector. `<monochrome>` used to point at the foreground **layer-list**, which asks a launcher to tint a `LayerDrawable`; no JVM test can prove a given launcher does, and a themed icon that fails goes blank.
+- **The mark no longer turns.** `hourglassMark()` rotated through four quarter turns because rotating pixel art through 45° resamples every edge; the grid retired in Batch 3, and the shape is now a face, which reads as a dizzy head at 90°.
+
+`ic_alive_hourglass.xml` is **kept, unused by the app**, because `web/scripts/sprites.mjs` rasterises it into the site's sprite sheet and decision 6 defers `web/`; deleting it turns the site workflow red. Consequence recorded: the APK ships a second mark that nothing shrinks (`optimization.enable = false`), and `web/lib/sprites.ts` still serves the hourglass to the public site until the brand pass runs.
+
+Corrected while measuring, because it was asserted twice in prose and never measured: at 16 px the two eyes **do not** merge. The bridge is 8 of 72 units = 1,78 px, and the mark shows two enclosed holes at 16, 24 and 32 px — which is now a lock (`the mark keeps two separate eyes at the small end`), not a claim. The honest weakness at 16 px is 2 px holes and 22 % dead padding around the disc, not a lost face.
+
+The adaptive-icon foreground and the 96 dp splash stay square-cropped — `AliveMarkTest` already locks that, and it survives the redraw unchanged.
 
 ---
 
@@ -366,7 +373,7 @@ Every batch ends with the full suite green and a report. Nothing is committed wi
 | **1** | Tokens + fonts: new `flat_*` ground/field/radius tokens, the **151-site repoint**, deletion of the four old ground tokens, `type.xml` re-authored, 3 TTFs deleted, 3 code files moved off `silkscreen_bold` | **Compile-blocking** — a deleted TTF makes `R.font.*` unresolvable, and a deleted colour makes `R.color.*` unresolvable, which fails the whole test source set so the suite cannot even report what broke. Must go first and alone | 0b turns green |
 | **2** | `AliveComponents` surface model: `framed`/`outline` → flat colour field; edge/shadow split into distance vs elevation; `textOn()` + dark grounds | The design system. Padding moves here, attributable to one change | green |
 | **3** | Rebuild the sheet generator → 17 members + 6 new silhouettes → VectorDrawable XML; remove `sprite()` snap | Only batch that moves geometry | green |
-| **4** | Hourglass flat + status-bar silhouette, 16 + 3 + 2 refs | Derived 1c | green |
+| **4** | The mark, flat: one critter with punched eyes, the themed-icon vector, 16 + 4 + 3 refs repointed, the quarter-turn tick retired | Derived 1c as amended by Section 8 — the human replaced the hourglass shape mid-batch | green |
 | **5** | Guardian flat, 4 poses, `GuardianSpriteTest` re-authored | decision 3 | green |
 | **6** | Island: remove the sprite layer only | decision 4, scoped to `panelCharacter` | green, ring tests untouched |
 | **7** | Geometry components: `BrutalistDonut`, `BrutalistBarChart`, `ArcadeTodayCard`, `widget/AliveWidgetArt`, `activity_main.xml`, `widget_alive_stats.xml` | Last, because it consumes every token above | green |
@@ -389,7 +396,7 @@ Every batch ends with the full suite green and a report. Nothing is committed wi
 - `ALIVE_DESIGN_CONSTITUTION.md`, `web/`, `poster/`, `guardian/` — deferred by decision 6. **Consequence recorded:** the app will be out of compliance with its own governing document, and §10 of that document forbids in words what was approved — *"avoid polished vector mascots, perfect geometric illustrations, glossy UI"*. There is no reconciliation available; §10 must be deleted or rewritten when the brand pass runs. The public site, including store screenshots, will not match the app until then.
 - **Doc drift found while writing this spec, recorded not fixed:** constitution §15 states *"Three faces, and they are not interchangeable: `sans-serif-black` carries structure, `vt323` carries numbers, `press_start_2p` carries labels."* `vt323` has **zero** references anywhere in main source — the governing document names a font the app does not ship. It belongs to the deferred brand pass.
 - No new permissions, no `INTERNET`, no downloadable fonts.
-- No behaviour, enforcement, data or policy change. `LockActivity`'s `singleTask` route, the retry window, the tick and the report cadence are untouched.
+- No behaviour, enforcement, data or policy change. `LockActivity`'s `singleTask` route, the retry window, the tick and the report cadence are untouched. ("the tick" here is the enforcement tick; the mark's quarter-turn tick did stop, in Batch 4 — Section 8.)
 - The island's shell geometry, motion and ring semantics are untouched.
 - No layout XML is introduced; the app stays programmatic.
 

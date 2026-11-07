@@ -70,7 +70,7 @@
                         android:layout_height="20dp"
                         android:contentDescription="@null"
                         android:scaleType="fitXY"
-                        android:src="@drawable/ic_alive_hourglass" />
+                        android:src="@drawable/ic_alive_mark" />
 
                     <TextView
                         android:id="@+id/widget_eyebrow"

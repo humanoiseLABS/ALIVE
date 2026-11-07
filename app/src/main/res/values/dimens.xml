@@ -46,11 +46,13 @@
 
     <dimen name="touch_min">48dp</dimen>
 
-    <!-- Sprite sizes are multiples of 16dp because every sprite in this app is
-         drawn on a 16x16 grid; anything else puts a pixel on a fraction of a
-         device pixel and the art goes soft. AliveDimens.sprite() then rounds the
-         result to a whole multiple of 16 actual pixels, because a density of
-         1.75 makes even 64dp land at 10.5 px per cell. -->
+    <!-- Sprite sizes are what they say. They used to be multiples of 16dp
+         because every sprite was drawn on a 16x16 grid, and AliveDimens.sprite()
+         then rounded the result to a whole number of those cells. The flat
+         family is curves and the approved render states a legibility ladder of
+         24 / 32 / 48 / 72 / 104 px, three of which are not multiples of 16, so
+         the rounding is gone - the dp values below are kept as they are, and now
+         reach the screen unrounded. -->
     <dimen name="character_size">64dp</dimen>
     <dimen name="character_size_large">96dp</dimen>
     <dimen name="mark_size">48dp</dimen>
@@ -58,6 +60,6 @@
     <dimen name="nav_icon_size">32dp</dimen>
     <dimen name="step_size">16dp</dimen>
     <dimen name="step_gap">2dp</dimen>
-    <dimen name="hourglass_size">20dp</dimen>
+    <dimen name="brand_mark_size">20dp</dimen>
 
 </resources>

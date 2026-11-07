@@ -69,7 +69,7 @@ class AliveDimens(context: Context) {
     val stepSize = px(R.dimen.step_size)
     val stepGap = px(R.dimen.step_gap)
 
-    /** A full-size sprite, snapped to whole device pixels. */
+    /** A full-size sprite, at the size the dimen says. */
     val character = sprite(R.dimen.character_size)
     val characterLarge = sprite(R.dimen.character_size_large)
 
@@ -80,30 +80,25 @@ class AliveDimens(context: Context) {
     /** The bottom navigation icon, which used to be 24dp on a 16 grid. */
     val navIcon = sprite(R.dimen.nav_icon_size)
 
-    /** The hourglass beside the wordmark, snapped so its 16 grid stays crisp. */
-    val hourglassSize = sprite(R.dimen.hourglass_size)
+    /** The mark beside the wordmark. It is flat curves now, so the size is
+     *  simply the size: nothing about it needs to land on a whole cell. */
+    val brandMarkSize = sprite(R.dimen.brand_mark_size)
 
     /**
-     * A sprite size in pixels, rounded so one cell of its 16x16 grid is a whole
-     * number of device pixels.
+     * A sprite size in pixels.
      *
-     * Every sprite here is drawn on 16 cells. At a density of 1.75 even a "clean"
-     * 64dp is 112 px, which is 7 - fine - but 48dp is 84, or 5.25 cells, and that
-     * is how crisp pixel art ends up soft at the edges.
+     * This used to round to whole 16 px cells, because a stretched pixel is not
+     * a pixel. The flat family is curves and the approved render states a
+     * legibility ladder of 24 / 32 / 48 / 72 / 104 px - three of which are not
+     * multiples of 16 - so the rule it existed for is gone and the rounding goes
+     * with it. Sizes are now exactly what the dimen says.
      */
-    fun sprite(@DimenRes id: Int): Int = snap(px(id))
+    fun sprite(@DimenRes id: Int): Int = px(id)
 
-    fun spriteDp(value: Int): Int = snap(dp(value))
-
-    private fun snap(pixels: Int): Int = (pixels + SPRITE_CELL / 2) / SPRITE_CELL * SPRITE_CELL
+    fun spriteDp(value: Int): Int = dp(value)
 
     /** For one-off measurements that do not deserve their own dimen resource. */
     fun dp(value: Int): Int = (value * density).toInt()
 
     private fun px(@DimenRes id: Int): Int = resources.getDimensionPixelSize(id)
-
-    private companion object {
-        /** Every sprite in this app is drawn on a 16x16 grid. */
-        const val SPRITE_CELL = 16
-    }
 }

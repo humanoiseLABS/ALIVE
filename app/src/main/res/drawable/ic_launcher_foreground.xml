@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- ALIVE launcher foreground: the hourglass mark, sized into the adaptive safe
-     zone rather than filling the 108dp canvas - the system crops the outer ring,
-     and a mark that touches the edge loses its frame on most launchers. -->
+<!-- ALIVE launcher foreground: the mark, sized into the adaptive safe zone
+     rather than filling the 108dp canvas - the system crops the outer ring, and a
+     mark that touches the edge loses its frame on most launchers. It used to
+     serve the monochrome layer from this same file; Batch 4 gave that layer its
+     own vector (ic_launcher_monochrome) because tinting a layer-list is something
+     no JVM test can ask a launcher about. The eyes are still cut out of the body
+     rather than drawn in a second colour, which is what keeps the face in every
+     surface that throws colour away. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:width="64dp"
         android:height="64dp"
-        android:drawable="@drawable/ic_alive_hourglass"
+        android:drawable="@drawable/ic_alive_mark"
         android:gravity="center" />
 </layer-list>

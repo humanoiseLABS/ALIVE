@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ALIVE's themed-icon layer: the mark, with the adaptive-icon inset baked in
+     (64dp of a 108dp canvas) so this file is a plain vector rather than a
+     layer-list a launcher has to tint. Regenerate with mark/generate.mjs. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="@color/flat_ink"
+        android:fillType="evenOdd"
+        android:pathData="M 78.89 54 C 78.89 67.74 67.74 78.89 54 78.89 C 40.26 78.89 29.11 67.74 29.11 54 C 29.11 40.26 40.26 29.11 54 29.11 C 67.74 29.11 78.89 40.26 78.89 54 Z M 45.56 44.22 L 45.56 44.22 C 48.26 44.22 50.44 46.41 50.44 49.11 L 50.44 59.78 C 50.44 62.48 48.26 64.67 45.56 64.67 L 45.56 64.67 C 42.85 64.67 40.67 62.48 40.67 59.78 L 40.67 49.11 C 40.67 46.41 42.85 44.22 45.56 44.22 Z M 62.44 44.22 L 62.44 44.22 C 65.15 44.22 67.33 46.41 67.33 49.11 L 67.33 59.78 C 67.33 62.48 65.15 64.67 62.44 64.67 L 62.44 64.67 C 59.74 64.67 57.56 62.48 57.56 59.78 L 57.56 49.11 C 57.56 46.41 59.74 44.22 62.44 44.22 Z" />
+</vector>
