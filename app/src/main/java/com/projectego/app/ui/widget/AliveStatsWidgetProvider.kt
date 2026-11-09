@@ -215,7 +215,13 @@ class AliveStatsWidgetProvider : AppWidgetProvider() {
                 R.id.widget_meter,
                 AliveWidgetArt.meter(
                     context,
-                    WidgetMeter.slices(named, totalMinutes - named.sum(), limitMinutes)
+                    WidgetMeter.slices(named, totalMinutes - named.sum(), limitMinutes),
+                    // The meter is painted at the width and height its view is
+                    // laid out at, so its capsule ends are not squashed by a
+                    // different horizontal and vertical stretch.
+                    (CARD_WIDTH_DP * density).toInt() -
+                        context.resources.getDimensionPixelSize(R.dimen.widget_inset) * 2,
+                    context.resources.getDimensionPixelSize(R.dimen.widget_meter_height)
                 )
             )
 

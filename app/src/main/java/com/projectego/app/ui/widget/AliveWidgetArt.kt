@@ -4,8 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
 import android.graphics.Typeface
 import androidx.annotation.ColorInt
@@ -30,70 +28,30 @@ object AliveWidgetArt {
     private const val FIGURE_SP = 28f
     private const val FIGURE_MIN_SP = 15f
 
-    /** Widest the figure may be: the card's own width minus its padding. */
+    /** Widest the figure may be before it steps down a size. */
     private const val FIGURE_MAX_DP = 200f
-
-    // The card, when it is painted instead of drawn by the launcher. Same shape
-    // as bg_widget.xml in the app - ink edge, hard shadow, paper face - but the
-    // face is allowed to be translucent, which the drawable cannot be: in a
-    // layered drawable the ink shadow sits behind the whole card, so a
-    // translucent face would show that ink rather than the wallpaper.
-    private const val CARD_RADIUS_DP = 16f
-    private const val CARD_STROKE_DP = 3f
-    private const val CARD_SHADOW_DP = 6f
-
-    /** 232/255: the wallpaper is readable through the card without the ink
-     *  losing its contrast against the paper behind it. */
-    private const val CARD_FACE_ALPHA = 232
 
     /**
      * The card itself, at [widthPx] by [heightPx].
      *
-     * Painted rather than declared, for one reason: the shadow has to be drawn
-     * only where it will be seen. Draw it as a full rectangle behind a
-     * translucent face and the face stops being translucent - the ink shows
-     * through it as a grey wash and the wallpaper never does. So the shadow is
-     * painted first, the face's area is cut out of it, and the face is laid in
-     * that hole at [CARD_FACE_ALPHA].
+     * One tile field with the same corner token as every other field, and no
+     * edge and no shadow behind it - so the face is opaque and the wallpaper
+     * never shows through. Painted rather than declared because the launcher
+     * stretches whatever it is given to the real widget size, and a bitmap
+     * corner stretches with it.
      *
      * The picture is stretched to the widget's real size, so the corner radius
-     * and the edge are exact only at the size this is drawn for; a 4x2 card is
-     * what that size is.
+     * is exact only at the size this is drawn for; a 4x2 card is what that size
+     * is.
      */
     fun card(context: Context, widthPx: Int, heightPx: Int): Bitmap {
-        val density = context.resources.displayMetrics.density
-        val radius = CARD_RADIUS_DP * density
-        val stroke = CARD_STROKE_DP * density
-        val shadow = CARD_SHADOW_DP * density
-
+        val radius = context.resources.getDimensionPixelSize(R.dimen.radius_field).toFloat()
         val bitmap = Bitmap.createBitmap(widthPx, heightPx, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        val ink = ContextCompat.getColor(context, R.color.flat_ink)
-        val paper = ContextCompat.getColor(context, R.color.flat_tile)
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-
-        val faceW = widthPx - shadow
-        val faceH = heightPx - shadow
-        val face = RectF(0f, 0f, faceW, faceH)
-
-        paint.color = ink
-        canvas.drawRoundRect(RectF(shadow, shadow, widthPx.toFloat(), heightPx.toFloat()), radius, radius, paint)
-
-        paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
-        canvas.drawRoundRect(face, radius, radius, paint)
-        paint.xfermode = null
-
-        paint.color = paper
-        paint.alpha = CARD_FACE_ALPHA
-        canvas.drawRoundRect(face, radius, radius, paint)
-        paint.alpha = 255
-
-        paint.style = Paint.Style.STROKE
-        paint.strokeWidth = stroke
-        paint.color = ink
-        val inset = stroke / 2f
-        canvas.drawRoundRect(
-            RectF(inset, inset, faceW - inset, faceH - inset),
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = ContextCompat.getColor(context, R.color.flat_tile)
+        }
+        Canvas(bitmap).drawRoundRect(
+            RectF(0f, 0f, widthPx.toFloat(), heightPx.toFloat()),
             radius,
             radius,
             paint
@@ -101,11 +59,8 @@ object AliveWidgetArt {
         return bitmap
     }
 
-    /** The meter is stretched to whatever the card turns out to be, so it is
-     * drawn wide and flat: only the seams and the slice edges scale. */
-    private const val METER_CANVAS_PX = 1200
-    private const val METER_FILL_DP = 16f
-    private const val METER_SEAM_PX = 10
+    /** The gap between two slices, in dp at the size the view is drawn. */
+    private const val METER_SEAM_DP = 2.5f
 
     /**
      * The day's duration in the display face, at the largest size that still fits
@@ -138,38 +93,45 @@ object AliveWidgetArt {
     }
 
     /**
-     * The allowance as slices in the ring's own colours, ink between them. The
-     * empty part of a day is left transparent so the card's own meter frame
-     * shows through - paper inside an ink edge, the same thing every other
-     * unfilled bar in ALIVE is.
+     * The allowance as slices in the ring's own colours, air between them. The
+     * empty part of a day is left transparent so the card's meter field - the
+     * mint track the allowance sits in - shows through.
+     *
+     * The bitmap is drawn at [widthPx] by [heightPx], the size the view is laid
+     * out at, rather than at a fixed size the launcher stretches: a rounded end
+     * squashed by a different horizontal and vertical scale is a lens, not a
+     * capsule.
      */
-    fun meter(context: Context, slices: List<WidgetMeter.Slice>): Bitmap {
-        val height = max(1, ceil(METER_FILL_DP * context.resources.displayMetrics.density).toInt())
-        val bitmap = Bitmap.createBitmap(METER_CANVAS_PX, height, Bitmap.Config.ARGB_8888)
+    fun meter(
+        context: Context,
+        slices: List<WidgetMeter.Slice>,
+        widthPx: Int,
+        heightPx: Int
+    ): Bitmap {
+        val width = max(1, widthPx)
+        val height = max(1, heightPx)
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        val radius = height / 2f
+        val halfGap = METER_SEAM_DP * context.resources.displayMetrics.density / 2f
 
+        // The slices are capsules separated by the card showing through: two
+        // solid colours touching is one wider colour, and these are separate
+        // apps. The first and last keep their rounded ends at the bar's ends.
+        val bounds = mutableListOf<Pair<Float, Float>>()
         var edge = 0f
         slices.forEach { slice ->
             val start = edge
-            paint.color = ContextCompat.getColor(context, slice.colour)
-            edge += METER_CANVAS_PX * slice.share
-            canvas.drawRect(start, 0f, edge, height.toFloat(), paint)
+            edge += width * slice.share
+            bounds += start to edge
         }
-
-        // The seams come last: two solid colours touching is one wider colour,
-        // and the whole point of the seam is that these are separate apps.
-        paint.color = ContextCompat.getColor(context, R.color.flat_ink)
-        edge = 0f
-        slices.dropLast(1).forEach { slice ->
-            edge += METER_CANVAS_PX * slice.share
-            canvas.drawRect(
-                edge - METER_SEAM_PX / 2f,
-                0f,
-                edge + METER_SEAM_PX / 2f,
-                height.toFloat(),
-                paint
-            )
+        bounds.forEachIndexed { index, (start, end) ->
+            val left = if (index == 0) start else start + halfGap
+            val right = if (index == bounds.lastIndex) end else end - halfGap
+            if (right - left < 1f) return@forEachIndexed
+            paint.color = ContextCompat.getColor(context, slices[index].colour)
+            canvas.drawRoundRect(left, 0f, right, height.toFloat(), radius, radius, paint)
         }
 
         return bitmap

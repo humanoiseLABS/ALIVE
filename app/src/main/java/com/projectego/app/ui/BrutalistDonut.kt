@@ -23,9 +23,11 @@ import kotlin.math.sin
  *
  * A ring rather than a bar list because the question it answers is "which share
  * of the day was this", and a share is easier to see as an arc. Slices are
- * separated by a thick ink edge instead of by hue, so two light fills next to
- * each other still read as two slices - and every slice is named in the legend
- * beside the ring, which is where the reading actually happens.
+ * separated by the card showing through between them, so two light fills next
+ * to each other still read as two slices without a line being drawn - and every
+ * slice is named in the legend beside the ring, which is where the reading
+ * actually happens. The aggregate is the same hue held back to a field, and a
+ * day with no numbers yet is a dashed band: a shape that is visibly missing.
  *
  * Nothing animates in. Touch selects, and a drag still scrolls the panel.
  */
@@ -33,8 +35,9 @@ class BrutalistDonut(context: Context) : View(context) {
 
     /**
      * One slice. [hatched] marks the aggregate - the minutes that belong to apps
-     * past the fourth - so it is distinguishable as a shape and not only as a
-     * colour nobody can name.
+     * past the fourth - and the name is history: it is drawn as its own hue held
+     * back to a translucent field, so it is distinguishable as a weight and not
+     * only as a colour nobody can name.
      */
     data class Slice(val label: String, val minutes: Long, val color: Int, val hatched: Boolean = false)
 
@@ -55,20 +58,16 @@ class BrutalistDonut(context: Context) : View(context) {
     private val dimens = AliveDimens(context)
 
     private val face = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
-    private val edge = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+
+    /**
+     * The empty ring's band: ink at a missing-tone alpha, dashed. A solid ring
+     * would read as data, and a frame would read as a border, so "no numbers
+     * yet" is the same word the family's hollow member uses - a shape that is
+     * visibly missing.
+     */
+    private val emptyBand = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        strokeWidth = dp(2f) // ponytail: Batch 7 re-authors donut ring without stroke
-        color = palette.ink
-    }
-    private val holeEdge = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeWidth = dp(3f) // ponytail: Batch 7 re-authors donut hole without stroke
-        color = palette.ink
-    }
-    private val hatchPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeWidth = dp(1.5f)
-        color = palette.ink
+        color = palette.inkDisabled
     }
     private val numberPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         typeface = resources.getFont(R.font.space_grotesk_bold)
@@ -121,7 +120,7 @@ class BrutalistDonut(context: Context) : View(context) {
         val outer = min(
             (width - paddingLeft - paddingRight) / 2f,
             (height - paddingTop - paddingBottom) / 2f
-        ) - holeEdge.strokeWidth
+        )
         val inner = outer * HOLE_RATIO
         if (outer <= 0f) return
 
@@ -147,8 +146,11 @@ class BrutalistDonut(context: Context) : View(context) {
             )
 
             face.color = slice.color
-            face.alpha = if (dimmed) DIMMED_ALPHA else FULL_ALPHA
-            edge.alpha = if (dimmed) DIMMED_ALPHA else FULL_ALPHA
+            face.alpha = when {
+                dimmed -> DIMMED_ALPHA
+                slice.hatched -> AGGREGATE_ALPHA
+                else -> FULL_ALPHA
+            }
 
             hole.set(bounds)
             hole.inset(bounds.width() * (1f - HOLE_RATIO) / 2f, bounds.height() * (1f - HOLE_RATIO) / 2f)
@@ -163,51 +165,37 @@ class BrutalistDonut(context: Context) : View(context) {
                 path.addOval(bounds, Path.Direction.CW)
                 path.addOval(hole, Path.Direction.CW)
             } else {
-                // Outer arc out, inner arc back: one closed ring segment, so the ink
-                // edge runs along both radii and separates neighbouring slices even
-                // when their fills are both light.
+                // Slices are separated by the card showing through, not by an ink
+                // edge: each wedge stops short of its neighbour by half a gap on
+                // both sides. Two light fills next to each other still read as
+                // two slices because the gap is the surface between them.
+                val gap = if (slices.size > 1) minOf(GAP_DEGREES, sweep / 4f) else 0f
                 path.fillType = Path.FillType.WINDING
-                path.arcTo(bounds, startAngle, sweep)
-                path.arcTo(hole, startAngle + sweep, -sweep, false)
+                path.arcTo(bounds, startAngle + gap / 2f, sweep - gap)
+                path.arcTo(hole, startAngle + sweep - gap / 2f, -(sweep - gap), false)
                 path.close()
             }
             canvas.drawPath(path, face)
-            canvas.drawPath(path, edge)
-            if (slice.hatched) {
-                // Clipped to the slice, so the hatch belongs to that wedge and
-                // not to the ring: "not one app, the rest of them".
-                canvas.save()
-                canvas.clipPath(path)
-                drawHatch(canvas, bounds)
-                canvas.restore()
-            }
 
             startAngle += sweep
         }
 
         face.alpha = FULL_ALPHA
-        edge.alpha = FULL_ALPHA
         drawCentre(canvas, centreX, centreY, inner)
     }
 
-    private fun drawHatch(canvas: Canvas, area: RectF) {
-        val step = dp(7f)
-        var x = area.left - area.height()
-        while (x < area.right) {
-            canvas.drawLine(x, area.bottom, x + area.height(), area.top, hatchPaint)
-            x += step
-        }
-    }
-
     private fun drawEmptyRing(canvas: Canvas, centreX: Float, centreY: Float, outer: Float, inner: Float) {
-        bounds.set(centreX - outer, centreY - outer, centreX + outer, centreY + outer)
-        face.color = palette.white
-        canvas.drawArc(bounds, 0f, 360f, true, face)
-        canvas.drawArc(bounds, 0f, 360f, true, edge)
-        bounds.set(centreX - inner, centreY - inner, centreX + inner, centreY + inner)
-        face.color = palette.paper
-        canvas.drawArc(bounds, 0f, 360f, true, face)
-        canvas.drawArc(bounds, 0f, 360f, true, holeEdge)
+        // One dashed band at the ring's mid radius, as deep as the ring itself:
+        // no data is a shape that is visibly missing, never a frame and never a
+        // zero-height ring.
+        val mid = (outer + inner) / 2f
+        emptyBand.strokeWidth = outer - inner
+        bounds.set(centreX - mid, centreY - mid, centreX + mid, centreY + mid)
+        var angle = 0f
+        repeat(EMPTY_DASHES) {
+            canvas.drawArc(bounds, angle, EMPTY_DASH_SWEEP, false, emptyBand)
+            angle += 360f / EMPTY_DASHES
+        }
         drawCentre(canvas, centreX, centreY, inner)
     }
 
@@ -256,7 +244,7 @@ class BrutalistDonut(context: Context) : View(context) {
         val outer = min(
             (width - paddingLeft - paddingRight) / 2f,
             (height - paddingTop - paddingBottom) / 2f
-        ) - holeEdge.strokeWidth
+        )
         val distance = hypot(x - centreX, y - centreY)
         if (distance > outer + dp(8f) || distance < outer * HOLE_RATIO * 0.8f) return
 
@@ -325,5 +313,15 @@ class BrutalistDonut(context: Context) : View(context) {
 
         const val FULL_ALPHA = 255
         const val DIMMED_ALPHA = 96
+
+        /** The air between two neighbouring slices, in degrees. */
+        const val GAP_DEGREES = 2f
+
+        /** The aggregate's field: the hue, held back so it reads as "the rest". */
+        const val AGGREGATE_ALPHA = 115
+
+        /** How many dashes the empty band breaks into, and how long each is. */
+        const val EMPTY_DASHES = 14
+        const val EMPTY_DASH_SWEEP = 16f
     }
 }

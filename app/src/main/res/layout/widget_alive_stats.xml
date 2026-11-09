@@ -15,9 +15,9 @@
      because this app's text appearances resolve theme attributes the launcher
      has never heard of.
 
-     Padding is measured from the face, not from the view: the right and bottom
-     carry the shadow's 6dp as well, so the interior is optically square and no
-     glyph sits on a shadow. The character shares the header band with the two
+     Padding is measured from the face: the card is a flat field with no edge
+     and no shadow, so the interior is square on all four sides and no glyph
+     sits on a corner. The character shares the header band with the two
      captions instead of standing under them, because a 4x2 card has no row to
      spare - and a mascot clipped by the card's own edge is worse than no mascot. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -25,11 +25,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- The card is a picture now, painted by AliveWidgetArt.card, because a
-         translucent face cannot be expressed as a layered drawable: the ink
-         shadow would sit behind the whole card and show through the face
-         instead of the wallpaper. Full-bleed and behind the content, so the
-         padding below stays the content's own measure from the face's edge. -->
+    <!-- The card is a picture now, painted by AliveWidgetArt.card: one tile
+         field with the flat 22dp corner. Full-bleed and behind the content, so
+         the padding below stays the content's own measure from the face's edge. -->
     <ImageView
         android:id="@+id/widget_card"
         android:layout_width="match_parent"
@@ -41,10 +39,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:paddingLeft="18dp"
-        android:paddingTop="18dp"
-        android:paddingRight="24dp"
-        android:paddingBottom="24dp">
+        android:paddingLeft="@dimen/widget_inset"
+        android:paddingTop="@dimen/widget_inset"
+        android:paddingRight="@dimen/widget_inset"
+        android:paddingBottom="@dimen/widget_inset">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -175,29 +173,28 @@
         <ImageView
             android:id="@+id/widget_meter"
             android:layout_width="match_parent"
-            android:layout_height="20dp"
+            android:layout_height="@dimen/widget_meter_height"
             android:layout_marginTop="8dp"
             android:background="@drawable/bg_widget_meter"
             android:contentDescription="@null"
-            android:padding="2dp"
             android:scaleType="fitXY" />
 
         <LinearLayout android:id="@+id/widget_row_1" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:gravity="center_vertical" android:orientation="horizontal">
             <ImageView android:id="@+id/widget_swatch_1" android:layout_width="12dp" android:layout_height="12dp" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/widget_chip_first" />
             <TextView android:id="@+id/widget_name_1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_weight="1" android:ellipsize="end" android:fontFamily="@font/manrope_medium" android:includeFontPadding="false" android:maxLines="1" android:textColor="@color/flat_ink" android:textSize="16sp" />
-            <TextView android:id="@+id/widget_minutes_1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/manrope_medium" android:includeFontPadding="false" android:textColor="@color/alive_ink_secondary" android:textSize="16sp" />
+            <TextView android:id="@+id/widget_minutes_1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/space_grotesk_bold" android:includeFontPadding="false" android:textColor="@color/alive_ink_secondary" android:textSize="16sp" />
         </LinearLayout>
 
         <LinearLayout android:id="@+id/widget_row_2" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:gravity="center_vertical" android:orientation="horizontal">
             <ImageView android:id="@+id/widget_swatch_2" android:layout_width="12dp" android:layout_height="12dp" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/widget_chip_second" />
             <TextView android:id="@+id/widget_name_2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_weight="1" android:ellipsize="end" android:fontFamily="@font/manrope_medium" android:includeFontPadding="false" android:maxLines="1" android:textColor="@color/flat_ink" android:textSize="16sp" />
-            <TextView android:id="@+id/widget_minutes_2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/manrope_medium" android:includeFontPadding="false" android:textColor="@color/alive_ink_secondary" android:textSize="16sp" />
+            <TextView android:id="@+id/widget_minutes_2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/space_grotesk_bold" android:includeFontPadding="false" android:textColor="@color/alive_ink_secondary" android:textSize="16sp" />
         </LinearLayout>
 
         <LinearLayout android:id="@+id/widget_row_3" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:gravity="center_vertical" android:orientation="horizontal">
             <ImageView android:id="@+id/widget_swatch_3" android:layout_width="12dp" android:layout_height="12dp" android:contentDescription="@null" android:scaleType="fitXY" android:src="@drawable/widget_chip_third" />
             <TextView android:id="@+id/widget_name_3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_weight="1" android:ellipsize="end" android:fontFamily="@font/manrope_medium" android:includeFontPadding="false" android:maxLines="1" android:textColor="@color/flat_ink" android:textSize="16sp" />
-            <TextView android:id="@+id/widget_minutes_3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/manrope_medium" android:includeFontPadding="false" android:textColor="@color/alive_ink_secondary" android:textSize="16sp" />
+            <TextView android:id="@+id/widget_minutes_3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/space_grotesk_bold" android:includeFontPadding="false" android:textColor="@color/alive_ink_secondary" android:textSize="16sp" />
         </LinearLayout>
 
         <TextView

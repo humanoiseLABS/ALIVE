@@ -99,6 +99,13 @@ class ArcadeTodayCardTest {
         return face.color?.defaultColor ?: 0
     }
 
+    private fun drawables(view: View): List<Pair<View, GradientDrawable>> = buildList {
+        (view.background as? GradientDrawable)?.let { add(view to it) }
+        if (view is ViewGroup) {
+            for (index in 0 until view.childCount) addAll(drawables(view.getChildAt(index)))
+        }
+    }
+
     @Test
     fun `the title carries the name and no score tag`() {
         val card = build(report())
@@ -227,6 +234,69 @@ class ArcadeTodayCardTest {
         )
         assertTrue(
             grid.measuredWidth <= card.measuredWidth - card.paddingLeft - card.paddingRight
+        )
+    }
+
+    @Test
+    fun `the fields wear the flat radii and nothing older`() {
+        val card = build(report())
+        val width = View.MeasureSpec.makeMeasureSpec(
+            ui.dimens.dp(320),
+            View.MeasureSpec.EXACTLY
+        )
+        card.measure(width, View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+        card.layout(0, 0, card.measuredWidth, card.measuredHeight)
+
+        val allowed = listOf(
+            ui.dimens.radiusCard,
+            ui.dimens.radiusField,
+            ui.dimens.radiusStep,
+            ui.dimens.radiusPill
+        ).map { it.toFloat() }.toSet()
+        val fields = drawables(card)
+        val offenders = fields.filter { it.second.cornerRadius !in allowed }
+
+        assertTrue(
+            "the card still wears a radius outside the flat scale: " +
+                offenders.map { "${it.first.javaClass.simpleName}=${it.second.cornerRadius}px" },
+            offenders.isEmpty()
+        )
+
+        // The two fields that carry the card's structure are fields, not cards
+        // and not the 4dp step: a drift to 28 or 4 would still be on the scale
+        // and would still be the wrong object.
+        listOf(ArcadeTags.SCOREBOARD, ArcadeTags.STREAK, ArcadeTags.JATAH, ArcadeTags.USED, ArcadeTags.BANK)
+            .forEach { tag ->
+                val radius = (requireNotNull(find(card, tag)).background as GradientDrawable).cornerRadius
+                assertEquals(
+                    "$tag does not wear the field radius",
+                    ui.dimens.radiusField.toFloat(),
+                    radius,
+                    0.01f
+                )
+            }
+
+        // The streak's seven 12dp blocks are the only square-sized fields on the
+        // card; they are pills only when the radius reaches half their height -
+        // a token redefined to 4dp would leave seven square blocks behind.
+        val pips = fields.filter { (view, _) ->
+            view.layoutParams?.width == ui.dimens.dp(12) &&
+                view.layoutParams?.height == ui.dimens.dp(12)
+        }
+        assertEquals(7, pips.size)
+        pips.forEach { (_, drawable) ->
+            assertTrue(
+                "a pip is ${drawable.cornerRadius}px round, want at least half its 12dp height",
+                drawable.cornerRadius >= ui.dimens.dp(12) / 2f
+            )
+        }
+
+        val tag = find(card, ArcadeTags.TICKET_TAG) as TextView
+        assertTrue("the tag has no height to measure", tag.measuredHeight > 0)
+        val tagRadius = (tag.background as GradientDrawable).cornerRadius
+        assertTrue(
+            "the tag is not a capsule: ${tagRadius}px for a ${tag.measuredHeight}px box",
+            tagRadius >= tag.measuredHeight / 2f
         )
     }
 

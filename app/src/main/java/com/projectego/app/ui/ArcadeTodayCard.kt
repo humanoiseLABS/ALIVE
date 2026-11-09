@@ -3,7 +3,6 @@ package com.projectego.app.ui
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.LayerDrawable
 import android.view.Gravity
 import android.view.View
 import android.widget.ImageView
@@ -122,7 +121,7 @@ object ArcadeTodayCard {
             context,
             ui,
             face = face,
-            radiusPx = ui.dimens.dp(11),
+            radiusPx = ui.dimens.radiusField,
             insetPx = ui.dimens.s
         ).apply { tag = ArcadeTags.SCOREBOARD }
 
@@ -258,7 +257,7 @@ object ArcadeTodayCard {
         pips: Int = -1
     ): LinearLayout = ui.column().apply {
         tag = tagValue
-        background = field(face, ui.dimens.dp(9))
+        background = field(face, ui.dimens.radiusField)
         setPadding(ui.dimens.dp(10), ui.dimens.dp(10), ui.dimens.dp(10), ui.dimens.dp(10))
         addView(ui.scoreLabel(context.getString(labelRes)))
         addView(ui.vgap(ui.dimens.pairGap))
@@ -301,7 +300,7 @@ object ArcadeTodayCard {
                         }
                         background = field(
                             if (index < filled) ui.palette.rewardMid else ui.palette.white,
-                            ui.dimens.dp(2)
+                            ui.dimens.radiusPill
                         )
                     }
                 )
@@ -343,7 +342,7 @@ object ArcadeTodayCard {
         face: Int
     ): TextView = ui.tag(text).apply {
         setTextColor(ui.palette.ink)
-        background = field(face, ui.dimens.dp(4))
+        background = field(face, ui.dimens.radiusPill)
         setPadding(ui.dimens.xs, ui.dimens.xs, ui.dimens.xs, ui.dimens.xs)
     }
 

@@ -56,19 +56,31 @@ class BrutalistBarChart(context: Context) : View(context) {
     private val dimens = AliveDimens(context)
 
     private val face = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
-    private val edge = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeWidth = dp(2f) // ponytail: Batch 7 re-authors chart bars without stroke
-        color = palette.ink
-    }
     private val band = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
         color = palette.workPale
     }
-    private val hatchPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+
+    /**
+     * The axis: the two edges of a selection. Data ink, not a card border - one
+     * hairline in the secondary tone, the weight the month's labels are written
+     * in.
+     */
+    private val axis = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
+        color = palette.inkSecondary
         strokeWidth = dp(1f)
-        color = palette.ink
+    }
+
+    /**
+     * A day the system never saw: a hollow capsule at a missing-tone alpha, so
+     * the gap in the record has a body of its own and can never be read as a
+     * zero-height bar.
+     */
+    private val missingRim = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = dp(2f)
+        color = palette.inkDisabled
     }
     private val averagePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
@@ -95,16 +107,6 @@ class BrutalistBarChart(context: Context) : View(context) {
         textSize = sp(10f)
         textAlign = Paint.Align.CENTER
         color = palette.paper
-    }
-    private val dotInk = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-        color = palette.ink
-        alpha = 34
-    }
-    private val dotPaper = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-        color = palette.paper
-        alpha = 46
     }
 
     private val bubble = RectF()
@@ -197,7 +199,7 @@ class BrutalistBarChart(context: Context) : View(context) {
         val headroom = if (singleRow) bubbleBand() else dimens.s.toFloat()
         val top = paddingTop + headroom
         val foot = height - paddingBottom - labelBand
-        val pitch = (foot - top - edge.strokeWidth) / grid.rowCount
+        val pitch = (foot - top - dp(1f)) / grid.rowCount
         val plotHeight = pitch - rowGap()
         if (plotHeight <= 0f) return
 
@@ -217,8 +219,8 @@ class BrutalistBarChart(context: Context) : View(context) {
                 // any width and cannot overflow its own column.
                 shape.set(centre - slot / 2f, baseline - plotHeight, centre + slot / 2f, baseline)
                 canvas.drawRect(shape, band)
-                canvas.drawLine(shape.left, top + row * pitch, shape.left, baseline, edge)
-                canvas.drawLine(shape.right, top + row * pitch, shape.right, baseline, edge)
+                canvas.drawLine(shape.left, top + row * pitch, shape.left, baseline, axis)
+                canvas.drawLine(shape.right, top + row * pitch, shape.right, baseline, axis)
             }
             drawColumn(canvas, column, centre, barWidth, baseline - plotHeight, baseline, plotHeight)
 
@@ -249,12 +251,13 @@ class BrutalistBarChart(context: Context) : View(context) {
             }
         }
 
-        // One ink rule per row, because each row is its own axis: a bar's height
+        // One hairline per row, because each row is its own axis: a bar's height
         // is that day's share of its allowance, measured from the line under it.
-        face.color = palette.ink
+        // Secondary ink, not full: the rule is a reading, not a frame.
+        face.color = palette.inkSecondary
         for (row in 0 until grid.rowCount) {
             val baseline = top + row * pitch + plotHeight
-            canvas.drawRect(left, baseline, right, baseline + edge.strokeWidth, face)
+            canvas.drawRect(left, baseline, right, baseline + dp(1f), face)
         }
 
         // The average is a comparison, not a bar: a dashed line the eye can
@@ -290,28 +293,31 @@ class BrutalistBarChart(context: Context) : View(context) {
     ) {
         val half = barWidth / 2f
         val stubHeight = dp(9f)
-        // The same corner as a meter step: a bar is a block of this app, not a
-        // spreadsheet column.
-        val corner = dimens.radiusStep.toFloat()
+        // A bar is a capsule. It is the only side of the flat language's radius
+        // scale that survives at a month's width, and it retires the 4dp step
+        // along with the grid the step was drawn against.
+        val corner = half
 
         when (column.kind) {
-            // Never seen: a hollow stub, so the gap in the record is visible
-            // instead of being flattened into a zero.
+            // Never seen: a hollow capsule, so the gap in the record keeps a body
+            // of its own instead of being flattened into a zero. Inset by half the
+            // rim so the marker is exactly as wide as a real bar.
             DayBarKind.MISSING -> {
+                val inset = missingRim.strokeWidth / 2f
                 shape.set(centre - half, baseline - stubHeight, centre + half, baseline)
-                fillWith(palette.paper)
-                canvas.drawRoundRect(shape, corner, corner, face)
-                canvas.drawRoundRect(shape, corner, corner, edge)
+                shape.inset(inset, inset)
+                canvas.drawRoundRect(shape, corner - inset, corner - inset, missingRim)
             }
 
-            // No allowance to spend: same stub height, filled and hatched, so it
+            // No allowance to spend: the same stub as an unseen day, but as a
+            // held-back field - the weight the donut gives its aggregate - so it
             // cannot be mistaken for a day that was merely unseen.
             DayBarKind.RECOVERY -> {
                 shape.set(centre - half, baseline - stubHeight, centre + half, baseline)
                 fillWith(palette.warmGray)
+                face.alpha = HELD_BACK_ALPHA
                 canvas.drawRoundRect(shape, corner, corner, face)
-                hatch(canvas, shape)
-                canvas.drawRoundRect(shape, corner, corner, edge)
+                face.alpha = 255
             }
 
             // An allowance and nothing spent: a square on the baseline. Drawing a
@@ -320,12 +326,12 @@ class BrutalistBarChart(context: Context) : View(context) {
                 val tick = min(barWidth, dp(8f))
                 shape.set(centre - tick / 2f, baseline - tick, centre + tick / 2f, baseline)
                 fillWith(palette.ink)
-                canvas.drawRoundRect(shape, corner, corner, face)
+                canvas.drawRoundRect(shape, tick / 2f, tick / 2f, face)
             }
 
             else -> {
                 // A spent day is never invisible: the shortest bar the eye can
-                // still find is one pixel of ink edge plus a sliver of fill.
+                // still find is a sliver of its own field.
                 val height = max(column.fraction * plotHeight, dp(3f))
                 shape.set(centre - half, baseline - height, centre + half, baseline)
                 val full = column.kind == DayBarKind.FULL
@@ -336,40 +342,10 @@ class BrutalistBarChart(context: Context) : View(context) {
                 // number under the chart says the same thing, as it always must.
                 fillWith(barColor ?: if (full) palette.shortMid else palette.softForest)
                 canvas.drawRoundRect(shape, corner, corner, face)
-                if (barWidth >= dp(11f)) {
-                    texture(canvas, shape, if (full) dotPaper else dotInk)
-                }
-                canvas.drawRoundRect(shape, corner, corner, edge)
             }
         }
     }
 
-    /** Pixel dots inside a bar, the same grain the canvas background has. */
-    private fun texture(canvas: Canvas, bar: RectF, paint: Paint) {
-        val step = dp(5f)
-        val dot = dp(1.5f)
-        var y = bar.top + step
-        while (y + dot < bar.bottom) {
-            var x = bar.left + step
-            while (x + dot < bar.right) {
-                canvas.drawRect(x, y, x + dot, y + dot, paint)
-                x += step
-            }
-            y += step
-        }
-    }
-
-    /** Three diagonal strokes: "this shape means something other than minutes". */
-    private fun hatch(canvas: Canvas, bar: RectF) {
-        val step = bar.width() / 4f
-        var x = bar.left + step
-        while (x < bar.right) {
-            canvas.drawLine(x, bar.bottom, x - step / 2f, bar.top, hatchPaint)
-            x += step
-        }
-    }
-
-    /** The number, in an ink box over the bar it belongs to. */
     /** A dashed line at the mean of the columns, labelled once at its right. */
     private fun drawAverage(
         canvas: Canvas,
@@ -414,8 +390,7 @@ class BrutalistBarChart(context: Context) : View(context) {
 
         bubble.set(bubbleLeft, top - height, bubbleRight, top)
         face.color = palette.ink
-        val corner = dimens.radiusStep.toFloat()
-        canvas.drawRoundRect(bubble, corner, corner, face)
+        canvas.drawRoundRect(bubble, height / 2f, height / 2f, face)
         val metrics = valuePaint.fontMetrics
         canvas.drawText(text, bubble.centerX(), bubble.centerY() - (metrics.ascent + metrics.descent) / 2f, valuePaint)
     }
@@ -461,7 +436,7 @@ class BrutalistBarChart(context: Context) : View(context) {
         val plot = dp(if (grid.rowCount == 1) SINGLE_ROW_PLOT_DP else WRAPPED_ROW_PLOT_DP)
         return paddingTop + headroom +
             grid.rowCount * (plot + rowGap()) - rowGap() +
-            edge.strokeWidth + labelBandHeight() + paddingBottom
+            dp(1f) + labelBandHeight() + paddingBottom
     }
 
     private fun selectAt(x: Float, y: Float) {
@@ -475,7 +450,7 @@ class BrutalistBarChart(context: Context) : View(context) {
         val singleRow = grid.rowCount == 1
         val top = paddingTop + (if (singleRow) bubbleBand() else dimens.s.toFloat())
         val foot = height - paddingBottom - labelBandHeight()
-        val pitch = (foot - top - edge.strokeWidth) / grid.rowCount
+        val pitch = (foot - top - dp(1f)) / grid.rowCount
         if (pitch <= 0f) return
 
         val slot = (right - left) / grid.columnsPerRow
@@ -530,6 +505,9 @@ class BrutalistBarChart(context: Context) : View(context) {
         TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value, resources.displayMetrics)
 
     private companion object {
+        /** A recovery day's field, held back the way the donut holds its aggregate. */
+        const val HELD_BACK_ALPHA = 115
+
         /** One row gets a whole chart's plot height: there is nothing above it. */
         const val SINGLE_ROW_PLOT_DP = 140f
 

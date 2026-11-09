@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- ALIVE's canvas: flat cream, no pattern.
-     The cards, their hard ink shadows and the sprites are the texture; the
-     grid underneath was a third one, and it was the only one that competed
-     with the other two. -->
+     The cards and the sprites are the texture; the grid underneath was a third
+     one, and it was the only one that competed with the other two. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <solid android:color="@color/flat_ground" />

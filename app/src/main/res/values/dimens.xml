@@ -46,6 +46,12 @@
 
     <dimen name="touch_min">48dp</dimen>
 
+    <!-- The home-screen card's own measure. The layout and the bitmap painter
+         read these two, so the meter is drawn at the size its view will be
+         rather than at a second, drifting copy of the number. -->
+    <dimen name="widget_inset">18dp</dimen>
+    <dimen name="widget_meter_height">20dp</dimen>
+
     <!-- Sprite sizes are what they say. They used to be multiples of 16dp
          because every sprite was drawn on a 16x16 grid, and AliveDimens.sprite()
          then rounded the result to a whole number of those cells. The flat
