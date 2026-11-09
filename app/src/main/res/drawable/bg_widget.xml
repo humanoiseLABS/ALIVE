@@ -1,29 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The widget's card: the one picture every raised object in ALIVE wears, at
-     home-screen size - a paper face with a bold ink edge and a hard ink shadow
-     behind it, offset to the bottom-right.
+<!-- The widget's card: one tile field with the same 22dp corner as every other
+     field. No edge and no shadow - a field is seen by being a different colour
+     from the ground, and the ground here is the wallpaper.
 
-     Both layers are rounded and the ink sits at the view's own bounds: the face
-     is the layer that shrinks, so the shadow has one width everywhere it shows
-     and the two never disagree at a corner. An ink block inset from the top-left
-     instead puts a band of a different thickness on each side, which reads as a
-     smudge and not as depth. -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <shape android:shape="rectangle">
-            <solid android:color="@color/flat_ink" />
-            <corners android:radius="16dp" />
-        </shape>
-    </item>
-    <item
-        android:right="6dp"
-        android:bottom="6dp">
-        <shape android:shape="rectangle">
-            <solid android:color="@color/flat_tile" />
-            <stroke
-                android:width="3dp"
-                android:color="@color/flat_ink" />
-            <corners android:radius="16dp" />
-        </shape>
-    </item>
-</layer-list>
+     A drawable rather than a painted bitmap, because the launcher stretches
+     whatever it is given to the widget's real size: a shape's corner stays the
+     corner it was drawn as at every size, while a bitmap's corner stretches
+     with the picture. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/flat_tile" />
+    <corners android:radius="@dimen/radius_field" />
+</shape>

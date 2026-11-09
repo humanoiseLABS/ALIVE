@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.RectF
 import android.graphics.Typeface
 import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
@@ -21,6 +20,10 @@ import kotlin.math.max
  * complaint, which is how the pixel figure turned into the system face on the
  * home screen. So the figure and the allowance meter are drawn here, where the
  * typeface is readable, and handed over as pictures.
+ *
+ * The card itself is not painted here: it is [R.drawable.bg_widget], a flat
+ * field the host inflates at the widget's real size, so its corner cannot be
+ * stretched by the launcher.
  */
 object AliveWidgetArt {
 
@@ -30,34 +33,6 @@ object AliveWidgetArt {
 
     /** Widest the figure may be before it steps down a size. */
     private const val FIGURE_MAX_DP = 200f
-
-    /**
-     * The card itself, at [widthPx] by [heightPx].
-     *
-     * One tile field with the same corner token as every other field, and no
-     * edge and no shadow behind it - so the face is opaque and the wallpaper
-     * never shows through. Painted rather than declared because the launcher
-     * stretches whatever it is given to the real widget size, and a bitmap
-     * corner stretches with it.
-     *
-     * The picture is stretched to the widget's real size, so the corner radius
-     * is exact only at the size this is drawn for; a 4x2 card is what that size
-     * is.
-     */
-    fun card(context: Context, widthPx: Int, heightPx: Int): Bitmap {
-        val radius = context.resources.getDimensionPixelSize(R.dimen.radius_field).toFloat()
-        val bitmap = Bitmap.createBitmap(widthPx, heightPx, Bitmap.Config.ARGB_8888)
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = ContextCompat.getColor(context, R.color.flat_tile)
-        }
-        Canvas(bitmap).drawRoundRect(
-            RectF(0f, 0f, widthPx.toFloat(), heightPx.toFloat()),
-            radius,
-            radius,
-            paint
-        )
-        return bitmap
-    }
 
     /** The gap between two slices, in dp at the size the view is drawn. */
     private const val METER_SEAM_DP = 2.5f

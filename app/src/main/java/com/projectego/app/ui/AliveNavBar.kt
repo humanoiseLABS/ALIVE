@@ -8,7 +8,6 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.LayerDrawable
 import android.provider.Settings
 import android.util.AttributeSet
 import android.view.Gravity
@@ -31,9 +30,10 @@ import kotlin.math.sqrt
 /**
  * ALIVE's bottom bar: four keys, and the selected one is a raised circle.
  *
- * The strip is one dock - paper fill, a single bold ink contour - and the
- * selected slot lifts its glyph out of the strip into a circle that floats
- * above it, with the contour opening into a notch around the circle. Each
+ * The strip is one dock - the page's own field, with no edge to separate them -
+ * and the selected slot lifts its glyph out of the strip into a circle that
+ * floats above it; the strip's top edge dips around the circle's resting place.
+ * Each
  * slot owns the colour of its own circle (forest for the day, amber for the
  * board, rose for the numbers, work blue for the ledger of the self), so the
  * bar says where you are in colour and the glyph says what it is.

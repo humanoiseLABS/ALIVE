@@ -45,10 +45,10 @@ class AliveStatsWidgetProvider : AppWidgetProvider() {
 
         private const val ROWS = 3
 
-        /** A four-by-two cell on a typical launcher, which is what the card is
-         *  painted for before the host stretches it to whatever it really is. */
+        /** The card's width on a typical four-by-two launcher cell. Only the
+         *  meter is painted for it; the card itself is a drawable, so a host
+         *  that stretches the widget still gets an exact corner. */
         private const val CARD_WIDTH_DP = 320f
-        private const val CARD_HEIGHT_DP = 160f
 
         /**
          * The big number, and the word above it.
@@ -93,17 +93,9 @@ class AliveStatsWidgetProvider : AppWidgetProvider() {
             // is. Tapping it goes to the panel the number came from.
             views.setOnClickPendingIntent(R.id.widget_root, openStats(context))
 
-            // The card, at the size a four-by-two cell is on this device; the
-            // host stretches it if the person resizes the widget away from that.
+            // The card is a drawable, so it needs no per-update work: the host
+            // inflates it at whatever size the widget really is.
             val density = context.resources.displayMetrics.density
-            views.setImageViewBitmap(
-                R.id.widget_card,
-                AliveWidgetArt.card(
-                    context,
-                    (CARD_WIDTH_DP * density).toInt(),
-                    (CARD_HEIGHT_DP * density).toInt()
-                )
-            )
 
             val apps = (day?.perAppMinutes ?: emptyMap())
                 .filterValues { it > 0L }

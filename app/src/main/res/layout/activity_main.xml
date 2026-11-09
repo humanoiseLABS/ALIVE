@@ -19,8 +19,8 @@
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <!-- The bar draws its own bold top contour - with the notch - so the strip
-         no longer needs a separate ink rule above it. -->
+    <!-- The bar shares the page's own field, so there is no rule between them;
+         the selected key lifts into a circle above the strip. -->
     <com.projectego.app.ui.AliveNavBar
         android:id="@+id/navBar"
         android:layout_width="match_parent"

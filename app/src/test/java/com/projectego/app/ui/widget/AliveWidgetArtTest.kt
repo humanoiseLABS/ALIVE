@@ -19,12 +19,13 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 
 /**
- * The widget's pictures, measured as pixels.
+ * The widget's flat geometry, measured as pixels.
  *
  * A launcher renders the home-screen card in its own process, so no layout test
- * can see what it really draws. What ALIVE hands over is a bitmap, and that is
- * measurable: flat is one tile field with no edge and no shadow, and the meter
- * is capsules separated by air rather than an ink seam.
+ * can see what it really draws. What ALIVE hands over is a drawable and two
+ * bitmaps, and that is measurable: the card is one tile field with no edge and
+ * no shadow, the meter is capsules separated by air rather than an ink seam,
+ * and its empty track is the approved mint field.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [36], qualifiers = "w411dp-h891dp-xxhdpi")
@@ -44,7 +45,10 @@ class AliveWidgetArtTest {
     fun `the card is one tile field at the flat corner`() {
         val width = (320f * density).toInt()
         val height = (160f * density).toInt()
-        val bitmap = AliveWidgetArt.card(context, width, height)
+        val drawable = requireNotNull(AppCompatResources.getDrawable(context, R.drawable.bg_widget))
+        drawable.setBounds(0, 0, width, height)
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        drawable.draw(Canvas(bitmap))
         val tile = ContextCompat.getColor(context, R.color.flat_tile)
         val ink = ContextCompat.getColor(context, R.color.flat_ink)
         val opaque = opaquePixels(bitmap)
@@ -52,16 +56,23 @@ class AliveWidgetArtTest {
         assertTrue("the card drew nothing - is the canvas stubbed?", opaque.size > width * height * 0.9)
         assertTrue(
             "the card still paints ink - an edge or a shadow survived",
-            opaque.none { channelsClose(it, ink) }
+            visiblePixels(bitmap).none { channelsClose(it, ink) }
         )
         assertTrue(
             "the card's face is not the tile field",
             opaque.all { channelsClose(it, tile) }
         )
 
-        // The corner: empty at the extreme corner, and the top row starts where
-        // the corner circle crosses it - r - sqrt(r) from the edge, not at r.
-        assertEquals(0, bitmap.getPixel(0, 0) ushr 24)
+        // The corner: empty at all four extremes, and the top row starts where
+        // the corner circle crosses it - r - sqrt(2r - 1) from the edge.
+        listOf(
+            0 to 0,
+            width - 1 to 0,
+            0 to height - 1,
+            width - 1 to height - 1
+        ).forEach { (x, y) ->
+            assertEquals("corner $x,$y is not empty", 0, bitmap.getPixel(x, y) ushr 24)
+        }
         val firstTop = (0 until width).first { bitmap.getPixel(it, 0) ushr 24 > 0 }
         assertEqualsCornerStart(22f * density, firstTop)
     }
@@ -157,6 +168,12 @@ class AliveWidgetArtTest {
         (0 until bitmap.height).flatMap { y ->
             (0 until bitmap.width).map { x -> bitmap.getPixel(x, y) }
         }.filter { it ushr 24 == 255 }
+
+    /** Anything the eye could see, so a translucent stroke cannot hide. */
+    private fun visiblePixels(bitmap: Bitmap): List<Int> =
+        (0 until bitmap.height).flatMap { y ->
+            (0 until bitmap.width).map { x -> bitmap.getPixel(x, y) }
+        }.filter { it ushr 24 > 16 }
 
     /** Premultiplied storage rounds a translucent edge by one per channel. */
     private fun channelsClose(pixel: Int, want: Int): Boolean =
