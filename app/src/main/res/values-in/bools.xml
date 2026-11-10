@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The language the resources are drawn in. Android resolves this with the
+     same locale as the strings, so a row that names the language cannot
+     disagree with the words around it. -->
+<resources>
+    <bool name="language_is_indonesian">true</bool>
+</resources>

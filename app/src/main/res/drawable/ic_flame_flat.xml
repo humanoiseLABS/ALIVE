@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The streak flame, flat: the amber drop with the family's two capsule eyes,
+     as the approved Beranda render draws it. The old pixel flame belonged to
+     the 16-cell sheet the flat language retired. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="@color/alive_amber_action"
+        android:pathData="M12,2C12,2 6,8.4 6,14.2C6,18.1 8.7,21 12,21C15.3,21 18,18.1 18,14.2C18,8.4 12,2 12,2Z" />
+    <path
+        android:fillColor="@color/alive_gold_reward_mid"
+        android:pathData="M6.4,13.6C7.4,17.2 9.5,19.4 12,19.4C14.5,19.4 16.6,17.2 17.6,13.6C16.3,15.2 14.4,16.1 12,16.1C9.6,16.1 7.7,15.2 6.4,13.6Z" />
+    <path
+        android:fillColor="@color/flat_ink"
+        android:pathData="M9.5,12.5a0.7,0.7 0 0 1 1.4,0v2.4a0.7,0.7 0 0 1 -1.4,0zM13.1,12.5a0.7,0.7 0 0 1 1.4,0v2.4a0.7,0.7 0 0 1 -1.4,0z" />
+</vector>

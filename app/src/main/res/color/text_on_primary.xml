@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Text on the primary button's face.
 
-     It used to be white, because that face was forest. Amber is a light, so the
-     label goes dark - the same ink the rest of the app reads with, which is what
-     keeps a pressed button legible when the face fills in. The disabled case is
-     ink_secondary on warm gray, about 5:1: a control must look like a control
-     without its words going unreadable. -->
+     The face is ink now, per the approved `.btn`, so its label is paper - the
+     same pairing every dark ground in ALIVE uses. The disabled case stays
+     ink_secondary on warm gray: a control must look like a control without its
+     words going unreadable. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:color="@color/alive_ink_secondary" android:state_enabled="false" />
-    <item android:color="@color/flat_ink" />
+    <item android:color="@color/flat_paper" />
 </selector>

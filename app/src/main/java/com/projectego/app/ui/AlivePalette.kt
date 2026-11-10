@@ -41,8 +41,30 @@ class AlivePalette(context: Context) {
     val flatPaper = color(R.color.flat_paper)
     val flatInk = color(R.color.flat_ink)
 
+    /**
+     * The varied page grounds from the approved render: the six screens do not
+     * all stand on the same cream, and that sameness is what made the first flat
+     * pass read as "cuma dipoles".
+     */
+    val groundLav = color(R.color.flat_g_lav)
+    val groundMint = color(R.color.flat_g_mint)
+    val groundBlush = color(R.color.flat_g_blush)
+    val groundButter = color(R.color.flat_g_butter)
+    val groundSky = color(R.color.flat_g_sky)
+    val groundPeach = color(R.color.flat_g_peach)
+
     /** The mint a landed field wears: quiet, and not one of the family's status hues. */
     val flatMint = color(R.color.flat_field_mint)
+
+    /** The three field hues Beranda's fact tiles wear in the approved render. */
+    val fieldRose = color(R.color.flat_field_rose)
+    val fieldButter = color(R.color.flat_field_butter)
+    val fieldAqua = color(R.color.flat_field_aqua)
+    val fieldBlossom = color(R.color.flat_field_blossom)
+    val fieldSky = color(R.color.flat_field_sky)
+    val fieldLilac = color(R.color.flat_field_lilac)
+    val fieldPeach = color(R.color.flat_field_peach)
+    val fieldCoral = color(R.color.flat_field_coral)
 
     val paper = color(R.color.flat_ground)
     val canvas = color(R.color.flat_ground)

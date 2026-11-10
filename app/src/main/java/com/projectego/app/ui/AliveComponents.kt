@@ -72,6 +72,14 @@ class AliveComponents(private val context: Context) {
     fun display(value: CharSequence): TextView =
         text(R.style.TextAppearance_ALIVE_Display, value)
 
+    /** The page's greeting: one heavy line, from the approved `.h1`. */
+    fun h1(value: CharSequence): TextView =
+        text(R.style.TextAppearance_ALIVE_H1, value)
+
+    /** The small capitals above a figure, from the approved `.kicker`. */
+    fun kicker(value: CharSequence): TextView =
+        text(R.style.TextAppearance_ALIVE_Kicker, value)
+
     fun headline(value: CharSequence): TextView =
         text(R.style.TextAppearance_ALIVE_Headline, value)
 

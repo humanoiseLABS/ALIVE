@@ -1,11 +1,18 @@
 package com.projectego.app.ui
 
 import android.content.Intent
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.view.Gravity
+import android.util.TypedValue
 import android.widget.LinearLayout
 import android.widget.ScrollView
+import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.ColorUtils
 import com.projectego.app.MainActivity
 import com.projectego.app.R
 import com.projectego.app.data.LockStateManager
@@ -76,35 +83,33 @@ class LockActivity : AppCompatActivity() {
         val isFocusSession = lockReason == "FOCUS_SESSION"
         val isRecoveryDay = lockState.getDayType() == DayType.ZERO_ENTERTAINMENT_DAY
 
+        // Pass 2 stands the lock on deep, with the two facts that explain it as
+        // fields: today's allowance and the run it belongs to. No red, no
+        // shouting - the door says what happened and offers the way out.
+        val paper = ContextCompat.getColor(this, R.color.flat_paper)
+        val deep = ContextCompat.getColor(this, R.color.flat_deep)
+
         val page = ui.stack(ui.dimens.cardGap).apply {
             setPadding(
-                ui.dimens.xxxl,
-                ui.dimens.xxxl,
-                ui.dimens.xxxl,
-                ui.dimens.xxl
+                ui.dimens.pageHorizontal,
+                ui.dimens.pageTop,
+                ui.dimens.pageHorizontal,
+                ui.dimens.pageBottom
             )
         }
 
-        // The figure on a lock screen: holding the phone it was cut off from
-        // for an entertainment block, plain ALIVE for a focus session - this
-        // screen is the session's door, not an accusation.
-        val lockFace = if (isFocusSession) AliveFace.NORMAL else AliveFace.PHONE
         page.addView(
-            ui.pose(
-                AliveStates.faceSpriteFor(lockFace),
-                ui.dimens.characterLarge,
-                getString(AliveStates.faceDescription(lockFace))
-            )
+            TextView(this).apply {
+                text = getString(R.string.alive_wordmark)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+                typeface = ResourcesCompat.getFont(this@LockActivity, R.font.space_grotesk_bold)
+                setTextColor(paper)
+                includeFontPadding = false
+            }
         )
 
-        // The notice is the one heavy frame on this screen: what happened, and
-        // the numbers behind it, inside one edge. It is untitled on purpose - the
-        // sentence itself is the heading, and a card title above it would demote
-        // the one thing this screen exists to say. The actions below sit on the
-        // canvas because they are not news; they are what to do about it.
-        val notice = ui.block(SurfaceWeight.MAJOR)
-        notice.addView(
-            ui.headline(
+        page.addView(
+            ui.h1(
                 getString(
                     when {
                         isFocusSession -> R.string.lock_title_focus
@@ -112,53 +117,74 @@ class LockActivity : AppCompatActivity() {
                         else -> R.string.lock_title_over
                     }
                 )
-            )
+            ).apply { setTextColor(paper) }
         )
-        notice.addView(ui.vgap(ui.dimens.lineGap))
-        notice.addView(ui.note(getString(R.string.lock_intent)))
-        notice.addView(ui.vgap(ui.dimens.groupGap))
-        notice.addView(ui.accents(seed = 5))
-        notice.addView(ui.vgap(ui.dimens.groupGap))
-
-        if (isFocusSession) {
-            notice.addView(ui.body(getString(R.string.lock_focus_body, focusActivityName)))
-        } else if (isRecoveryDay) {
-            // A recovery day has no numbers to show: there was no allowance to
-            // spend, so printing "0 min of 0 min" would be noise.
-            notice.addView(ui.body(getString(R.string.lock_zero_body)))
-            notice.addView(ui.vgap(ui.dimens.lineGap))
-            notice.addView(ui.note(getString(R.string.lock_zero_support)))
-        } else {
-            notice.addView(ui.body(getString(R.string.lock_over_body)))
-            val used = numbers.usedMinutes
-            val limit = numbers.limitMinutes
-            if (used != null && limit != null) {
-                notice.addView(ui.vgap(ui.dimens.lineGap))
-                notice.addView(ui.note(getString(R.string.lock_allowance_line, limit)))
-                notice.addView(ui.vgap(ui.dimens.pairGap))
-                notice.addView(ui.note(getString(R.string.lock_used_line, used)))
+        page.addView(
+            ui.note(getString(R.string.lock_intent)).apply {
+                setTextColor(ColorUtils.setAlphaComponent(paper, 168))
             }
-            // With no numbers to print, the sentence is the whole story. A zero
-            // would be a lie and a full allowance would read as a bug.
-        }
-
-        notice.addView(ui.vgap(ui.dimens.groupGap))
-        notice.addView(ui.rowRule())
-        notice.addView(ui.vgap(ui.dimens.lineGap))
-        notice.addView(
-            ui.note(
-                if (isFocusSession) getString(R.string.lock_focus_blocked, blockedPkg)
-                else getString(R.string.lock_blocked_app, blockedPkg)
-            )
         )
-        notice.addView(ui.vgap(ui.dimens.pairGap))
-        notice.addView(ui.note(getString(R.string.lock_days_row, lockState.getCurrentStreak())))
-        notice.addView(ui.vgap(ui.dimens.pairGap))
-        notice.addView(ui.note(getString(R.string.lock_essential)))
-        page.addView(notice)
+
+        val jatah = ui.column().apply {
+            background = GradientDrawable().apply {
+                cornerRadius = ui.dimens.radiusCard.toFloat()
+                setColor(ContextCompat.getColor(this@LockActivity, R.color.flat_field_rose))
+            }
+            setPadding(ui.dimens.dp(20), ui.dimens.dp(20), ui.dimens.dp(20), ui.dimens.dp(20))
+        }
+        jatah.addView(ui.kicker(getString(R.string.lock_kicker_allowance)))
+        jatah.addView(ui.vgap(ui.dimens.pairGap))
+        val used = numbers.usedMinutes
+        val limit = numbers.limitMinutes
+        jatah.addView(
+            if (used != null && limit != null) {
+                ui.number(getString(R.string.lock_used_of_limit, used, limit))
+            } else {
+                ui.lead(
+                    getString(if (isRecoveryDay) R.string.lock_zero_body else R.string.lock_over_body)
+                )
+            }
+        )
+        jatah.addView(ui.vgap(ui.dimens.lineGap))
+        jatah.addView(
+            TextView(this).apply {
+                text = blockedPkg
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 12.5f)
+                typeface = ResourcesCompat.getFont(this@LockActivity, R.font.space_grotesk_bold)
+                setTextColor(ui.palette.ink)
+                includeFontPadding = false
+                background = GradientDrawable().apply {
+                    cornerRadius = ui.dimens.radiusPill.toFloat()
+                    setColor(paper)
+                }
+                setPadding(ui.dimens.dp(12), ui.dimens.dp(6), ui.dimens.dp(12), ui.dimens.dp(6))
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+        )
+        page.addView(jatah)
+
+        page.addView(
+            ui.row().apply {
+                background = GradientDrawable().apply {
+                    cornerRadius = ui.dimens.radiusCard.toFloat()
+                    setColor(ContextCompat.getColor(this@LockActivity, R.color.flat_field_butter))
+                }
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(ui.dimens.dp(20), ui.dimens.dp(18), ui.dimens.dp(20), ui.dimens.dp(18))
+                addView(ui.kicker(getString(R.string.lock_kicker_streak)))
+                addView(ui.weighted(ui.column()))
+                addView(
+                    ui.lead(
+                        getString(R.string.lock_streak_days, lockState.getCurrentStreak())
+                    )
+                )
+            }
+        )
 
         if (!isFocusSession) {
-            page.addView(ui.lead(getString(R.string.lock_do_instead)))
             page.addView(
                 ui.primary(getString(R.string.lock_action_focus)).apply {
                     layoutParams = matchWidth()
@@ -190,6 +216,7 @@ class LockActivity : AppCompatActivity() {
 
         page.addView(
             ui.quiet(getString(R.string.lock_action_dashboard)).apply {
+                setTextColor(paper)
                 layoutParams = matchWidth()
                 setOnClickListener {
                     val intent = Intent(this@LockActivity, MainActivity::class.java).apply {
@@ -201,12 +228,18 @@ class LockActivity : AppCompatActivity() {
             }
         )
 
+        page.addView(
+            ui.note(getString(R.string.lock_essential)).apply {
+                setTextColor(ColorUtils.setAlphaComponent(paper, 168))
+            }
+        )
+
         // A scroll container is required: on a short display the buttons
         // otherwise fall below the fold while back is still intercepted.
         setContentView(
             ScrollView(this).apply {
                 addView(page)
-                setBackgroundResource(R.drawable.bg_canvas)
+                setBackgroundColor(deep)
                 isFillViewport = true
             }
         )

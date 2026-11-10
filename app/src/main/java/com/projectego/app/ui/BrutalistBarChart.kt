@@ -144,6 +144,24 @@ class BrutalistBarChart(context: Context) : View(context) {
             invalidate()
         }
 
+    /**
+     * The column being lived in wears this instead of [barColor], when it is
+     * set: the approved Statistik draws the week white and today ink.
+     */
+    var nowColor: Int? = null
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    /** The mean line is a reading of the chart; a header that states the mean
+     *  makes it redundant, and pass 2 dropped it. */
+    var showAverage: Boolean = true
+        set(value) {
+            field = value
+            invalidate()
+        }
+
     /** How far a finger may wander and still be called a tap. */
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
     private var downX = 0f
@@ -231,39 +249,18 @@ class BrutalistBarChart(context: Context) : View(context) {
                 ChartGeometry.labelFits(labelPaint.measureText(column.label), slot, labelMargin)
             ) {
                 labelPaint.color = if (index == selected) palette.ink else palette.inkSecondary
+                labelPaint.isFakeBoldText = column.isNow
+                val text = column.label.uppercase()
                 val labelBaseline = baseline + dimens.s - labelPaint.fontMetrics.ascent
-                canvas.drawText(column.label, centre, labelBaseline, labelPaint)
-                if (column.isNow) {
-                    // Under the name, not on top of the bar: a cap above a short
-                    // or empty bar reads as a second, stacked mark. An underline
-                    // says "this one" the way the app's own tabs do.
-                    val textWidth = labelPaint.measureText(column.label)
-                    val underlineTop = labelBaseline + labelPaint.fontMetrics.descent + dp(1.5f)
-                    shape.set(
-                        centre - textWidth / 2f - dp(2f),
-                        underlineTop,
-                        centre + textWidth / 2f + dp(2f),
-                        underlineTop + dp(2f)
-                    )
-                    fillWith(palette.pinkSoft)
-                    canvas.drawRoundRect(shape, dp(1f), dp(1f), face)
-                }
+                canvas.drawText(text, centre, labelBaseline, labelPaint)
+                labelPaint.isFakeBoldText = false
             }
-        }
-
-        // One hairline per row, because each row is its own axis: a bar's height
-        // is that day's share of its allowance, measured from the line under it.
-        // Secondary ink, not full: the rule is a reading, not a frame.
-        face.color = palette.inkSecondary
-        for (row in 0 until grid.rowCount) {
-            val baseline = top + row * pitch + plotHeight
-            canvas.drawRect(left, baseline, right, baseline + dp(1f), face)
         }
 
         // The average is a comparison, not a bar: a dashed line the eye can
         // measure every column against. A wrapped month has no single baseline
         // worth averaging across, so it is only drawn when there is one row.
-        if (grid.rowCount == 1) drawAverage(canvas, left, right, top, plotHeight)
+        if (grid.rowCount == 1 && showAverage) drawAverage(canvas, left, right, top, plotHeight)
 
         // The number belongs in the sky above a bar, and a wrapped month has no
         // sky - the day line under the chart says it instead.
@@ -293,10 +290,10 @@ class BrutalistBarChart(context: Context) : View(context) {
     ) {
         val half = barWidth / 2f
         val stubHeight = dp(9f)
-        // A bar is a capsule. It is the only side of the flat language's radius
-        // scale that survives at a month's width, and it retires the 4dp step
-        // along with the grid the step was drawn against.
-        val corner = half
+        // Pass 2 draws a bar as a rounded rectangle, not a capsule: at a phone's
+        // width a full half-width radius read as a lozenge, and the week's bars
+        // need a side you can read a height against.
+        val corner = min(half, dp(7f))
 
         when (column.kind) {
             // Never seen: a hollow capsule, so the gap in the record keeps a body
@@ -340,7 +337,13 @@ class BrutalistBarChart(context: Context) : View(context) {
                 // A day that ran its allowance out goes to the red that already
                 // means "this is running out" everywhere else in the app - the
                 // number under the chart says the same thing, as it always must.
-                fillWith(barColor ?: if (full) palette.shortMid else palette.softForest)
+                fillWith(
+                    if (column.isNow && nowColor != null) {
+                        nowColor!!
+                    } else {
+                        barColor ?: if (full) palette.shortMid else palette.softForest
+                    }
+                )
                 canvas.drawRoundRect(shape, corner, corner, face)
             }
         }
@@ -400,9 +403,7 @@ class BrutalistBarChart(context: Context) : View(context) {
     private fun rowGap(): Float = dp(10f)
 
     private fun labelBandHeight(): Float =
-        // The extra two pixels are the "KINI" underline, which lives under the
-        // label and must not be clipped by the view's own bottom edge.
-        (labelPaint.fontMetrics.descent - labelPaint.fontMetrics.ascent) + dimens.s + dp(4f)
+        (labelPaint.fontMetrics.descent - labelPaint.fontMetrics.ascent) + dimens.s + dp(2f)
 
     /** The columns this width asks for - and therefore how tall the view wants to be. */
     private fun geometry(): ChartLayout = geometryFor(width)

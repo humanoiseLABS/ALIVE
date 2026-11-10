@@ -1,14 +1,22 @@
 package com.projectego.app.ui
 
 import android.content.Intent
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.util.TypedValue
 import android.provider.Settings
 import android.view.Gravity
 import android.view.View
+import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.ScrollView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.ColorUtils
 import com.projectego.app.R
 import com.projectego.app.data.WelcomeGate
 
@@ -83,40 +91,97 @@ class WelcomeActivity : AppCompatActivity() {
 
     private fun renderStep() {
         content.removeAllViews()
+        // Pass 2 opens the welcome on deep; the two mechanics screens keep the
+        // page the app proper stands on.
+        val paper = ContextCompat.getColor(this, R.color.flat_paper)
+        val deep = ContextCompat.getColor(this, R.color.flat_deep)
+        (content.parent as? View)?.setBackgroundColor(if (step == 0) deep else ui.palette.canvas)
         when (step) {
-            0 -> buildPhilosophy()
+            0 -> buildPhilosophy(paper)
             1 -> buildMechanics()
             else -> buildPermissions()
         }
     }
 
     /** Screen one: who this is for, in the only voice that gets to be a voice. */
-    private fun buildPhilosophy() {
+    private fun buildPhilosophy(paper: Int) {
         content.addView(
             ui.row().apply {
-                gravity = Gravity.BOTTOM
-                addView(ui.display(getString(R.string.alive_wordmark)))
-                addView(ui.brandMark(ui.dimens.brandMarkSize))
+                gravity = Gravity.CENTER_VERTICAL
+                addView(
+                    TextView(this@WelcomeActivity).apply {
+                        text = getString(R.string.alive_wordmark)
+                        setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+                        typeface = ResourcesCompat.getFont(this@WelcomeActivity, R.font.space_grotesk_bold)
+                        setTextColor(paper)
+                        includeFontPadding = false
+                    }
+                )
+                addView(ui.weighted(ui.column()))
+                addView(
+                    TextView(this@WelcomeActivity).apply {
+                        text = "1/${LAST_STEP + 1}"
+                        setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+                        typeface = ResourcesCompat.getFont(this@WelcomeActivity, R.font.space_grotesk_bold)
+                        setTextColor(paper)
+                        includeFontPadding = false
+                    }
+                )
             }
         )
+
+        content.addView(ui.vgap(ui.dimens.groupGap))
         content.addView(
-            ui.animatedPose(
-                AliveStates.faceSpriteFor(AliveFace.WAVING),
-                ui.dimens.characterLarge,
-                getString(AliveStates.faceDescription(AliveFace.WAVING))
+            ui.h1(getString(R.string.welcome_philosophy_h1)).apply { setTextColor(paper) }
+        )
+        content.addView(ui.vgap(ui.dimens.dp(16)))
+
+        // The critter on a mint disc: the same shape the renders use to fill a
+        // deep page without a picture.
+        val hero = FrameLayout(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                ui.dimens.dp(160)
             )
-        )
-        content.addView(
-            ui.column().apply {
-                addView(ui.lead(getString(R.string.welcome_lead)))
-                addView(ui.vgap(ui.dimens.groupGap))
-                addView(ui.body(getString(R.string.welcome_body)))
-                addView(ui.vgap(ui.dimens.groupGap))
-                addView(ui.annotation(getString(R.string.welcome_note)))
+        }
+        hero.addView(
+            View(this).apply {
+                background = GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL
+                    setColor(ui.palette.flatMint)
+                }
+                layoutParams = FrameLayout.LayoutParams(ui.dimens.dp(150), ui.dimens.dp(150)).apply {
+                    gravity = Gravity.CENTER
+                }
             }
         )
-        content.addView(stepButton(R.string.welcome_next))
-        content.addView(progressRow())
+        hero.addView(
+            ImageView(this).apply {
+                setImageResource(R.drawable.alive_member_creative)
+                scaleType = ImageView.ScaleType.FIT_CENTER
+                contentDescription = null
+                layoutParams = FrameLayout.LayoutParams(ui.dimens.dp(96), ui.dimens.dp(96)).apply {
+                    gravity = Gravity.CENTER
+                }
+            }
+        )
+        content.addView(hero)
+
+        content.addView(
+            ui.note(getString(R.string.welcome_body)).apply {
+                setTextColor(ColorUtils.setAlphaComponent(paper, 168))
+            }
+        )
+        content.addView(ui.vgap(ui.dimens.groupGap))
+        content.addView(
+            fullWidth(ui.secondary(getString(R.string.welcome_next) + " →")).apply {
+                setOnClickListener {
+                    step += 1
+                    renderStep()
+                }
+            }
+        )
+        content.addView(progressRow(paper))
     }
 
     /** Screen two: the loop, stated as plainly as the clarity rule demands. */
@@ -241,7 +306,7 @@ class WelcomeActivity : AppCompatActivity() {
     }
 
     /** Three squares, one per screen; the one you are on is ink. */
-    private fun progressRow(): View = ui.row().apply {
+    private fun progressRow(onDeep: Int? = null): View = ui.row().apply {
         gravity = Gravity.CENTER
         for (index in 0..LAST_STEP) {
             if (index > 0) addView(ui.hgap(ui.dimens.s))
@@ -252,7 +317,12 @@ class WelcomeActivity : AppCompatActivity() {
                         ui.dimens.stepSize
                     )
                     setBackgroundColor(
-                        if (index == step) ui.palette.ink else ui.palette.inkHairline
+                        when {
+                            index == step && onDeep != null -> onDeep
+                            index == step -> ui.palette.ink
+                            onDeep != null -> ColorUtils.setAlphaComponent(onDeep, 60)
+                            else -> ui.palette.inkHairline
+                        }
                     )
                 }
             )

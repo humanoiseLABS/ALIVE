@@ -91,6 +91,28 @@
         <item name="android:textSize">40sp</item>
     </style>
 
+    <!-- The page's greeting, from flat-system.css `.h1`: one heavy line, tight
+         tracking. It is the largest thing on a page and appears once. -->
+    <style name="TextAppearance.ALIVE.H1" parent="TextAppearance.MaterialComponents.Headline4">
+        <item name="android:fontFamily">@font/space_grotesk_bold</item>
+        <item name="android:textColor">@color/flat_ink</item>
+        <item name="android:textSize">32sp</item>
+        <item name="android:letterSpacing">-0.035</item>
+        <item name="android:lineSpacingExtra">-1sp</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <!-- The small capitals above a figure or a title, from flat-system.css
+         `.kicker`: 10sp, wide tracking, quiet ink. -->
+    <style name="TextAppearance.ALIVE.Kicker" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:fontFamily">@font/space_grotesk_bold</item>
+        <item name="android:textColor">@color/alive_ink_muted</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.14</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
     <!-- ============ WHAT A SCREEN IS CALLED: SPACE GROTESK ============ -->
 
     <!-- The one sentence a card leads with. -->

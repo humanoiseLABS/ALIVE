@@ -94,7 +94,9 @@ class AliveRenderState {
     var screenMinutes: Long = 0L
 
     /** Which stretch of days the chart is showing. */
-    var chartRangeIndex: Int = 0
+    // Pass 2 opens Statistik on the week: the day chart is one column of bars
+    // across hours, and the week is what the screen is for.
+    var chartRangeIndex: Int = 1
 
     /**
      * Which lens the today card draws: the allowance, the apps the allowance
