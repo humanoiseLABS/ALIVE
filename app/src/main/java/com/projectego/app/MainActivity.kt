@@ -2216,6 +2216,7 @@ class MainActivity : AppCompatActivity() {
         column.addView(panelHeader(getString(AliveStates.categoryLabel(quest.category))))
         buildQuestDetailInto(column, quest)
         openOverlay(scroll)
+        overlayContainer.setBackgroundColor(ui.palette.groundPeach)
     }
 
     /**
@@ -2236,17 +2237,26 @@ class MainActivity : AppCompatActivity() {
 
         // Pass 2 opens the page with a field, not a picture: the quest's own
         // hue, its name, and the sentence that says what the twenty minutes are.
-        val catalog = ui.column().apply {
+        val catalog = ui.row().apply {
             background = GradientDrawable().apply {
                 cornerRadius = ui.dimens.radiusCard.toFloat()
                 setColor(hue)
             }
+            gravity = Gravity.CENTER_VERTICAL
             setPadding(ui.dimens.dp(20), ui.dimens.dp(20), ui.dimens.dp(20), ui.dimens.dp(20))
-            addView(ui.kicker(getString(AliveStates.categoryLabel(quest.category))))
-            addView(ui.vgap(ui.dimens.xs))
-            addView(ui.headline(quest.title))
-            addView(ui.vgap(ui.dimens.lineGap))
-            addView(ui.note(quest.description))
+            addView(ui.iconTile(ui.palette.flatPaper, PixelMarks.quest(quest.category), ui.dimens.dp(44)))
+            addView(ui.hgap(ui.dimens.groupGap))
+            addView(
+                ui.weighted(
+                    ui.column().apply {
+                        addView(ui.kicker(getString(AliveStates.categoryLabel(quest.category))))
+                        addView(ui.vgap(ui.dimens.xs))
+                        addView(ui.headline(quest.title))
+                        addView(ui.vgap(ui.dimens.lineGap))
+                        addView(ui.note(quest.description))
+                    }
+                )
+            )
         }
         column.addView(catalog)
 
@@ -2290,17 +2300,53 @@ class MainActivity : AppCompatActivity() {
         )
 
         column.addView(ui.vgap(ui.dimens.groupGap))
-        column.addView(ui.sectionHeader(getString(R.string.quest_detail_how_title)))
-        column.addView(ui.vgap(ui.dimens.lineGap))
-        listOf(
-            getString(R.string.quest_step_start),
-            getString(if (verifiable) R.string.quest_step_watch_digital else AliveStates.physicalQuestWatchLine(requirement)),
-            getString(R.string.quest_step_reward, quest.rewardMinutes)
-        ).forEachIndexed { index, step ->
-            if (index > 0) column.addView(ui.vgap(ui.dimens.pairGap))
-            column.addView(stepRow(index + 1, step))
-        }
+        column.addView(
+            ui.column().apply {
+                background = GradientDrawable().apply {
+                    cornerRadius = ui.dimens.radiusCard.toFloat()
+                    setColor(ui.palette.tile)
+                }
+                setPadding(ui.dimens.dp(20), ui.dimens.dp(20), ui.dimens.dp(20), ui.dimens.dp(20))
+                addView(ui.sectionHeader(getString(R.string.quest_detail_how_title)))
+                addView(ui.vgap(ui.dimens.lineGap))
+                listOf(
+                    getString(R.string.quest_step_start),
+                    getString(if (verifiable) R.string.quest_step_watch_digital else AliveStates.physicalQuestWatchLine(requirement)),
+                    getString(R.string.quest_step_reward, quest.rewardMinutes)
+                ).forEachIndexed { index, step ->
+                    if (index > 0) addView(ui.vgap(ui.dimens.pairGap))
+                    addView(stepRow(index + 1, step))
+                }
+            }
+        )
 
+        column.addView(ui.vgap(ui.dimens.groupGap))
+        column.addView(
+            ui.row().apply {
+                background = GradientDrawable().apply {
+                    cornerRadius = ui.dimens.radiusTile.toFloat()
+                    setColor(ui.palette.fieldRose)
+                }
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(ui.dimens.dp(14), ui.dimens.dp(12), ui.dimens.dp(14), ui.dimens.dp(12))
+                addView(
+                    ImageView(this@MainActivity).apply {
+                        setImageResource(R.drawable.ic_smiley_flat)
+                        scaleType = ImageView.ScaleType.FIT_CENTER
+                        contentDescription = null
+                        setPadding(ui.dimens.dp(7), ui.dimens.dp(7), ui.dimens.dp(7), ui.dimens.dp(7))
+                        background = GradientDrawable().apply {
+                            shape = GradientDrawable.OVAL
+                            setColor(ui.palette.flatPaper)
+                        }
+                        layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(30), ui.dimens.dp(30)).apply {
+                            marginEnd = ui.dimens.dp(10)
+                        }
+                    }
+                )
+                addView(ui.weighted(ui.kicker(getString(R.string.quest_detail_keeps_besok))))
+            }
+        )
         column.addView(ui.vgap(ui.dimens.groupGap))
 
         when {
@@ -3586,20 +3632,9 @@ class MainActivity : AppCompatActivity() {
      * pieces cannot be read as one.
      */
     private fun openGalaxySheet() {
-        val ledger = growthRepository.ledger(LockStateManager.dayKeyOf(System.currentTimeMillis()))
         val paper = ContextCompat.getColor(this, R.color.flat_paper)
-        val progress = CharacterGrowth.progressWithin(ledger.points)
-        val scale = if (progress == null) {
-            getString(R.string.growth_max)
-        } else {
-            getString(R.string.growth_progress, progress.first, progress.second)
-        }
 
         val (scroll, column) = panel()
-        val header = panelHeader(getString(R.string.growth_heading))
-        // The way out sits on deep here, so its title is paper like the rest.
-        header.getChildAt(1)?.let { (it as? TextView)?.setTextColor(paper) }
-        column.addView(header)
         openOverlay(scroll)
         overlayContainer.setBackgroundColor(ContextCompat.getColor(this, R.color.flat_deep))
 
@@ -3684,12 +3719,56 @@ class MainActivity : AppCompatActivity() {
         }
         column.addView(ring)
         column.addView(ui.vgap(ui.dimens.groupGap))
+
+        val streak = state.signals?.currentStreak ?: 0
+        val missions = questRepository.getAllQuests().count { it.status == QuestStatus.COMPLETED }
+        val now = System.currentTimeMillis()
+        val focus = focusSessionManager.getTodayWindows().sumOf { window ->
+            ((minOf(window.end, now) - window.start).coerceAtLeast(0L)) / 60_000L
+        }
         column.addView(
-            ui.lead(
-                getString(R.string.growth_level, ledger.stage.ordinal + 1) + " · " + scale
-            ).apply { setTextColor(paper) }
+            ui.row().apply {
+                gravity = Gravity.CENTER_HORIZONTAL
+                addView(galaxyChip(getString(R.string.galaxy_chip_days, streak), ui.palette.flatMint))
+                addView(ui.hgap(ui.dimens.dp(8)))
+                addView(galaxyChip(getString(R.string.galaxy_chip_missions, missions), ui.palette.fieldPeach))
+                addView(ui.hgap(ui.dimens.dp(8)))
+                addView(galaxyChip(getString(R.string.galaxy_chip_focus, focus), ui.palette.fieldLilac))
+            }
+        )
+        column.addView(ui.vgap(ui.dimens.groupGap))
+        column.addView(
+            TextView(this).apply {
+                text = getString(R.string.galaxy_continue)
+                setTextColor(ui.palette.ink)
+                gravity = Gravity.CENTER
+                typeface = ResourcesCompat.getFont(this@MainActivity, R.font.space_grotesk_bold)
+                background = GradientDrawable().apply {
+                    cornerRadius = ui.dimens.dp(999).toFloat()
+                    setColor(paper)
+                }
+                setPadding(ui.dimens.dp(16), ui.dimens.dp(14), ui.dimens.dp(16), ui.dimens.dp(14))
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                setOnClickListener { closeOverlay() }
+            }
         )
     }
+
+    private fun galaxyChip(text: String, face: Int): TextView =
+        TextView(this).apply {
+            this.text = text
+            setTextColor(ui.palette.ink)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+            typeface = ResourcesCompat.getFont(this@MainActivity, R.font.space_grotesk_bold)
+            background = GradientDrawable().apply {
+                cornerRadius = ui.dimens.dp(999).toFloat()
+                setColor(face)
+            }
+            setPadding(ui.dimens.dp(12), ui.dimens.dp(7), ui.dimens.dp(12), ui.dimens.dp(7))
+        }
 
     /**
      * The character, up close: today's face, the level, and the three counts the
@@ -3925,36 +4004,23 @@ class MainActivity : AppCompatActivity() {
         column.addView(panelHeader(getString(R.string.reminders_heading)))
         column.addView(ui.note(getString(R.string.reminders_subhead)))
 
-        // Pass 2: two white fields, each a kicker and its choices.
         val waterCard = ui.column().apply {
             background = GradientDrawable().apply {
                 cornerRadius = ui.dimens.radiusCard.toFloat()
-                setColor(ui.palette.tile)
+                setColor(ui.palette.flatMint)
             }
             setPadding(ui.dimens.dp(20), ui.dimens.dp(20), ui.dimens.dp(20), ui.dimens.dp(20))
-            addView(
-                ui.kicker(getString(R.string.reminders_water_heading))
-            )
-            addView(ui.vgap(ui.dimens.lineGap))
         }
-        val waterBody = ui.column()
-        waterCard.addView(waterBody)
-        renderWaterReminderBody(waterBody)
+        renderWaterReminderBody(waterCard)
 
         val promiseCard = ui.column().apply {
             background = GradientDrawable().apply {
                 cornerRadius = ui.dimens.radiusCard.toFloat()
-                setColor(ui.palette.tile)
+                setColor(ui.palette.fieldLilac)
             }
             setPadding(ui.dimens.dp(20), ui.dimens.dp(20), ui.dimens.dp(20), ui.dimens.dp(20))
-            addView(
-                ui.kicker(getString(R.string.reminders_promise_heading))
-            )
-            addView(ui.vgap(ui.dimens.lineGap))
         }
-        val promiseBody = ui.column()
-        promiseCard.addView(promiseBody)
-        renderPromiseReminderBody(promiseBody)
+        renderPromiseReminderBody(promiseCard)
 
         column.addView(ui.vgap(ui.dimens.dp(16)))
         column.addView(waterCard)
@@ -3962,19 +4028,88 @@ class MainActivity : AppCompatActivity() {
         column.addView(promiseCard)
         column.addView(ui.vgap(ui.dimens.dp(16)))
         column.addView(
-            ui.secondary(getString(R.string.night_contract_heading)).apply {
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
+            ui.row().apply {
+                background = GradientDrawable().apply {
+                    cornerRadius = ui.dimens.radiusTile.toFloat()
+                    setColor(ui.palette.fieldButter)
+                }
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(ui.dimens.dp(14), ui.dimens.dp(12), ui.dimens.dp(14), ui.dimens.dp(12))
+                addView(
+                    ImageView(this@MainActivity).apply {
+                        setImageResource(R.drawable.ic_smiley_flat)
+                        scaleType = ImageView.ScaleType.FIT_CENTER
+                        contentDescription = null
+                        setPadding(ui.dimens.dp(7), ui.dimens.dp(7), ui.dimens.dp(7), ui.dimens.dp(7))
+                        background = GradientDrawable().apply {
+                            shape = GradientDrawable.OVAL
+                            setColor(ui.palette.flatPaper)
+                        }
+                        layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(30), ui.dimens.dp(30)).apply {
+                            marginEnd = ui.dimens.dp(10)
+                        }
+                    }
                 )
-                setOnClickListener { openNightContractSheet() }
+                addView(ui.weighted(ui.kicker(getString(R.string.reminders_island_kicker))))
+                addView(ui.note(getString(R.string.reminders_island_note)))
             }
         )
         column.addView(ui.vgap(ui.dimens.lineGap))
         column.addView(ui.note(getString(R.string.reminders_note)))
         openOverlay(scroll)
-        overlayContainer.setBackgroundColor(ui.palette.groundPeach)
+        overlayContainer.setBackgroundColor(ui.palette.groundLav)
     }
+
+    /** The black / grey state pill that sits at the head of a reminder card. */
+    private fun nyalaPill(on: Boolean, onToggle: () -> Unit): TextView =
+        TextView(this).apply {
+            text = getString(if (on) R.string.reminders_nyala else R.string.reminders_mati)
+            setTextColor(if (on) ui.palette.paper else ui.palette.ink)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 12.5f)
+            typeface = ResourcesCompat.getFont(this@MainActivity, R.font.space_grotesk_bold)
+            includeFontPadding = false
+            gravity = Gravity.CENTER
+            background = GradientDrawable().apply {
+                cornerRadius = ui.dimens.radiusPill.toFloat()
+                setColor(if (on) ui.palette.ink else ui.palette.warmGray)
+            }
+            setPadding(ui.dimens.dp(14), ui.dimens.dp(7), ui.dimens.dp(14), ui.dimens.dp(7))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            setOnClickListener { onToggle() }
+        }
+
+    private fun reminderHead(glyph: Int, title: String, sub: String, on: Boolean, onToggle: () -> Unit): LinearLayout =
+        ui.row().apply {
+            gravity = Gravity.CENTER_VERTICAL
+            addView(
+                ImageView(this@MainActivity).apply {
+                    setImageResource(glyph)
+                    scaleType = ImageView.ScaleType.FIT_CENTER
+                    contentDescription = null
+                    setPadding(ui.dimens.dp(9), ui.dimens.dp(9), ui.dimens.dp(9), ui.dimens.dp(9))
+                    background = GradientDrawable().apply {
+                        shape = GradientDrawable.OVAL
+                        setColor(ui.palette.flatPaper)
+                    }
+                    layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(40), ui.dimens.dp(40)).apply {
+                        marginEnd = ui.dimens.dp(12)
+                    }
+                }
+            )
+            addView(
+                ui.weighted(
+                    ui.column().apply {
+                        addView(ui.lead(title))
+                        addView(ui.vgap(ui.dimens.xs))
+                        addView(ui.note(sub))
+                    }
+                )
+            )
+            addView(nyalaPill(on, onToggle))
+        }
 
     /**
      * One reminder's settings, rebuilt in place when a choice changes.
@@ -3989,54 +4124,42 @@ class MainActivity : AppCompatActivity() {
         val enabled = ReminderSettings.waterEnabled(this)
         val now = System.currentTimeMillis()
         val interval = ReminderSettings.intervalMinutes(this)
-        val startHour = ReminderSettings.startHour(this)
-        val endHour = ReminderSettings.endHour(this)
 
-        body.addView(
-            ui.note(
-                getString(
-                    if (enabled) R.string.reminders_water_status_on
-                    else R.string.reminders_water_status_off
-                )
-            )
-        )
-        if (enabled) {
+        val sub = if (enabled) {
             val due = ReminderSettings.nextWaterDue(this, now)
-            if (due > 0L) {
-                body.addView(ui.vgap(ui.dimens.lineGap))
-                body.addView(
-                    ui.annotation(getString(R.string.reminders_water_next, clockOf(due)))
-                )
-            }
+            if (due > 0L) getString(R.string.reminders_water_next, clockOf(due))
+            else getString(R.string.reminders_water_status_on)
+        } else {
+            getString(R.string.reminders_water_status_off)
         }
+        body.addView(
+            reminderHead(R.drawable.ic_line_drop, getString(R.string.reminders_water_heading), sub, enabled) {
+                if (enabled) {
+                    ReminderSettings.disableWater(this)
+                    DrinkReminderWatch.cancel(this)
+                } else {
+                    ReminderSettings.enableWater(this, System.currentTimeMillis())
+                    DrinkReminderWatch.arm(this)
+                }
+                renderWaterReminderBody(body)
+            }
+        )
 
         body.addView(ui.vgap(ui.dimens.groupGap))
-        body.addView(ui.annotation(getString(R.string.reminders_water_interval)))
+        body.addView(ui.kicker(getString(R.string.reminders_water_interval)))
         body.addView(ui.vgap(ui.dimens.lineGap))
         val intervalGroup = RadioGroup(this).apply { orientation = RadioGroup.HORIZONTAL }
         val intervalTiles = DrinkReminderPolicy.INTERVAL_CHOICES.mapIndexed { index, minutes ->
             ui.tileOption(
                 getString(R.string.reminders_minutes, minutes),
                 0,
-                ui.palette.workPale
+                ui.palette.tile
             ).apply {
                 id = View.generateViewId()
                 gravity = Gravity.CENTER
                 isChecked = minutes == interval
-                // Four answers share one row; the component's usual side air
-                // would leave less room than the longest label needs and wrap
-                // "120 m" onto two lines.
-                setPadding(
-                    ui.dimens.s,
-                    ui.dimens.m,
-                    ui.dimens.s,
-                    ui.dimens.m
-                )
-                layoutParams = RadioGroup.LayoutParams(
-                    0,
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    1f
-                ).apply {
+                setPadding(ui.dimens.s, ui.dimens.m, ui.dimens.s, ui.dimens.m)
+                layoutParams = RadioGroup.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
                     if (index > 0) marginStart = ui.dimens.pairGap
                 }
             }.also { intervalGroup.addView(it) }
@@ -4056,115 +4179,54 @@ class MainActivity : AppCompatActivity() {
         body.addView(intervalGroup)
 
         body.addView(ui.vgap(ui.dimens.groupGap))
-        body.addView(ui.annotation(getString(R.string.reminders_water_hours)))
-        body.addView(ui.vgap(ui.dimens.lineGap))
-        val hoursGroup = RadioGroup(this).apply { orientation = RadioGroup.HORIZONTAL }
-        val hoursTiles = DrinkReminderPolicy.WINDOW_CHOICES.mapIndexed { index, (start, end) ->
-            ui.tileOption(
-                getString(R.string.reminders_hours, start, end),
-                0,
-                ui.palette.softForest
-            ).apply {
-                id = View.generateViewId()
-                gravity = Gravity.CENTER
-                isChecked = start == startHour && end == endHour
-                layoutParams = RadioGroup.LayoutParams(
-                    0,
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    1f
-                ).apply {
-                    if (index > 0) marginStart = ui.dimens.pairGap
-                }
-            }.also { hoursGroup.addView(it) }
-        }
-        hoursGroup.setOnCheckedChangeListener { _, checkedId ->
-            val chosen = hoursTiles.indexOfFirst { it.id == checkedId }
-            if (chosen < 0) return@setOnCheckedChangeListener
-            val (start, end) = DrinkReminderPolicy.WINDOW_CHOICES[chosen]
-            ReminderSettings.setWaterSchedule(
-                this,
-                ReminderSettings.intervalMinutes(this),
-                start,
-                end
-            )
-            DrinkReminderWatch.arm(this)
-            renderWaterReminderBody(body)
-        }
-        body.addView(hoursGroup)
-
-        body.addView(ui.vgap(ui.dimens.groupGap))
-        val toggle = if (enabled) {
-            ui.secondary(getString(R.string.reminders_water_disable))
-        } else {
-            ui.primary(getString(R.string.reminders_water_enable))
-        }
-        toggle.layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        toggle.setOnClickListener {
-            if (enabled) {
-                ReminderSettings.disableWater(this)
-                DrinkReminderWatch.cancel(this)
-            } else {
-                ReminderSettings.enableWater(this, System.currentTimeMillis())
-                DrinkReminderWatch.arm(this)
-            }
-            renderWaterReminderBody(body)
-        }
-        body.addView(toggle)
-
-        body.addView(ui.vgap(ui.dimens.lineGap))
         body.addView(
-            ui.quiet(getString(R.string.reminders_water_preview)).apply {
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-                setOnClickListener {
-                    // The rehearsal raises the island and the note exactly as
-                    // the alarm will; answering it still counts as a drink.
-                    DrinkReminderWatch.preview(this@MainActivity)
+            ui.row().apply {
+                gravity = Gravity.CENTER_VERTICAL
+                val hues = listOf(ui.palette.fieldButter, ui.palette.fieldRose, ui.palette.fieldSky)
+                hues.forEachIndexed { index, hue ->
+                    if (index > 0) addView(ui.hgap(ui.dimens.dp(6)))
+                    addView(
+                        ImageView(this@MainActivity).apply {
+                            setImageResource(R.drawable.ic_smiley_flat)
+                            scaleType = ImageView.ScaleType.FIT_CENTER
+                            contentDescription = null
+                            setPadding(ui.dimens.dp(6), ui.dimens.dp(6), ui.dimens.dp(6), ui.dimens.dp(6))
+                            background = GradientDrawable().apply {
+                                shape = GradientDrawable.OVAL
+                                setColor(ui.palette.flatPaper)
+                            }
+                            layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(28), ui.dimens.dp(28))
+                        }
+                    )
                 }
+                addView(ui.weighted(ui.column()))
+                addView(
+                    ui.primary(getString(R.string.reminders_water_preview)).apply {
+                        setOnClickListener { DrinkReminderWatch.preview(this@MainActivity) }
+                    }
+                )
             }
         )
-        body.addView(ui.vgap(ui.dimens.lineGap))
-        body.addView(ui.note(getString(R.string.reminders_water_note)))
     }
 
     private fun renderPromiseReminderBody(body: LinearLayout) {
         body.removeAllViews()
         val enabled = ReminderSettings.promiseEnabled(this)
         body.addView(
-            ui.note(
-                getString(
-                    if (enabled) R.string.reminders_promise_status_on
-                    else R.string.reminders_promise_status_off
-                )
-            )
+            reminderHead(
+                R.drawable.ic_line_moon,
+                getString(R.string.reminders_promise_heading),
+                getString(R.string.reminders_promise_sub),
+                enabled
+            ) {
+                ReminderSettings.setPromiseEnabled(this, !enabled)
+                if (!enabled) PromiseWatch.arm(this) else PromiseWatch.cancel(this)
+                renderPromiseReminderBody(body)
+            }
         )
         body.addView(ui.vgap(ui.dimens.groupGap))
-
-        val toggle = ui.secondary(
-            getString(
-                if (enabled) R.string.reminders_promise_disable
-                else R.string.reminders_promise_enable
-            )
-        )
-        toggle.layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        toggle.setOnClickListener {
-            ReminderSettings.setPromiseEnabled(this, !enabled)
-            if (!enabled) PromiseWatch.arm(this) else PromiseWatch.cancel(this)
-            renderPromiseReminderBody(body)
-        }
-        body.addView(toggle)
-
-        body.addView(ui.vgap(ui.dimens.lineGap))
         body.addView(
-            ui.quiet(getString(R.string.reminders_promise_open)).apply {
+            ui.secondary(getString(R.string.reminders_promise_open)).apply {
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
@@ -4172,14 +4234,10 @@ class MainActivity : AppCompatActivity() {
                 setOnClickListener {
                     closeOverlay(restoreNav = false)
                     openNightContractSheet()
-                    // The sheet is a panel too; keeping the flag set means Back
-                    // closes it instead of leaving the app.
                     state.panel = AlivePanel.REMINDERS
                 }
             }
         )
-        body.addView(ui.vgap(ui.dimens.groupGap))
-        body.addView(ui.note(getString(R.string.reminders_promise_note)))
     }
 
     private fun clockOf(millis: Long): String {
@@ -4352,7 +4410,7 @@ class MainActivity : AppCompatActivity() {
         )
         addView(
             ImageView(this@MainActivity).apply {
-                setImageResource(if (granted) R.drawable.ic_smiley_flat else R.drawable.ic_face_neutral)
+                setImageResource(R.drawable.ic_line_chevron_right)
                 scaleType = ImageView.ScaleType.FIT_CENTER
                 contentDescription = null
                 layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(18), ui.dimens.dp(18)).apply {

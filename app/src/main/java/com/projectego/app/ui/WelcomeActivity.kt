@@ -106,55 +106,39 @@ class WelcomeActivity : AppCompatActivity() {
     /** Screen one: who this is for, in the only voice that gets to be a voice. */
     private fun buildPhilosophy(paper: Int) {
         content.addView(
-            ui.row().apply {
-                gravity = Gravity.CENTER_VERTICAL
-                addView(
-                    TextView(this@WelcomeActivity).apply {
-                        text = getString(R.string.alive_wordmark)
-                        setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-                        typeface = ResourcesCompat.getFont(this@WelcomeActivity, R.font.space_grotesk_bold)
-                        setTextColor(paper)
-                        includeFontPadding = false
-                    }
-                )
-                addView(ui.weighted(ui.column()))
-                addView(
-                    TextView(this@WelcomeActivity).apply {
-                        text = "1/${LAST_STEP + 1}"
-                        setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-                        typeface = ResourcesCompat.getFont(this@WelcomeActivity, R.font.space_grotesk_bold)
-                        setTextColor(paper)
-                        includeFontPadding = false
-                    }
-                )
+            TextView(this).apply {
+                text = getString(R.string.alive_wordmark)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+                typeface = ResourcesCompat.getFont(this@WelcomeActivity, R.font.space_grotesk_bold)
+                setTextColor(paper)
+                includeFontPadding = false
             }
         )
-
+        content.addView(ui.vgap(ui.dimens.lineGap))
+        content.addView(welcomeChip("1/${LAST_STEP + 1}", ui.palette.fieldLilac))
         content.addView(ui.vgap(ui.dimens.groupGap))
         content.addView(
             ui.h1(getString(R.string.welcome_philosophy_h1)).apply { setTextColor(paper) }
         )
         content.addView(ui.vgap(ui.dimens.dp(16)))
+        content.addView(
+            ui.note(getString(R.string.welcome_body)).apply {
+                setTextColor(ColorUtils.setAlphaComponent(paper, 168))
+            }
+        )
+        content.addView(ui.vgap(ui.dimens.groupGap))
 
-        // The critter on a mint disc: the same shape the renders use to fill a
-        // deep page without a picture.
+        // The render fills the deep page with off-edge colour circles and the
+        // critter standing alone - no disc under it.
         val hero = FrameLayout(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                ui.dimens.dp(160)
+                ui.dimens.dp(220)
             )
         }
-        hero.addView(
-            View(this).apply {
-                background = GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL
-                    setColor(ui.palette.flatMint)
-                }
-                layoutParams = FrameLayout.LayoutParams(ui.dimens.dp(150), ui.dimens.dp(150)).apply {
-                    gravity = Gravity.CENTER
-                }
-            }
-        )
+        hero.addView(deepCircle(ui.palette.fieldLilac, ui.dimens.dp(150), Gravity.TOP or Gravity.END, ui.dimens.dp(-40), ui.dimens.dp(-30)))
+        hero.addView(deepCircle(ui.palette.flatMint, ui.dimens.dp(140), Gravity.START or Gravity.CENTER_VERTICAL, ui.dimens.dp(-60), 0))
+        hero.addView(deepCircle(ui.palette.fieldButter, ui.dimens.dp(120), Gravity.BOTTOM or Gravity.END, ui.dimens.dp(-30), ui.dimens.dp(30)))
         hero.addView(
             ImageView(this).apply {
                 setImageResource(R.drawable.alive_member_creative)
@@ -166,10 +150,39 @@ class WelcomeActivity : AppCompatActivity() {
             }
         )
         content.addView(hero)
+        content.addView(ui.vgap(ui.dimens.groupGap))
 
         content.addView(
-            ui.note(getString(R.string.welcome_body)).apply {
-                setTextColor(ColorUtils.setAlphaComponent(paper, 168))
+            ui.row().apply {
+                gravity = Gravity.CENTER_HORIZONTAL
+                addView(welcomeChip(getString(R.string.welcome_chip_minutes), ui.palette.flatMint))
+                addView(ui.hgap(ui.dimens.dp(8)))
+                addView(welcomeChip(getString(R.string.welcome_chip_closed), ui.palette.fieldPeach))
+                addView(ui.hgap(ui.dimens.dp(8)))
+                addView(welcomeChip(getString(R.string.welcome_chip_mission), ui.palette.fieldLilac))
+            }
+        )
+        content.addView(ui.vgap(ui.dimens.groupGap))
+        content.addView(
+            ui.row().apply {
+                gravity = Gravity.CENTER_HORIZONTAL
+                val hues = listOf(ui.palette.flatMint, ui.palette.fieldButter, ui.palette.fieldLilac, ui.palette.fieldRose, ui.palette.fieldSky)
+                hues.forEachIndexed { index, hue ->
+                    if (index > 0) addView(ui.hgap(ui.dimens.dp(8)))
+                    addView(
+                        ImageView(this@WelcomeActivity).apply {
+                            setImageResource(R.drawable.ic_smiley_flat)
+                            scaleType = ImageView.ScaleType.FIT_CENTER
+                            contentDescription = null
+                            setPadding(ui.dimens.dp(7), ui.dimens.dp(7), ui.dimens.dp(7), ui.dimens.dp(7))
+                            background = GradientDrawable().apply {
+                                shape = GradientDrawable.OVAL
+                                setColor(hue)
+                            }
+                            layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(32), ui.dimens.dp(32))
+                        }
+                    )
+                }
             }
         )
         content.addView(ui.vgap(ui.dimens.groupGap))
@@ -181,8 +194,33 @@ class WelcomeActivity : AppCompatActivity() {
                 }
             }
         )
-        content.addView(progressRow(paper))
     }
+
+    private fun welcomeChip(text: String, face: Int): TextView =
+        TextView(this).apply {
+            this.text = text
+            setTextColor(ui.palette.ink)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+            typeface = ResourcesCompat.getFont(this@WelcomeActivity, R.font.space_grotesk_bold)
+            background = GradientDrawable().apply {
+                cornerRadius = ui.dimens.dp(999).toFloat()
+                setColor(face)
+            }
+            setPadding(ui.dimens.dp(12), ui.dimens.dp(7), ui.dimens.dp(12), ui.dimens.dp(7))
+        }
+
+    private fun deepCircle(hue: Int, size: Int, gravity: Int, dx: Int, dy: Int): View =
+        View(this).apply {
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(hue)
+            }
+            layoutParams = FrameLayout.LayoutParams(size, size).apply {
+                this.gravity = gravity
+                leftMargin = dx
+                topMargin = dy
+            }
+        }
 
     /** Screen two: the loop, stated as plainly as the clarity rule demands. */
     private fun buildMechanics() {

@@ -109,6 +109,9 @@
     <string name="welcome_accessibility_label">Accessibility</string>
     <string name="welcome_usage_why">Usage access is how ALIVE counts minutes in entertainment apps — totals, never content.</string>
     <string name="welcome_next">Next</string>
+    <string name="welcome_chip_minutes">120 minutes</string>
+    <string name="welcome_chip_closed">closed</string>
+    <string name="welcome_chip_mission">1 mission</string>
     <string name="welcome_start">Start</string>
     <string name="welcome_skip">Skip for now</string>
 
@@ -234,6 +237,7 @@
     <!-- ============ QUEST DETAIL (journal page) ============ -->
     <string name="quest_detail_duration_title">Minutes</string>
     <string name="quest_detail_how_title">How it works</string>
+    <string name="quest_detail_keeps_besok">This mission keeps tomorrow safe</string>
     <!-- Three numbered steps replace one paragraph, because the paragraph was the
          answer to "what am I agreeing to" and nobody got to it. -->
     <string name="quest_step_start">You press start.</string>
@@ -362,6 +366,8 @@
     <string name="lock_focus_blocked">Blocked while this runs: %1$s</string>
     <string name="lock_action_focus">Make time for something</string>
     <string name="lock_action_home">Go to your home screen</string>
+    <string name="lock_action_open">Open ALIVE</string>
+    <string name="lock_tomorrow_pill">Tomorrow %1$d m</string>
     <string name="lock_action_dashboard">Open ALIVE</string>
 
     <!-- ============ CHARACTER STAGES (annotation + content description) ============ -->
@@ -675,6 +681,11 @@
     <string name="reminders_promise_enable">Turn on the nightly reminder</string>
     <string name="reminders_promise_disable">Turn off the nightly reminder</string>
     <string name="reminders_promise_open">Open tomorrow’s promise</string>
+    <string name="reminders_nyala">On</string>
+    <string name="reminders_mati">Off</string>
+    <string name="reminders_promise_sub">One note at 21.00</string>
+    <string name="reminders_island_kicker">Island opens itself</string>
+    <string name="reminders_island_note">while the pill is on</string>
     <string name="reminders_promise_note">When it is time, the island rises too. Its one action opens the promise, so there is nothing to find first.</string>
     <string name="reminders_note">The island expands by itself for both, as long as the floating pill is on. The reminder’s chime plays on the phone’s alarm volume, so it is heard even when the ringer is low.</string>
     <string name="drink_notif_title">Time for water</string>
@@ -765,4 +776,8 @@
     <string name="focus_goal_label">The goal</string>
     <string name="galaxy_heading">Character galaxy</string>
     <string name="galaxy_sub">Eleven kinds of work, five kinds of day, one sleep.</string>
+    <string name="galaxy_chip_days">%d days</string>
+    <string name="galaxy_chip_missions">%d missions</string>
+    <string name="galaxy_chip_focus">%d min focus</string>
+    <string name="galaxy_continue">Continue →</string>
 </resources>

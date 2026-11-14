@@ -15,7 +15,7 @@ import java.util.Calendar
  */
 object DrinkReminderPolicy {
 
-    val INTERVAL_CHOICES = intArrayOf(45, 60, 90, 120)
+    val INTERVAL_CHOICES = intArrayOf(60, 90, 120)
 
     /** The three windows the page offers, as start/end pairs. */
     val WINDOW_CHOICES = arrayOf(7 to 22, 8 to 22, 9 to 23)

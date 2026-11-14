@@ -99,12 +99,13 @@ class LockActivity : AppCompatActivity() {
         }
 
         page.addView(
-            TextView(this).apply {
-                text = getString(R.string.alive_wordmark)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-                typeface = ResourcesCompat.getFont(this@LockActivity, R.font.space_grotesk_bold)
-                setTextColor(paper)
-                includeFontPadding = false
+            android.widget.ImageView(this).apply {
+                setImageResource(R.drawable.ic_alive_character)
+                scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+                contentDescription = null
+                layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(96), ui.dimens.dp(96)).apply {
+                    gravity = Gravity.CENTER_HORIZONTAL
+                }
             }
         )
 
@@ -125,45 +126,66 @@ class LockActivity : AppCompatActivity() {
             }
         )
 
-        val jatah = ui.column().apply {
+        val used = numbers.usedMinutes
+        val limit = numbers.limitMinutes
+        val jatah = ui.row().apply {
             background = GradientDrawable().apply {
                 cornerRadius = ui.dimens.radiusCard.toFloat()
                 setColor(ContextCompat.getColor(this@LockActivity, R.color.flat_field_rose))
             }
-            setPadding(ui.dimens.dp(20), ui.dimens.dp(20), ui.dimens.dp(20), ui.dimens.dp(20))
-        }
-        jatah.addView(ui.kicker(getString(R.string.lock_kicker_allowance)))
-        jatah.addView(ui.vgap(ui.dimens.pairGap))
-        val used = numbers.usedMinutes
-        val limit = numbers.limitMinutes
-        jatah.addView(
-            if (used != null && limit != null) {
-                ui.number(getString(R.string.lock_used_of_limit, used, limit))
-            } else {
-                ui.lead(
-                    getString(if (isRecoveryDay) R.string.lock_zero_body else R.string.lock_over_body)
-                )
-            }
-        )
-        jatah.addView(ui.vgap(ui.dimens.lineGap))
-        jatah.addView(
-            TextView(this).apply {
-                text = blockedPkg
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 12.5f)
-                typeface = ResourcesCompat.getFont(this@LockActivity, R.font.space_grotesk_bold)
-                setTextColor(ui.palette.ink)
-                includeFontPadding = false
-                background = GradientDrawable().apply {
-                    cornerRadius = ui.dimens.radiusPill.toFloat()
-                    setColor(paper)
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(ui.dimens.dp(20), ui.dimens.dp(18), ui.dimens.dp(20), ui.dimens.dp(18))
+            addView(
+                android.widget.ImageView(this@LockActivity).apply {
+                    setImageResource(R.drawable.ic_hourglass_flat)
+                    scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+                    contentDescription = null
+                    setPadding(ui.dimens.dp(9), ui.dimens.dp(9), ui.dimens.dp(9), ui.dimens.dp(9))
+                    background = GradientDrawable().apply {
+                        shape = GradientDrawable.OVAL
+                        setColor(paper)
+                    }
+                    layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(40), ui.dimens.dp(40)).apply {
+                        marginEnd = ui.dimens.dp(12)
+                    }
                 }
-                setPadding(ui.dimens.dp(12), ui.dimens.dp(6), ui.dimens.dp(12), ui.dimens.dp(6))
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            addView(
+                ui.weighted(
+                    ui.column().apply {
+                        addView(ui.kicker(getString(R.string.lock_kicker_allowance)))
+                        addView(ui.vgap(ui.dimens.pairGap))
+                        addView(
+                            if (used != null && limit != null) {
+                                ui.lead(getString(R.string.lock_used_of_limit, used, limit))
+                            } else {
+                                ui.lead(
+                                    getString(if (isRecoveryDay) R.string.lock_zero_body else R.string.lock_over_body)
+                                )
+                            }
+                        )
+                    }
                 )
-            }
-        )
+            )
+            addView(
+                TextView(this@LockActivity).apply {
+                    text = blockedPkg
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 12.5f)
+                    typeface = ResourcesCompat.getFont(this@LockActivity, R.font.space_grotesk_bold)
+                    setTextColor(ui.palette.ink)
+                    includeFontPadding = false
+                    background = GradientDrawable().apply {
+                        cornerRadius = ui.dimens.radiusPill.toFloat()
+                        setColor(paper)
+                    }
+                    setPadding(ui.dimens.dp(12), ui.dimens.dp(6), ui.dimens.dp(12), ui.dimens.dp(6))
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+                }
+            )
+        }
         page.addView(jatah)
 
         page.addView(
@@ -174,49 +196,53 @@ class LockActivity : AppCompatActivity() {
                 }
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(ui.dimens.dp(20), ui.dimens.dp(18), ui.dimens.dp(20), ui.dimens.dp(18))
-                addView(ui.kicker(getString(R.string.lock_kicker_streak)))
-                addView(ui.weighted(ui.column()))
                 addView(
-                    ui.lead(
-                        getString(R.string.lock_streak_days, lockState.getCurrentStreak())
+                    android.widget.ImageView(this@LockActivity).apply {
+                        setImageResource(R.drawable.ic_smiley_flat)
+                        scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+                        contentDescription = null
+                        setPadding(ui.dimens.dp(8), ui.dimens.dp(8), ui.dimens.dp(8), ui.dimens.dp(8))
+                        background = GradientDrawable().apply {
+                            shape = GradientDrawable.OVAL
+                            setColor(paper)
+                        }
+                        layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(36), ui.dimens.dp(36)).apply {
+                            marginEnd = ui.dimens.dp(12)
+                        }
+                    }
+                )
+                addView(
+                    ui.weighted(
+                        ui.column().apply {
+                            addView(ui.kicker(getString(R.string.lock_kicker_streak)))
+                            addView(ui.vgap(ui.dimens.pairGap))
+                            addView(ui.lead(getString(R.string.lock_streak_days, lockState.getCurrentStreak())))
+                        }
                     )
+                )
+                addView(
+                    TextView(this@LockActivity).apply {
+                        text = getString(R.string.lock_tomorrow_pill, limit ?: 60L)
+                        setTextSize(TypedValue.COMPLEX_UNIT_SP, 12.5f)
+                        typeface = ResourcesCompat.getFont(this@LockActivity, R.font.space_grotesk_bold)
+                        setTextColor(ui.palette.ink)
+                        includeFontPadding = false
+                        background = GradientDrawable().apply {
+                            cornerRadius = ui.dimens.radiusPill.toFloat()
+                            setColor(paper)
+                        }
+                        setPadding(ui.dimens.dp(12), ui.dimens.dp(6), ui.dimens.dp(12), ui.dimens.dp(6))
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        )
+                    }
                 )
             }
         )
 
-        if (!isFocusSession) {
-            page.addView(
-                ui.primary(getString(R.string.lock_action_focus)).apply {
-                    layoutParams = matchWidth()
-                    setOnClickListener {
-                        val intent = Intent(this@LockActivity, MainActivity::class.java).apply {
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                            putExtra("EXTRA_NAVIGATE_TO_FOCUS", true)
-                        }
-                        startActivity(intent)
-                        finish()
-                    }
-                }
-            )
-        }
-
         page.addView(
-            ui.secondary(getString(R.string.lock_action_home)).apply {
-                layoutParams = matchWidth()
-                setOnClickListener {
-                    val homeIntent = Intent(Intent.ACTION_MAIN).apply {
-                        addCategory(Intent.CATEGORY_HOME)
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    }
-                    startActivity(homeIntent)
-                    finish()
-                }
-            }
-        )
-
-        page.addView(
-            ui.quiet(getString(R.string.lock_action_dashboard)).apply {
-                setTextColor(paper)
+            ui.secondary(getString(R.string.lock_action_open)).apply {
                 layoutParams = matchWidth()
                 setOnClickListener {
                     val intent = Intent(this@LockActivity, MainActivity::class.java).apply {

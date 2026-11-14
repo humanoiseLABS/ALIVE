@@ -105,6 +105,9 @@
     <string name="welcome_accessibility_label">Aksesibilitas</string>
     <string name="welcome_usage_why">Akses pemakaian adalah cara ALIVE menghitung menit di aplikasi hiburan — hanya totalnya, bukan isinya.</string>
     <string name="welcome_next">Lanjut</string>
+    <string name="welcome_chip_minutes">120 menit</string>
+    <string name="welcome_chip_closed">ditutup</string>
+    <string name="welcome_chip_mission">1 misi</string>
     <string name="welcome_start">Mulai</string>
     <string name="welcome_skip">Lewati dulu</string>
 
@@ -215,6 +218,7 @@
     <!-- ============ HALAMAN MISI ============ -->
     <string name="quest_detail_duration_title">Menit</string>
     <string name="quest_detail_how_title">Cara kerjanya</string>
+    <string name="quest_detail_keeps_besok">Misi ini menjaga besok</string>
     <string name="quest_step_start">Kamu tekan mulai.</string>
     <string name="quest_step_watch_digital">ALIVE melihat aplikasi yang diizinkan untuk sesi ini.</string>
     <string name="quest_step_watch_physical">ALIVE tidak bisa melihat yang satu ini — ia menjaga jamnya sementara kamu mengerjakannya.</string>
@@ -332,6 +336,8 @@
     <string name="lock_focus_blocked">Tertutup selama ini jalan: %1$s</string>
     <string name="lock_action_focus">Sisihkan waktu untuk sesuatu</string>
     <string name="lock_action_home">Ke layar utama</string>
+    <string name="lock_action_open">Buka ALIVE</string>
+    <string name="lock_tomorrow_pill">Besok %1$d m</string>
     <string name="lock_action_dashboard">Buka ALIVE</string>
 
     <!-- ============ FASE KARAKTER ============ -->
@@ -619,6 +625,11 @@
     <string name="reminders_promise_enable">Nyalakan pengingat malam</string>
     <string name="reminders_promise_disable">Matikan pengingat malam</string>
     <string name="reminders_promise_open">Buka janji besok</string>
+    <string name="reminders_nyala">Nyala</string>
+    <string name="reminders_mati">Mati</string>
+    <string name="reminders_promise_sub">Satu catatan jam 21.00</string>
+    <string name="reminders_island_kicker">Island membuka sendiri</string>
+    <string name="reminders_island_note">selama pill nyala</string>
     <string name="reminders_promise_note">Saat waktunya, island juga naik. Satu aksinya langsung membuka janji, tidak perlu mencari dulu.</string>
     <string name="reminders_note">Island membuka sendiri untuk keduanya, selama pill melayangnya nyala. Bunyi pengingat lewat jalur alarm HP, jadi tetap kedengeran walau volume dering rendah.</string>
     <string name="drink_notif_title">Waktunya minum</string>
@@ -708,4 +719,8 @@
     <string name="focus_goal_label">Tujuannya</string>
     <string name="galaxy_heading">Galaksi karakter</string>
     <string name="galaxy_sub">Sebelas jenis kerja, lima keadaan hari, satu tidur.</string>
+    <string name="galaxy_chip_days">%d hari</string>
+    <string name="galaxy_chip_missions">%d misi</string>
+    <string name="galaxy_chip_focus">%d mnt fokus</string>
+    <string name="galaxy_continue">Lanjut →</string>
 </resources>
