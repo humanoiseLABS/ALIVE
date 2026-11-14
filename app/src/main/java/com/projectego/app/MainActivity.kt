@@ -3613,21 +3613,6 @@ class MainActivity : AppCompatActivity() {
             }
         )
         column.addView(ui.vgap(ui.dimens.groupGap))
-        column.addView(
-            ui.h1(getString(R.string.galaxy_heading)).apply { setTextColor(paper) }
-        )
-        column.addView(ui.vgap(ui.dimens.lineGap))
-        column.addView(
-            ui.note(getString(R.string.galaxy_sub)).apply {
-                setTextColor(androidx.core.graphics.ColorUtils.setAlphaComponent(paper, 168))
-            }
-        )
-        column.addView(ui.vgap(ui.dimens.groupGap))
-        column.addView(
-            ui.lead(
-                getString(R.string.growth_level, ledger.stage.ordinal + 1) + " · " + scale
-            ).apply { setTextColor(paper) }
-        )
 
         // Eleven kinds of work, five kinds of day, and one sleep - the same
         // seventeen the family sheet draws.
@@ -3650,27 +3635,60 @@ class MainActivity : AppCompatActivity() {
             R.drawable.alive_state_unknown,
             R.drawable.alive_state_rest
         )
-        members.chunked(4).forEachIndexed { rowIndex, rowMembers ->
-            if (rowIndex > 0) column.addView(ui.vgap(ui.dimens.dp(14)))
-            column.addView(
-                ui.row().apply {
-                    rowMembers.forEachIndexed { index, res ->
-                        if (index > 0) addView(ui.hgap(ui.dimens.dp(10)))
-                        addView(
-                            ImageView(this@MainActivity).apply {
-                                setImageResource(res)
-                                scaleType = ImageView.ScaleType.FIT_CENTER
-                                contentDescription = null
-                                layoutParams = LinearLayout.LayoutParams(
-                                    ui.dimens.dp(56),
-                                    ui.dimens.dp(56)
-                                )
-                            }
-                        )
+
+        // The approved render orbits the family around a centred title on the
+        // deep ground - a ring, not a grid. The title sits in the hole; the
+        // seventeen ride the circumference from the top, clockwise.
+        val ringSize = ui.dimens.dp(340)
+        val memberSize = ui.dimens.dp(30)
+        val ring = FrameLayout(this).apply {
+            layoutParams = LinearLayout.LayoutParams(ringSize, ringSize).apply {
+                gravity = Gravity.CENTER_HORIZONTAL
+            }
+        }
+        ring.addView(
+            ui.column().apply {
+                gravity = Gravity.CENTER_HORIZONTAL
+                layoutParams = FrameLayout.LayoutParams(
+                    ui.dimens.dp(190),
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    Gravity.CENTER
+                )
+                addView(ui.h1(getString(R.string.galaxy_heading)).apply {
+                    setTextColor(paper)
+                    gravity = Gravity.CENTER
+                })
+                addView(ui.vgap(ui.dimens.lineGap))
+                addView(ui.note(getString(R.string.galaxy_sub)).apply {
+                    setTextColor(ColorUtils.setAlphaComponent(paper, 168))
+                    gravity = Gravity.CENTER
+                })
+            }
+        )
+        val radius = (ringSize - memberSize) / 2f - ui.dimens.dp(2)
+        members.forEachIndexed { index, res ->
+            val angle = -Math.PI / 2 + index * 2 * Math.PI / members.size
+            val left = ringSize / 2f + (radius * Math.cos(angle)).toFloat() - memberSize / 2f
+            val top = ringSize / 2f + (radius * Math.sin(angle)).toFloat() - memberSize / 2f
+            ring.addView(
+                ImageView(this).apply {
+                    setImageResource(res)
+                    scaleType = ImageView.ScaleType.FIT_CENTER
+                    contentDescription = null
+                    layoutParams = FrameLayout.LayoutParams(memberSize, memberSize).apply {
+                        leftMargin = left.toInt()
+                        topMargin = top.toInt()
                     }
                 }
             )
         }
+        column.addView(ring)
+        column.addView(ui.vgap(ui.dimens.groupGap))
+        column.addView(
+            ui.lead(
+                getString(R.string.growth_level, ledger.stage.ordinal + 1) + " · " + scale
+            ).apply { setTextColor(paper) }
+        )
     }
 
     /**
