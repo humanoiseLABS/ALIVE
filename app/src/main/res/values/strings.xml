@@ -46,6 +46,9 @@
     <string name="stat_bank">Bank</string>
     <string name="unit_minutes">%1$d min</string>
     <string name="unit_minutes_suffix">min</string>
+    <!-- The unit a fact tile and the bank ride beside their figure, so three
+         tiles keep one line each. -->
+    <string name="unit_minutes_short">min</string>
     <string name="unit_days_suffix">days</string>
     <string name="duration_hours">%1$d hr</string>
     <string name="duration_hours_minutes">%1$d hr %2$d min</string>
@@ -136,15 +139,15 @@
          The catalog's words live here, not in QuestRepository, so the board can
          speak the language the screen speaks. Only quest ids are ever stored. -->
     <string name="quest_walk_title">Walk 20 Minutes</string>
-    <string name="quest_walk_body">Go for a brisk walk outside or on a treadmill without looking at social media.</string>
+    <string name="quest_walk_body">A brisk walk without looking at social media.</string>
     <string name="quest_study_title">Study for 30 Minutes</string>
     <string name="quest_study_body">Focus on focused learning, course materials, or technical documentation.</string>
     <string name="quest_read_title">Read for 30 Minutes</string>
-    <string name="quest_read_body">Read a physical book, kindle, or educational long-form article.</string>
+    <string name="quest_read_body">A physical book, e-reader, or long article.</string>
     <string name="quest_exercise_title">Exercise for 20 Minutes</string>
-    <string name="quest_exercise_body">Complete a workout routine, calisthenics, gym session, or stretching.</string>
-    <string name="quest_clean_title">Clean Your Room for 20 Minutes</string>
-    <string name="quest_clean_body">Organize your desk, make your bed, clean your living environment.</string>
+    <string name="quest_exercise_body">A workout, calisthenics, gym, or stretching.</string>
+    <string name="quest_clean_title">Tidy Your Room</string>
+    <string name="quest_clean_body">Tidy the desk and make the bed.</string>
     <string name="quest_draw_title">Draw for 20 Minutes</string>
     <string name="quest_draw_body">Sketch, ink, or paint something on paper or in a drawing app.</string>
     <string name="quest_run_title">Run for 20 Minutes</string>
@@ -277,10 +280,7 @@
     <!-- ============ FOCUS ============ -->
     <string name="focus_heading">Focus</string>
     <string name="focus_intro">A quiet block of time for one thing.</string>
-    <string name="focus_activity_heading">What are you doing?</string>
-    <string name="focus_goal_heading">What\'s the goal?</string>
     <string name="focus_goal_hint">e.g. Work through chapter four</string>
-    <string name="focus_duration_heading">How long? (minutes)</string>
     <string name="focus_duration_value">%1$d</string>
     <string name="focus_activity_option">%1$s · %2$d approved apps</string>
     <string name="focus_start">Start focus</string>
@@ -300,7 +300,6 @@
     <string name="focus_extend">Extend 15 minutes</string>
     <string name="focus_extend_support">Takes 15 minutes from your Time Bank.</string>
     <string name="focus_extended_toast">Extended by 15 minutes.</string>
-    <string name="focus_setup_hint">Focus is a session, not a place you navigate to. Start one here.</string>
 
     <!-- ============ PROFILE ============ -->
     <string name="profile_heading">Profile</string>
@@ -473,17 +472,17 @@
     <string name="chart_total_label">Total</string>
     <string name="cd_usage_chart">Bar chart: entertainment minutes for each day in this range.</string>
     <string name="cd_app_donut">Ring chart: today\'s entertainment time, split by app.</string>
-    <string name="cd_mark_exercise">Pixel dumbbell: an exercise quest.</string>
-    <string name="cd_mark_study">Pixel open book: a study quest.</string>
-    <string name="cd_mark_reading">Pixel book stack: a reading quest.</string>
-    <string name="cd_mark_walking">Pixel footprints: a walking quest.</string>
-    <string name="cd_mark_cleaning">Pixel broom: a cleaning quest.</string>
-    <string name="cd_mark_creative">Pixel paintbrush: a creative quest.</string>
-    <string name="cd_mark_coding">Pixel terminal: a coding quest.</string>
-    <string name="cd_mark_writing">Pixel pen: a writing quest.</string>
-    <string name="cd_mark_mindfulness">Pixel lotus: a mindfulness quest.</string>
-    <string name="cd_mark_social">Two pixel figures: a quest with people.</string>
-    <string name="cd_mark_other">Pixel star: an uncategorised quest.</string>
+    <string name="cd_mark_exercise">Dumbbell outline: an exercise quest.</string>
+    <string name="cd_mark_study">Open book outline: a study quest.</string>
+    <string name="cd_mark_reading">Book stack outline: a reading quest.</string>
+    <string name="cd_mark_walking">Walking figure outline: a walking quest.</string>
+    <string name="cd_mark_cleaning">Broom outline: a cleaning quest.</string>
+    <string name="cd_mark_creative">Paintbrush outline: a creative quest.</string>
+    <string name="cd_mark_coding">Terminal outline: a coding quest.</string>
+    <string name="cd_mark_writing">Pen outline: a writing quest.</string>
+    <string name="cd_mark_mindfulness">Lotus outline: a mindfulness quest.</string>
+    <string name="cd_mark_social">Two figures outline: a quest with people.</string>
+    <string name="cd_mark_other">Star outline: an uncategorised quest.</string>
     <string name="chart_apps_heading">Most used</string>
     <string name="chart_labels_note">ALIVE only gets the names the device is willing to give it. Some show as part of their package name.</string>
     <string name="chart_apps_folded">%1$d smaller ones</string>
@@ -758,6 +757,12 @@
     <string name="perm_alert_title">ALIVE cannot see what it needs</string>
     <string name="perm_note">A day without the guard is still recorded. ALIVE does not pretend that day was safe.</string>
     <string name="focus_ring_time">%1$02d:00</string>
+    <string name="focus_kicker_activity">What you\'re doing</string>
+    <string name="focus_kicker_allowed">Allowed to open</string>
+    <string name="focus_allowed_count">%1$d apps</string>
+    <string name="focus_kicker_message">Messages</string>
+    <string name="focus_message_value">Stay open</string>
+    <string name="focus_goal_label">The goal</string>
     <string name="galaxy_heading">Character galaxy</string>
     <string name="galaxy_sub">Eleven kinds of work, five kinds of day, one sleep.</string>
 </resources>

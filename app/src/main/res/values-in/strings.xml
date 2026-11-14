@@ -44,6 +44,9 @@
     <string name="stat_bank">Bank</string>
     <string name="unit_minutes">%1$d menit</string>
     <string name="unit_minutes_suffix">menit</string>
+    <!-- The unit a fact tile and the bank ride beside their figure: the render
+         writes "mnt" so three tiles keep one line each. -->
+    <string name="unit_minutes_short">mnt</string>
     <string name="unit_days_suffix">hari</string>
     <string name="duration_hours">%1$d jam</string>
     <string name="duration_hours_minutes">%1$d jam %2$d menit</string>
@@ -128,15 +131,15 @@
     <!-- ====== ISINYA PAPAN ====== kata-kata katalog ikut bahasa layar, bukan
          menempel di QuestRepository. -->
     <string name="quest_walk_title">Jalan 20 Menit</string>
-    <string name="quest_walk_body">Jalan cepat di luar atau di treadmill tanpa melihat media sosial.</string>
+    <string name="quest_walk_body">Jalan cepat tanpa melihat media sosial.</string>
     <string name="quest_study_title">Belajar 30 Menit</string>
     <string name="quest_study_body">Fokus ke pelajaran, materi kursus, atau dokumentasi teknis.</string>
     <string name="quest_read_title">Membaca 30 Menit</string>
-    <string name="quest_read_body">Baca buku fisik, e-reader, atau artikel panjang yang berguna.</string>
+    <string name="quest_read_body">Buku fisik, e-reader, atau artikel panjang.</string>
     <string name="quest_exercise_title">Olahraga 20 Menit</string>
-    <string name="quest_exercise_body">Selesaikan rutinitas latihan, kalistenik, sesi gym, atau peregangan.</string>
-    <string name="quest_clean_title">Bereskan Kamarmu 20 Menit</string>
-    <string name="quest_clean_body">Rapikan meja, rapikan tempat tidur, bersihkan tempat tinggalmu.</string>
+    <string name="quest_exercise_body">Latihan, kalistenik, gym, peregangan.</string>
+    <string name="quest_clean_title">Bereskan Kamarmu</string>
+    <string name="quest_clean_body">Rapikan meja dan tempat tidur.</string>
     <string name="quest_draw_title">Menggambar 20 Menit</string>
     <string name="quest_draw_body">Coret, gambar, atau warnai sesuatu di kertas atau di aplikasi gambar.</string>
     <string name="quest_run_title">Lari 20 Menit</string>
@@ -256,10 +259,7 @@
     <!-- ============ FOKUS ============ -->
     <string name="focus_heading">Fokus</string>
     <string name="focus_intro">Blok waktu yang tenang untuk satu hal.</string>
-    <string name="focus_activity_heading">Lagi ngapain?</string>
-    <string name="focus_goal_heading">Tujuannya apa?</string>
     <string name="focus_goal_hint">mis. Selesaikan bab empat</string>
-    <string name="focus_duration_heading">Berapa lama? (menit)</string>
     <string name="focus_duration_value">%1$d</string>
     <string name="focus_activity_option">%1$s · %2$d aplikasi diizinkan</string>
     <string name="focus_start">Mulai fokus</string>
@@ -279,7 +279,6 @@
     <string name="focus_extend">Perpanjang 15 menit</string>
     <string name="focus_extend_support">Mengambil 15 menit dari Bank Waktumu.</string>
     <string name="focus_extended_toast">Diperpanjang 15 menit.</string>
-    <string name="focus_setup_hint">Fokus itu sesi, bukan tempat yang kamu kunjungi. Mulai dari sini.</string>
 
     <!-- ============ PROFIL ============ -->
     <string name="profile_heading">Profil</string>
@@ -432,17 +431,17 @@
     <string name="chart_total_label">Total</string>
     <string name="cd_usage_chart">Grafik batang: menit hiburan untuk tiap hari di rentang ini.</string>
     <string name="cd_app_donut">Grafik cincin: waktu hiburan hari ini, per aplikasi.</string>
-    <string name="cd_mark_exercise">Barbel pixel: misi olahraga.</string>
-    <string name="cd_mark_study">Buku terbuka pixel: misi belajar.</string>
-    <string name="cd_mark_reading">Tumpukan buku pixel: misi membaca.</string>
-    <string name="cd_mark_walking">Jejak kaki pixel: misi jalan.</string>
-    <string name="cd_mark_cleaning">Sapu pixel: misi beres-beres.</string>
-    <string name="cd_mark_creative">Kuas pixel: misi berkarya.</string>
-    <string name="cd_mark_coding">Terminal pixel: misi koding.</string>
-    <string name="cd_mark_writing">Pena pixel: misi menulis.</string>
-    <string name="cd_mark_mindfulness">Teratai pixel: misi menenangkan diri.</string>
-    <string name="cd_mark_social">Dua sosok pixel: misi bersama orang.</string>
-    <string name="cd_mark_other">Bintang pixel: misi tanpa kategori.</string>
+    <string name="cd_mark_exercise">Barbel garis: misi olahraga.</string>
+    <string name="cd_mark_study">Buku terbuka garis: misi belajar.</string>
+    <string name="cd_mark_reading">Tumpukan buku garis: misi membaca.</string>
+    <string name="cd_mark_walking">Sosok berjalan garis: misi jalan.</string>
+    <string name="cd_mark_cleaning">Sapu garis: misi beres-beres.</string>
+    <string name="cd_mark_creative">Kuas garis: misi berkarya.</string>
+    <string name="cd_mark_coding">Terminal garis: misi koding.</string>
+    <string name="cd_mark_writing">Pena garis: misi menulis.</string>
+    <string name="cd_mark_mindfulness">Teratai garis: misi menenangkan diri.</string>
+    <string name="cd_mark_social">Dua sosok garis: misi bersama orang.</string>
+    <string name="cd_mark_other">Bintang garis: misi tanpa kategori.</string>
     <string name="chart_apps_heading">Paling banyak</string>
     <string name="chart_labels_note">ALIVE hanya mendapat nama yang perangkat mau berikan. Sebagian tampil sebagai bagian dari nama paketnya.</string>
     <string name="chart_apps_folded">%1$d lainnya lebih kecil</string>
@@ -701,6 +700,12 @@
     <string name="perm_alert_title">ALIVE belum bisa melihat yang dibutuhkan</string>
     <string name="perm_note">Hari tanpa penjaga tetap dicatat. ALIVE tidak berpura-pura hari itu aman.</string>
     <string name="focus_ring_time">%1$02d:00</string>
+    <string name="focus_kicker_activity">Lagi ngapain</string>
+    <string name="focus_kicker_allowed">Boleh dibuka</string>
+    <string name="focus_allowed_count">%1$d aplikasi</string>
+    <string name="focus_kicker_message">Pesan</string>
+    <string name="focus_message_value">Tetap masuk</string>
+    <string name="focus_goal_label">Tujuannya</string>
     <string name="galaxy_heading">Galaksi karakter</string>
     <string name="galaxy_sub">Sebelas jenis kerja, lima keadaan hari, satu tidur.</string>
 </resources>

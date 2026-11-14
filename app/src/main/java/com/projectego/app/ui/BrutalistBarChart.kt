@@ -222,7 +222,7 @@ class BrutalistBarChart(context: Context) : View(context) {
         if (plotHeight <= 0f) return
 
         val slot = (right - left) / grid.columnsPerRow
-        val barWidth = ChartGeometry.barWidth(slot, dp(30f), dp(3f))
+        val barWidth = ChartGeometry.barWidth(slot, dp(40f), dp(3f))
         val labelMargin = ChartGeometry.LABEL_MARGIN_DP * resources.displayMetrics.density
 
         columns.forEachIndexed { index, column ->

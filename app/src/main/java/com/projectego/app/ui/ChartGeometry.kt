@@ -64,7 +64,8 @@ object ChartGeometry {
     /** The gap a label keeps from its column edges, in dp - small, but never zero. */
     const val LABEL_MARGIN_DP: Float = 2f
 
-    /** One column's bar width: most of the slot, capped so a week does not look like a plank. */
+    /** One column's bar width: the slot minus the render's 9dp of air, capped so
+     *  a single day does not become a plank. */
     fun barWidth(slotPx: Float, maxPx: Float, minPx: Float): Float =
-        min(slotPx * 0.62f, maxPx).coerceAtLeast(min(minPx, slotPx))
+        min(slotPx * 0.78f, maxPx).coerceAtLeast(min(minPx, slotPx))
 }

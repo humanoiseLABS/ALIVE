@@ -64,7 +64,10 @@ class FocusSessionManager(
          * other. A twenty-minute CREATIVE quest was already in the catalog and
          * could not start before this - the mismatch was here, not in the catalog.
          */
-        val VALID_DURATIONS = setOf(10L, 20L, 30L, 60L, 90L, 120L)
+        // 10 and 20 are what a mission pays for; 15, 25, 45 and 60 are the four
+        // lengths the approved focus setup offers. Both lists are legal, and
+        // anything else is still refused rather than rounded into one.
+        val VALID_DURATIONS = setOf(10L, 15L, 20L, 25L, 30L, 45L, 60L, 90L, 120L)
     }
 
     private fun encodeOverride(override: Set<String>?): String? =

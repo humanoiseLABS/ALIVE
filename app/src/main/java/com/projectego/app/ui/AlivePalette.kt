@@ -65,6 +65,11 @@ class AlivePalette(context: Context) {
     val fieldLilac = color(R.color.flat_field_lilac)
     val fieldPeach = color(R.color.flat_field_peach)
     val fieldCoral = color(R.color.flat_field_coral)
+    val fieldSun = color(R.color.flat_field_sun)
+    val fieldGrape = color(R.color.flat_field_grape)
+
+    /** The render's quiet grey: a spent day's face, a duration tag. Surface only. */
+    val soft = color(R.color.flat_soft)
 
     val paper = color(R.color.flat_ground)
     val canvas = color(R.color.flat_ground)

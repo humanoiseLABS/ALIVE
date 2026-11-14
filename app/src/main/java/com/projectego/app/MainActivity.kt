@@ -34,6 +34,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.os.LocaleListCompat
 import androidx.core.widget.addTextChangedListener
 import com.projectego.app.data.CharacterGrowthRepository
@@ -105,6 +106,7 @@ import com.projectego.app.ui.ChartRange
 import com.projectego.app.ui.DayBar
 import com.projectego.app.ui.DayBarKind
 import com.projectego.app.ui.Durations
+import com.projectego.app.ui.FocusSetupScreen
 import com.projectego.app.ui.Guardian
 import com.projectego.app.ui.GuardianState
 import com.projectego.app.ui.HomeAction
@@ -187,9 +189,7 @@ class MainActivity : AppCompatActivity() {
     /** The lifetime count. Read when Profile draws; it is three integers. */
     private val growthRepository by lazy { CharacterGrowthRepository(this) }
 
-    private var focusSetupAnchor: View? = null
     private var timeBankAnchor: View? = null
-    private var goalInput: EditText? = null
 
     /**
      * Which of Home's cards owns the screen's one MAJOR frame this render.
@@ -1028,40 +1028,54 @@ class MainActivity : AppCompatActivity() {
         column.addView(ui.h1(getString(R.string.focus_quiet_heading)))
         column.addView(ui.vgap(ui.dimens.dp(16)))
 
-        val durations = listOf(30L, 60L, 90L, 120L)
-        val ringTime = ui.timer(
-            getString(
-                R.string.focus_ring_time,
-                durations.getOrNull(state.selectedDurationIndex) ?: 60L
-            )
-        )
+        val activities = FocusActivityType.values().toList()
+        val durations = FocusSetupScreen.DURATIONS
+        fun chosenDuration() = durations.getOrNull(state.selectedDurationIndex) ?: 25L
+        fun chosenActivity() =
+            activities.getOrNull(state.selectedActivityIndex) ?: FocusActivityType.STUDY
+
         column.addView(
-            ui.column().apply {
-                background = GradientDrawable().apply {
-                    cornerRadius = ui.dimens.radiusCard.toFloat()
-                    setColor(ui.palette.fieldLilac)
-                }
-                gravity = Gravity.CENTER_HORIZONTAL
-                setPadding(ui.dimens.dp(20), ui.dimens.dp(24), ui.dimens.dp(20), ui.dimens.dp(24))
-                addView(
-                    ImageView(this@MainActivity).apply {
-                        setImageResource(R.drawable.ic_drop_flat)
-                        scaleType = ImageView.ScaleType.FIT_CENTER
-                        contentDescription = null
-                        layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(26), ui.dimens.dp(26))
+            FocusSetupScreen.build(
+                this,
+                ui,
+                FocusSetupScreen.Data(
+                    durationMinutes = chosenDuration(),
+                    durations = durations,
+                    activity = chosenActivity(),
+                    activities = activities,
+                    allowedApps = { type -> FocusAppPolicy.getApprovedPackages(type).size },
+                    goal = state.focusGoalDraft,
+                    onGoal = { state.focusGoalDraft = it },
+                    onDuration = { minutes ->
+                        state.selectedDurationIndex = durations.indexOf(minutes).coerceAtLeast(0)
+                    },
+                    onActivity = { type ->
+                        state.selectedActivityIndex = activities.indexOf(type).coerceAtLeast(0)
+                    },
+                    onStart = {
+                        val goal = state.focusGoalDraft.trim()
+                        if (goal.isBlank()) {
+                            toast(R.string.focus_goal_required)
+                        } else {
+                            val minutes = chosenDuration()
+                            val started = focusSessionManager.startFocusSession(
+                                chosenActivity(), goal, minutes
+                            )
+                            if (started) {
+                                state.focusGoalDraft = ""
+                                toast(R.string.focus_started_toast, minutes)
+                                renderDashboard()
+                            } else {
+                                toast(R.string.focus_start_failed)
+                            }
+                        }
                     }
                 )
-                addView(ui.vgap(ui.dimens.lineGap))
-                addView(ringTime)
-                addView(ui.kicker(getString(R.string.unit_minutes_suffix)))
-            }
+            )
         )
-        column.addView(ui.vgap(ui.dimens.dp(16)))
-        renderFocusSetup(column, ringTime)
         openOverlay(scroll)
         // Pass 2 stands FOKUS on its own sky ground, not on the page it opened from.
         overlayContainer.setBackgroundColor(ui.palette.groundSky)
-        column.post { goalInput?.requestFocus() }
     }
 
     // ------------------------------------------------------------------
@@ -1792,149 +1806,6 @@ class MainActivity : AppCompatActivity() {
     // FOCUS - a session, not a destination
     // ------------------------------------------------------------------
 
-    private fun renderFocusSetup(block: LinearLayout, ringTime: TextView? = null) {
-        val anchor = ui.column()
-        focusSetupAnchor = anchor
-
-        val activities = FocusActivityType.values()
-        val durations = listOf(30L, 60L, 90L, 120L)
-
-        // The tile above the list is the answer to "what am I about to pick":
-        // its pose and its colour both change the moment another activity is
-        // chosen. Every activity has a sheet pose now, so no mark fallback.
-        val markType = activities.getOrNull(state.selectedActivityIndex) ?: FocusActivityType.STUDY
-        val previewFace = AliveStates.focusPreviewSpriteFor(markType)
-        val mark = ui.iconTile(
-            ContextCompat.getColor(this, QuestHues.focus(markType)),
-            AliveStates.faceSpriteFor(previewFace),
-            ui.dimens.character
-        ).apply {
-            contentDescription = getString(AliveStates.faceDescription(previewFace))
-        }
-        anchor.addView(mark)
-        anchor.addView(ui.vgap(ui.dimens.groupGap))
-
-        anchor.addView(ui.sectionHeader(getString(R.string.focus_activity_heading)))
-        anchor.addView(ui.vgap(ui.dimens.lineGap))
-
-        val actGroup = RadioGroup(this).apply { orientation = RadioGroup.VERTICAL }
-        activities.forEachIndexed { index, type ->
-            actGroup.addView(
-                ui.tileOption(
-                    getString(
-                        R.string.focus_activity_option,
-                        activityLabel(type),
-                        FocusAppPolicy.getApprovedPackages(type).size
-                    ),
-                    PixelMarks.focus(type),
-                    ContextCompat.getColor(this@MainActivity, QuestHues.focus(type))
-                ).apply {
-                    id = index + 100
-                    isChecked = index == state.selectedActivityIndex
-                    layoutParams = RadioGroup.LayoutParams(
-                        RadioGroup.LayoutParams.MATCH_PARENT,
-                        RadioGroup.LayoutParams.WRAP_CONTENT
-                    ).apply {
-                        // Tiles need air between them; a ruled list did not,
-                        // because the rule was the separation.
-                        if (index > 0) topMargin = ui.dimens.pairGap
-                    }
-                }
-            )
-        }
-        actGroup.setOnCheckedChangeListener { _, checkedId ->
-            state.selectedActivityIndex = (checkedId - 100).coerceAtLeast(0)
-            val type = activities.getOrNull(state.selectedActivityIndex)
-            if (type != null) {
-                // The tile follows the pick like the colour does; showing the
-                // activity mark here would undo the pose the moment anything
-                // is chosen.
-                val face = AliveStates.focusPreviewSpriteFor(type)
-                mark.setImageResource(AliveStates.faceSpriteFor(face))
-                ui.tintTile(mark, ContextCompat.getColor(this@MainActivity, QuestHues.focus(type)))
-                mark.contentDescription = getString(AliveStates.faceDescription(face))
-            }
-        }
-        anchor.addView(actGroup)
-
-        anchor.addView(ui.vgap(ui.dimens.groupGap))
-        anchor.addView(ui.sectionHeader(getString(R.string.focus_goal_heading)))
-        anchor.addView(ui.vgap(ui.dimens.lineGap))
-
-        val goalField = ui.input(getString(R.string.focus_goal_hint)).apply {
-            setText(state.focusGoalDraft)
-            addTextChangedListener(afterTextChanged = { text ->
-                state.focusGoalDraft = text?.toString()?.trim().orEmpty()
-            })
-        }
-        goalInput = goalField
-        anchor.addView(goalField)
-
-        anchor.addView(ui.vgap(ui.dimens.groupGap))
-        anchor.addView(ui.sectionHeader(getString(R.string.focus_duration_heading)))
-        anchor.addView(ui.vgap(ui.dimens.lineGap))
-
-        val durGroup = RadioGroup(this).apply { orientation = RadioGroup.HORIZONTAL }
-        durations.forEachIndexed { index, duration ->
-            durGroup.addView(
-                // A bare number, with the unit in the heading: four "60 min"
-                // radios will not fit a 320dp screen, and these four values are
-                // the only ones the engine accepts.
-                ui.tileOption(getString(R.string.focus_duration_value, duration), 0, ui.palette.softForest).apply {
-                    id = index + 200
-                    gravity = Gravity.CENTER
-                    layoutParams = RadioGroup.LayoutParams(
-                        0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f
-                    ).apply {
-                        if (index > 0) marginStart = ui.dimens.pairGap
-                    }
-                    isChecked = index == state.selectedDurationIndex
-                }
-            )
-        }
-        durGroup.setOnCheckedChangeListener { _, checkedId ->
-            state.selectedDurationIndex = (checkedId - 200).coerceAtLeast(0)
-            val chosen = durations.getOrNull(state.selectedDurationIndex) ?: 60L
-            ringTime?.text = getString(R.string.focus_ring_time, chosen)
-        }
-        anchor.addView(durGroup)
-
-        anchor.addView(ui.vgap(ui.dimens.groupGap))
-        anchor.addView(
-            ui.primary(getString(R.string.focus_start)).apply {
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-                setOnClickListener {
-                    val selectedType = activities.getOrNull(actGroup.checkedRadioButtonId - 100)
-                        ?: FocusActivityType.STUDY
-
-                    val goal = goalField.text.toString().trim()
-                    if (goal.isBlank()) {
-                        toast(R.string.focus_goal_required)
-                        return@setOnClickListener
-                    }
-
-                    val selectedDuration = durations.getOrNull(durGroup.checkedRadioButtonId - 200) ?: 60L
-
-                    val started = focusSessionManager.startFocusSession(selectedType, goal, selectedDuration)
-                    if (started) {
-                        state.focusGoalDraft = ""
-                        toast(R.string.focus_started_toast, selectedDuration)
-                        renderDashboard()
-                    } else {
-                        toast(R.string.focus_start_failed)
-                    }
-                }
-            }
-        )
-        anchor.addView(ui.vgap(ui.dimens.lineGap))
-        anchor.addView(ui.note(getString(R.string.focus_setup_hint)))
-
-        block.addView(anchor)
-    }
-
     private fun focusRemainingLine(session: FocusSession): String {
         val remaining = session.getRemainingMinutes()
         return when {
@@ -1997,6 +1868,7 @@ class MainActivity : AppCompatActivity() {
                     quests = allQuests,
                     selected = questFilter,
                     hasCustomQuest = customQuestRepository.stored() != null,
+                    streak = state.signals?.currentStreak ?: 0,
                     onFilter = { category ->
                         questFilter = category
                         renderQuestSection()
@@ -2845,7 +2717,7 @@ class MainActivity : AppCompatActivity() {
         row.addView(
             summaryField(
                 ui.palette.flatMint,
-                R.drawable.ic_smiley_flat,
+                null,
                 getString(R.string.chart_productive),
                 "+${chartDuration(productive)}"
             )
@@ -2853,7 +2725,7 @@ class MainActivity : AppCompatActivity() {
         row.addView(ui.hgap(ui.dimens.dp(10)))
         row.addView(
             summaryField(
-                ui.palette.fieldRose,
+                ui.palette.fieldCoral,
                 R.drawable.ic_face_neutral,
                 getString(R.string.chart_hours_left),
                 getString(R.string.chart_hours_value, hoursLeft)
@@ -2864,7 +2736,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun summaryField(
         face: Int,
-        mood: Int,
+        mood: Int?,
         kicker: String,
         value: String
     ): LinearLayout = ui.row().apply {
@@ -2875,21 +2747,23 @@ class MainActivity : AppCompatActivity() {
         gravity = Gravity.CENTER_VERTICAL
         setPadding(ui.dimens.dp(12), ui.dimens.dp(12), ui.dimens.dp(16), ui.dimens.dp(12))
         layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-        addView(
-            ImageView(this@MainActivity).apply {
-                setImageResource(mood)
-                scaleType = ImageView.ScaleType.FIT_CENTER
-                contentDescription = null
-                setPadding(ui.dimens.dp(8), ui.dimens.dp(8), ui.dimens.dp(8), ui.dimens.dp(8))
-                background = GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL
-                    setColor(ui.palette.flatPaper)
+        if (mood != null) {
+            addView(
+                ImageView(this@MainActivity).apply {
+                    setImageResource(mood)
+                    scaleType = ImageView.ScaleType.FIT_CENTER
+                    contentDescription = null
+                    setPadding(ui.dimens.dp(8), ui.dimens.dp(8), ui.dimens.dp(8), ui.dimens.dp(8))
+                    background = GradientDrawable().apply {
+                        shape = GradientDrawable.OVAL
+                        setColor(ui.palette.flatPaper)
+                    }
+                    layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(36), ui.dimens.dp(36)).apply {
+                        marginEnd = ui.dimens.dp(10)
+                    }
                 }
-                layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(36), ui.dimens.dp(36)).apply {
-                    marginEnd = ui.dimens.dp(10)
-                }
-            }
-        )
+            )
+        }
         addView(
             ui.column().apply {
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
@@ -3065,7 +2939,7 @@ class MainActivity : AppCompatActivity() {
         val scrollMonth = range == ChartRange.THIS_MONTH
         val chart = BrutalistBarChart(this).apply {
             singleRowScroll = scrollMonth
-            barColor = ui.palette.tile
+            barColor = ColorUtils.setAlphaComponent(ui.palette.tile, 199)
             nowColor = ui.palette.ink
             showAverage = false
             layoutParams = if (scrollMonth) {
@@ -3166,7 +3040,7 @@ class MainActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
-            barColor = ui.palette.tile
+            barColor = ColorUtils.setAlphaComponent(ui.palette.tile, 199)
             nowColor = ui.palette.ink
             showAverage = false
             contentDescription = getString(R.string.cd_usage_chart)
@@ -3269,11 +3143,10 @@ class MainActivity : AppCompatActivity() {
             card.addView(
                 ui.row().apply {
                     gravity = Gravity.CENTER_VERTICAL
-                    addView(appIcon(packageName))
                     addView(
                         ui.weighted(
                             ui.lead(AppLabels.labelFor(this@MainActivity, packageName)).apply {
-                                setPadding(ui.dimens.groupGap, 0, ui.dimens.groupGap, 0)
+                                setPadding(0, 0, ui.dimens.groupGap, 0)
                                 maxLines = 1
                                 ellipsize = android.text.TextUtils.TruncateAt.END
                             }
@@ -3289,7 +3162,7 @@ class MainActivity : AppCompatActivity() {
                             setTextColor(ui.palette.inkSecondary)
                             background = GradientDrawable().apply {
                                 cornerRadius = ui.dimens.radiusPill.toFloat()
-                                setColor(ui.palette.warmGray)
+                                setColor(ui.palette.soft)
                             }
                             setPadding(ui.dimens.dp(12), 0, ui.dimens.dp(12), 0)
                             layoutParams = LinearLayout.LayoutParams(
@@ -3302,29 +3175,6 @@ class MainActivity : AppCompatActivity() {
             )
         }
         return card
-    }
-
-    /** The app's own launcher icon, or a quiet tile when the package is gone. */
-    private fun appIcon(packageName: String): View {
-        val size = ui.dimens.dp(36)
-        return ImageView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(size, size)
-            scaleType = ImageView.ScaleType.FIT_CENTER
-            contentDescription = null
-            val icon = try {
-                packageManager.getApplicationIcon(packageName)
-            } catch (missing: Exception) {
-                null
-            }
-            if (icon != null) {
-                setImageDrawable(icon)
-            } else {
-                background = GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL
-                    setColor(ui.palette.workPale)
-                }
-            }
-        }
     }
 
     /** The three lenses as one row of tiles, sized to fit side by side. */

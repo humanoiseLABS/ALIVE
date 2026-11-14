@@ -178,9 +178,12 @@ class BerandaScreenTest {
         val row = allViews(page).firstOrNull { view ->
             val group = view as? ViewGroup ?: return@firstOrNull false
             view.isClickable && group.childCount == 7 &&
-                (0 until group.childCount).all { group.getChildAt(it) is android.widget.ImageView }
+                (0 until group.childCount).all { group.getChildAt(it) is android.widget.FrameLayout }
         }
         requireNotNull(row)
+        val group = row as ViewGroup
+        val lived = (0 until 7).count { (group.getChildAt(it) as ViewGroup).childCount == 1 }
+        assertEquals(2, lived)
         row.performClick()
         assertEquals(1, growth)
     }

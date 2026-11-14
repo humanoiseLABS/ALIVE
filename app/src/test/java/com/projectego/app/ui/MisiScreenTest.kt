@@ -66,6 +66,7 @@ class MisiScreenTest {
             quests = listOf(walking, reading),
             selected = selected,
             hasCustomQuest = hasCustomQuest,
+            streak = 2,
             onFilter = { filtered = it },
             onOpen = { opened = it },
             onCustom = { custom += 1 }

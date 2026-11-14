@@ -5,10 +5,12 @@ import android.graphics.drawable.GradientDrawable
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.ColorUtils
 import com.projectego.app.R
 
 /**
@@ -55,7 +57,7 @@ object ProfilScreen {
         column.addView(ui.vgap(ui.dimens.dp(16)))
         column.addView(
             row(
-                context, ui, R.drawable.ic_drop_flat, ui.palette.flatMint,
+                context, ui, R.drawable.ic_line_drop, ui.palette.flatMint,
                 context.getString(R.string.profile_reminders_heading), data.remindersLine,
                 data.onReminders
             )
@@ -71,14 +73,14 @@ object ProfilScreen {
         column.addView(ui.vgap(ui.dimens.dp(10)))
         column.addView(
             row(
-                context, ui, R.drawable.ic_sun_flat, ui.palette.fieldPeach,
+                context, ui, R.drawable.ic_line_sun, ui.palette.fieldPeach,
                 context.getString(R.string.profile_language_pill_title), data.languageLine,
                 data.onLanguage
             )
         )
 
         column.addView(ui.vgap(ui.dimens.lineGap))
-        column.addView(facesRow(context, ui, data))
+        column.addView(DayFaces.row(context, ui, data.streak))
         return column
     }
 
@@ -86,7 +88,7 @@ object ProfilScreen {
 
     private fun characterCard(context: Context, ui: AliveComponents, data: Data): LinearLayout {
         val card = ui.column().apply {
-            background = field(ui.palette.fieldBlossom, ui.dimens.radiusCard)
+            background = field(ui.palette.fieldRose, ui.dimens.radiusCard)
             setPadding(
                 ui.dimens.dp(PAD), ui.dimens.dp(PAD), ui.dimens.dp(PAD), ui.dimens.dp(PAD)
             )
@@ -97,7 +99,7 @@ object ProfilScreen {
         val top = ui.row().apply { gravity = Gravity.CENTER_VERTICAL }
         top.addView(
             ImageView(context).apply {
-                setImageResource(R.drawable.alive_member_creative)
+                setImageResource(R.drawable.ic_alive_character)
                 scaleType = ImageView.ScaleType.FIT_CENTER
                 contentDescription = null
                 layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(64), ui.dimens.dp(64))
@@ -132,7 +134,7 @@ object ProfilScreen {
         val chips = ui.row()
         val rows: List<Pair<String, Int>> = listOf(
             context.getString(R.string.profile_chip_days, data.streak) to ui.palette.flatPaper,
-            context.getString(R.string.profile_chip_missions, data.missions) to ui.palette.fieldButter,
+            context.getString(R.string.profile_chip_missions, data.missions) to ui.palette.flatMint,
             context.getString(R.string.profile_chip_focus, data.focusSessions) to ui.palette.fieldSky
         )
         rows.forEachIndexed { index, (label, face) ->
@@ -153,12 +155,32 @@ object ProfilScreen {
                 ui.dimens.dp(32)
             )
             addView(
-                ImageView(context).apply {
-                    setImageResource(R.drawable.ic_smiley_flat)
-                    scaleType = ImageView.ScaleType.FIT_CENTER
-                    contentDescription = null
-                    layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(16), ui.dimens.dp(16)).apply {
-                        marginEnd = ui.dimens.dp(6)
+                if (face == ui.palette.flatPaper) {
+                    ImageView(context).apply {
+                        setImageResource(R.drawable.ic_smiley_flat)
+                        scaleType = ImageView.ScaleType.FIT_CENTER
+                        contentDescription = null
+                        layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(16), ui.dimens.dp(16)).apply {
+                            marginEnd = ui.dimens.dp(6)
+                        }
+                    }
+                } else {
+                    FrameLayout(context).apply {
+                        background = GradientDrawable().apply {
+                            shape = GradientDrawable.OVAL
+                            setColor(ColorUtils.setAlphaComponent(ui.palette.tile, 184))
+                        }
+                        layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(26), ui.dimens.dp(26)).apply {
+                            marginEnd = ui.dimens.dp(6)
+                        }
+                        addView(
+                            ImageView(context).apply {
+                                setImageResource(R.drawable.ic_smiley_flat)
+                                scaleType = ImageView.ScaleType.FIT_CENTER
+                                contentDescription = null
+                                layoutParams = FrameLayout.LayoutParams(ui.dimens.dp(14), ui.dimens.dp(14), Gravity.CENTER)
+                            }
+                        )
                     }
                 }
             )
@@ -177,7 +199,7 @@ object ProfilScreen {
 
     private fun bankCard(context: Context, ui: AliveComponents, data: Data): LinearLayout =
         ui.row().apply {
-            background = field(ui.palette.fieldButter, ui.dimens.radiusCard)
+            background = field(ui.palette.fieldSun, ui.dimens.radiusCard)
             gravity = Gravity.CENTER_VERTICAL
             setPadding(
                 ui.dimens.dp(PAD), ui.dimens.dp(16), ui.dimens.dp(16), ui.dimens.dp(16)
@@ -203,7 +225,7 @@ object ProfilScreen {
                             gravity = Gravity.BOTTOM
                             addView(ui.number(context.getString(R.string.stat_minutes, data.bankMinutes)))
                             addView(
-                                ui.meta(context.getString(R.string.unit_minutes_suffix)).apply {
+                                ui.meta(context.getString(R.string.unit_minutes_short)).apply {
                                     setPadding(ui.dimens.xs, 0, 0, ui.dimens.xs)
                                 }
                             )
@@ -287,37 +309,6 @@ object ProfilScreen {
     }
 
     // ---------- the week ----------
-
-    private fun facesRow(context: Context, ui: AliveComponents, data: Data): LinearLayout =
-        ui.row().apply {
-            val hues = listOf(
-                ui.palette.flatMint,
-                ui.palette.fieldBlossom,
-                ui.palette.fieldLilac,
-                ui.palette.fieldSky,
-                ui.palette.fieldButter,
-                ui.palette.fieldAqua,
-                ui.palette.fieldRose
-            )
-            for (day in 0 until 7) {
-                addView(
-                    ImageView(context).apply {
-                        setImageResource(R.drawable.ic_smiley_flat)
-                        scaleType = ImageView.ScaleType.FIT_CENTER
-                        contentDescription = null
-                        setPadding(ui.dimens.dp(7), ui.dimens.dp(7), ui.dimens.dp(7), ui.dimens.dp(7))
-                        background = GradientDrawable().apply {
-                            shape = GradientDrawable.OVAL
-                            setColor(hues[day % hues.size])
-                        }
-                        alpha = if (day < data.streak) 1f else 0.3f
-                        layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(34), ui.dimens.dp(34)).apply {
-                            if (day < 6) marginEnd = ui.dimens.dp(6)
-                        }
-                    }
-                )
-            }
-        }
 
     private fun field(face: Int, radiusPx: Int): GradientDrawable = GradientDrawable().apply {
         cornerRadius = radiusPx.toFloat()

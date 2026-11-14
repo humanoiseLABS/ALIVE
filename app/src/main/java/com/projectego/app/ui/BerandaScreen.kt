@@ -84,7 +84,12 @@ object BerandaScreen {
         column.addView(streakCard(context, ui, data))
 
         column.addView(ui.vgap(ui.dimens.lineGap))
-        column.addView(familyRow(context, ui, data))
+        column.addView(
+            DayFaces.row(context, ui, data.streak).apply {
+                isClickable = true
+                setOnClickListener { data.onGrowth() }
+            }
+        )
 
         return column
     }
@@ -164,7 +169,7 @@ object BerandaScreen {
             addView(
                 fact(
                     context, ui, R.string.stat_used, data.usedMinutes,
-                    context.getString(R.string.unit_minutes_suffix), ui.palette.fieldBlossom
+                    context.getString(R.string.unit_minutes_short), ui.palette.fieldBlossom
                 )
             )
             addView(ui.hgap(ui.dimens.dp(10)))
@@ -180,7 +185,7 @@ object BerandaScreen {
             addView(
                 fact(
                     context, ui, R.string.beranda_focus, data.focusMinutes,
-                    context.getString(R.string.unit_minutes_suffix), ui.palette.fieldAqua
+                    context.getString(R.string.unit_minutes_short), ui.palette.fieldAqua
                 )
             )
         }
@@ -226,12 +231,15 @@ object BerandaScreen {
 
             addView(
                 ImageView(context).apply {
-                    setImageResource(R.drawable.ic_sprout_flat)
+                    setImageResource(R.drawable.ic_line_sprout)
                     scaleType = ImageView.ScaleType.FIT_CENTER
                     contentDescription = null
                     setPadding(ui.dimens.dp(10), ui.dimens.dp(10), ui.dimens.dp(10), ui.dimens.dp(10))
-                    background = field(ui.palette.fieldSky, ui.dimens.dp(14))
-                    layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(44), ui.dimens.dp(44))
+                    background = GradientDrawable().apply {
+                        shape = GradientDrawable.OVAL
+                        setColor(ui.palette.fieldSky)
+                    }
+                    layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(40), ui.dimens.dp(40))
                 }
             )
             addView(
@@ -267,10 +275,10 @@ object BerandaScreen {
             setPadding(ui.dimens.dp(BOARD_PADDING_DP), ui.dimens.dp(16), ui.dimens.dp(BOARD_PADDING_DP), ui.dimens.dp(16))
             addView(
                 ImageView(context).apply {
-                    setImageResource(R.drawable.alive_member_creative)
+                    setImageResource(R.drawable.ic_alive_character)
                     scaleType = ImageView.ScaleType.FIT_CENTER
                     contentDescription = null
-                    layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(26), ui.dimens.dp(26)).apply {
+                    layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(34), ui.dimens.dp(34)).apply {
                         marginEnd = ui.dimens.dp(10)
                     }
                 }
@@ -292,40 +300,6 @@ object BerandaScreen {
                     alpha = if (data.tomorrowSafe) 1f else 0.55f
                 }
             )
-        }
-
-    private fun familyRow(context: Context, ui: AliveComponents, data: Data): LinearLayout =
-        ui.row().apply {
-            gravity = Gravity.CENTER_VERTICAL
-            isClickable = true
-            setOnClickListener { data.onGrowth() }
-            val hues = listOf(
-                ui.palette.flatMint,
-                ui.palette.fieldBlossom,
-                ui.palette.fieldLilac,
-                ui.palette.fieldSky,
-                ui.palette.fieldButter,
-                ui.palette.fieldAqua,
-                ui.palette.fieldRose
-            )
-            for (day in 0 until 7) {
-                addView(
-                    ImageView(context).apply {
-                        setImageResource(R.drawable.ic_smiley_flat)
-                        scaleType = ImageView.ScaleType.FIT_CENTER
-                        contentDescription = null
-                        setPadding(ui.dimens.dp(7), ui.dimens.dp(7), ui.dimens.dp(7), ui.dimens.dp(7))
-                        background = GradientDrawable().apply {
-                            shape = GradientDrawable.OVAL
-                            setColor(hues[day % hues.size])
-                        }
-                        alpha = if (day < data.streak) 1f else 0.3f
-                        layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(34), ui.dimens.dp(34)).apply {
-                            if (day < 6) marginEnd = ui.dimens.dp(6)
-                        }
-                    }
-                )
-            }
         }
 
     // ---------- pieces ----------

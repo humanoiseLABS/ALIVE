@@ -29,6 +29,7 @@ object MisiScreen {
         val quests: List<Quest>,
         val selected: QuestCategory?,
         val hasCustomQuest: Boolean,
+        val streak: Int,
         val onFilter: (QuestCategory?) -> Unit,
         val onOpen: (String) -> Unit,
         val onCustom: () -> Unit
@@ -82,6 +83,9 @@ object MisiScreen {
             column.addView(ui.vgap(ui.dimens.dp(16)))
             column.addView(customCard(context, ui, data))
         }
+
+        column.addView(ui.vgap(ui.dimens.lineGap))
+        column.addView(DayFaces.row(context, ui, data.streak))
 
         return column
     }
@@ -171,13 +175,13 @@ object MisiScreen {
                 ImageView(context).apply {
                     setImageResource(PixelMarks.quest(quest.category))
                     scaleType = ImageView.ScaleType.FIT_CENTER
-                    setPadding(ui.dimens.dp(11), ui.dimens.dp(11), ui.dimens.dp(11), ui.dimens.dp(11))
+                    setPadding(ui.dimens.dp(10), ui.dimens.dp(10), ui.dimens.dp(10), ui.dimens.dp(10))
                     background = GradientDrawable().apply {
                         shape = GradientDrawable.OVAL
                         setColor(hue)
                     }
                     contentDescription = null
-                    layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(44), ui.dimens.dp(44))
+                    layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(40), ui.dimens.dp(40))
                 }
             )
             addView(
@@ -224,7 +228,7 @@ object MisiScreen {
         setPadding(ui.dimens.dp(12), 0, ui.dimens.dp(12), 0)
         layoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT,
-            ui.dimens.dp(CHIP_HEIGHT_DP)
+            ui.dimens.dp(30)
         )
     }
 
@@ -232,7 +236,7 @@ object MisiScreen {
 
     private fun customCard(context: Context, ui: AliveComponents, data: Data): LinearLayout =
         ui.row().apply {
-            background = field(ui.palette.fieldBlossom, ui.dimens.radiusTile)
+            background = field(ui.palette.fieldRose, ui.dimens.radiusTile)
             gravity = Gravity.CENTER_VERTICAL
             setPadding(
                 ui.dimens.dp(ROW_PADDING_DP),
@@ -245,10 +249,10 @@ object MisiScreen {
 
             addView(
                 ImageView(context).apply {
-                    setImageResource(R.drawable.alive_member_creative)
+                    setImageResource(R.drawable.ic_alive_character_paper)
                     scaleType = ImageView.ScaleType.FIT_CENTER
                     contentDescription = null
-                    layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(40), ui.dimens.dp(40))
+                    layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(44), ui.dimens.dp(44))
                 }
             )
             addView(

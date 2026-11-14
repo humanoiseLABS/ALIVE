@@ -23,10 +23,10 @@ class PixelMarksTest {
     }
 
     @Test
-    fun `every quest category has a mark and only OTHER borrows one`() {
+    fun `every quest category has its own line mark`() {
         val marks = QuestCategory.values().map { PixelMarks.quest(it) }
         assertEquals(marks.size, marks.distinct().size)
-        assertEquals(R.drawable.alive_accent_star, PixelMarks.quest(QuestCategory.OTHER))
+        assertEquals(R.drawable.ic_line_star, PixelMarks.quest(QuestCategory.OTHER))
     }
 
     @Test

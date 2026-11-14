@@ -74,13 +74,18 @@
          the role colours above without anyone having to learn a legend.
 
          Every one is a light: ink strokes and ink text both clear 4.5:1 on all
-         nine, because the pixel marks are drawn in ink and sit inside these
-         fills. `AlivePaletteTest` measures that. -->
-    <color name="alive_cat_study">#F5CE7E</color>
-    <color name="alive_cat_reading">#9CC9E8</color>
-    <color name="alive_cat_exercise">#63C98A</color>
-    <color name="alive_cat_walking">#B7E06B</color>
-    <color name="alive_cat_cleaning">#C9CDD2</color>
+         nine, because the marks are drawn in ink and sit inside these
+         fills. `AlivePaletteTest` measures that.
+
+         The five the approved pass-2 render names are the render's own fields -
+         mint, sky, coral, grape, peach - so a mission's disc is the same pastel
+         as the card family it belongs to. The mock repeats sky on two rows;
+         coral keeps reading its own hue instead of borrowing study's. -->
+    <color name="alive_cat_study">#BFD9FF</color>
+    <color name="alive_cat_reading">#FFB3A7</color>
+    <color name="alive_cat_exercise">#C7B2F0</color>
+    <color name="alive_cat_walking">#B9F0A6</color>
+    <color name="alive_cat_cleaning">#FFD6C2</color>
     <color name="alive_cat_creative">#F58FA6</color>
     <color name="alive_cat_coding">#A99AF2</color>
     <color name="alive_cat_writing">#F4B168</color>
@@ -142,6 +147,9 @@
     <color name="flat_field_leaf">#9FD98A</color>
     <color name="flat_field_sun">#FFD36B</color>
     <color name="flat_field_clay">#F0A888</color>
+    <!-- The quiet grey the render gives a spent day's face and a duration tag:
+         `.circle.soft` / `.tag.grey` in flat-system.css. A surface, never text. -->
+    <color name="flat_soft">#EDEAE6</color>
 
     <!-- The two screens the approved renders put in ink-dark clothes, and the
          one field that is dark inside. Everything on these is paper, never ink,

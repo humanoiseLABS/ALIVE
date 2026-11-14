@@ -82,8 +82,8 @@ class ChartGeometryTest {
     @Test
     fun aBarIsNeverWiderThanItsSlot() {
         assertEquals(30f, ChartGeometry.barWidth(slotPx = 300f, maxPx = 30f, minPx = 3f))
-        // Most of the slot, so a month's bars keep a gap between them.
-        assertEquals(14.0, ChartGeometry.barWidth(slotPx = 22.58f, maxPx = 30f, minPx = 3f).toDouble(), 0.05)
+        // The slot minus the render's air, so a month's bars keep a gap between them.
+        assertEquals(17.61, ChartGeometry.barWidth(slotPx = 22.58f, maxPx = 30f, minPx = 3f).toDouble(), 0.05)
         // A slot narrower than the smallest bar still cannot be overprinted by it.
         assertEquals(2f, ChartGeometry.barWidth(slotPx = 2f, maxPx = 30f, minPx = 3f))
     }

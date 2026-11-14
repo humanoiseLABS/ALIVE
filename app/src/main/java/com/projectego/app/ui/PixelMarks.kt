@@ -6,41 +6,41 @@ import com.projectego.app.model.FocusActivityType
 import com.projectego.app.model.QuestCategory
 
 /**
- * Which pixel mark stands for which kind of doing.
+ * Which mark stands for which kind of doing.
  *
  * A quest list and a focus form are both lists of verbs, and a verb reads faster
  * as a shape than as a word: the book says "reading" before the title finishes
- * rendering. The marks are drawn on the same 16 grid as the character, so a row
- * of them still looks like one hand drew it.
+ * rendering. The marks are one line hand - the same stroke the dock draws with -
+ * because the approved pass-2 list reads as outline glyphs on pastel discs, and
+ * a pixel mark beside a line mark is two apps in one row.
  *
- * `OTHER` deliberately borrows the star accent rather than getting a mark of its
- * own: a picture for "none of the above" would claim a shape the category does
- * not have.
+ * `OTHER` gets a line star of its own: the filled pixel accent is a celebration
+ * shape, and upscaling it into a line row would be two apps in one row.
  */
 object PixelMarks {
 
     @DrawableRes
     fun focus(type: FocusActivityType): Int = when (type) {
-        FocusActivityType.STUDY -> R.drawable.ic_pixel_book
-        FocusActivityType.WORK -> R.drawable.ic_pixel_briefcase
-        FocusActivityType.CODING -> R.drawable.ic_pixel_terminal
-        FocusActivityType.CREATIVE -> R.drawable.ic_pixel_brush
-        FocusActivityType.WRITING -> R.drawable.ic_pixel_pen
+        FocusActivityType.STUDY -> R.drawable.ic_line_book
+        FocusActivityType.WORK -> R.drawable.ic_line_briefcase
+        FocusActivityType.CODING -> R.drawable.ic_line_terminal
+        FocusActivityType.CREATIVE -> R.drawable.ic_line_brush
+        FocusActivityType.WRITING -> R.drawable.ic_line_pen
     }
 
     @DrawableRes
     fun quest(category: QuestCategory): Int = when (category) {
-        QuestCategory.EXERCISE -> R.drawable.ic_pixel_dumbbell
-        QuestCategory.STUDY -> R.drawable.ic_pixel_book
-        QuestCategory.READING -> R.drawable.ic_pixel_books
-        QuestCategory.WALKING -> R.drawable.ic_pixel_footprints
-        QuestCategory.CLEANING -> R.drawable.ic_pixel_broom
-        QuestCategory.CREATIVE -> R.drawable.ic_pixel_brush
-        QuestCategory.CODING -> R.drawable.ic_pixel_terminal
-        QuestCategory.WRITING -> R.drawable.ic_pixel_pen
-        QuestCategory.MINDFULNESS -> R.drawable.ic_pixel_lotus
-        QuestCategory.SOCIAL -> R.drawable.ic_pixel_people
-        QuestCategory.OTHER -> R.drawable.alive_accent_star
+        QuestCategory.EXERCISE -> R.drawable.ic_line_dumbbell
+        QuestCategory.STUDY -> R.drawable.ic_line_book
+        QuestCategory.READING -> R.drawable.ic_line_books
+        QuestCategory.WALKING -> R.drawable.ic_line_walker
+        QuestCategory.CLEANING -> R.drawable.ic_line_broom
+        QuestCategory.CREATIVE -> R.drawable.ic_line_brush
+        QuestCategory.CODING -> R.drawable.ic_line_terminal
+        QuestCategory.WRITING -> R.drawable.ic_line_pen
+        QuestCategory.MINDFULNESS -> R.drawable.ic_line_lotus
+        QuestCategory.SOCIAL -> R.drawable.ic_dock_profile
+        QuestCategory.OTHER -> R.drawable.ic_line_star
     }
 
     /** Spoken description, so the mark is never the only carrier of meaning. */

@@ -123,6 +123,22 @@ class FocusSessionManagerTest {
     }
 
     @Test
+    fun `the four lengths the setup offers all start a session`() {
+        // The approved setup offers 15, 25, 45 and 60; the engine used to know
+        // only the mission lengths, so three of those were refused at the door.
+        listOf(15L, 25L, 45L, 60L).forEach { minutes ->
+            assertTrue(
+                "$minutes minutes",
+                focusSessionManager.startFocusSession(
+                    FocusActivityType.STUDY,
+                    "length $minutes",
+                    minutes
+                )
+            )
+        }
+    }
+
+    @Test
     fun `the recorded window keeps the mission's own list, and a catalog one keeps none`() {
         focusSessionManager.startFocusSession(
             FocusActivityType.STUDY,
