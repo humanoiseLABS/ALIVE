@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- ALIVE flat family: member creative. Body cloud, eyes offset, gloss,
-     hue alive_cat_creative. One solid body, no outline, no shadow, no mouth,
+     hue alive_fam_creative. One solid body, no outline, no shadow, no mouth,
      no limbs. Drawn by family/generate.mjs from the approved family-bots.py geometry -
      regenerate, do not edit paths. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
@@ -9,7 +9,7 @@
     android:viewportWidth="72"
     android:viewportHeight="72">
     <path
-        android:fillColor="@color/alive_cat_creative"
+        android:fillColor="@color/alive_fam_creative"
         android:pathData="M 38 40 C 38 47.73 31.73 54 24 54 C 16.27 54 10 47.73 10 40 C 10 32.27 16.27 26 24 26 C 31.73 26 38 32.27 38 40 Z M 54 29 C 54 37.84 46.84 45 38 45 C 29.16 45 22 37.84 22 29 C 22 20.16 29.16 13 38 13 C 46.84 13 54 20.16 54 29 Z M 65 40 C 65 47.18 59.18 53 52 53 C 44.82 53 39 47.18 39 40 C 39 32.82 44.82 27 52 27 C 59.18 27 65 32.82 65 40 Z M 26 40 L 46 40 C 51.52 40 56 44.48 56 50 C 56 55.52 51.52 60 46 60 L 26 60 C 20.48 60 16 55.52 16 50 C 16 44.48 20.48 40 26 40 Z" />
     <path
         android:fillColor="@color/flat_ink"

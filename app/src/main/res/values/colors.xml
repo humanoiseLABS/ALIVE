@@ -102,6 +102,26 @@
     <color name="alive_cat_work">#7FA8CB</color>
     <color name="alive_cat_other">#D8D2C7</color>
 
+    <!-- ============ THE FAMILY: one hue per member, from the approved sheet ============
+
+         The character family (Galaksi, streak, chips) wears the saturated hues of
+         design-refs/out/family-bots.py - a different palette from the quest chrome
+         above, which the pass-2 render draws as pastel fields. They are separate
+         tokens on purpose: a member's body is the character, a quest disc is chrome,
+         and moving one must never repaint the other. `family/generate.mjs` reads
+         these; the eye colour is measured against them, not assumed. -->
+    <color name="alive_fam_study">#F5CE7E</color>
+    <color name="alive_fam_reading">#9CC9E8</color>
+    <color name="alive_fam_exercise">#63C98A</color>
+    <color name="alive_fam_walking">#B7E06B</color>
+    <color name="alive_fam_cleaning">#C9CDD2</color>
+    <color name="alive_fam_creative">#F58FA6</color>
+    <color name="alive_fam_coding">#A99AF2</color>
+    <color name="alive_fam_writing">#F4B168</color>
+    <color name="alive_fam_mindfulness">#C9A3DE</color>
+    <color name="alive_fam_social">#77C9B6</color>
+    <color name="alive_fam_work">#7FA8CB</color>
+
     <!-- The critter itself: a flat rose body, Clawd-style, with no outline.
          It has to do two jobs alone - hold ink eyes at 4.5:1 and stay visible
          on the paper card it sits on. `AlivePaletteTest` measures both. -->

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- ALIVE flat family: member mindfulness. Body pill, eyes wide,
-     hue alive_cat_mindfulness. One solid body, no outline, no shadow, no mouth,
+     hue alive_fam_mindfulness. One solid body, no outline, no shadow, no mouth,
      no limbs. Drawn by family/generate.mjs from the approved family-bots.py geometry -
      regenerate, do not edit paths. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
@@ -9,7 +9,7 @@
     android:viewportWidth="72"
     android:viewportHeight="72">
     <path
-        android:fillColor="@color/alive_cat_mindfulness"
+        android:fillColor="@color/alive_fam_mindfulness"
         android:pathData="M 27 17 L 45 17 C 56.05 17 65 25.95 65 37 C 65 48.05 56.05 57 45 57 L 27 57 C 15.95 57 7 48.05 7 37 C 7 25.95 15.95 17 27 17 Z" />
     <path
         android:fillColor="@color/flat_ink"

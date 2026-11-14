@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- ALIVE flat family: member study. Body teardrop, eyes upright, gloss,
-     hue alive_cat_study. One solid body, no outline, no shadow, no mouth,
+     hue alive_fam_study. One solid body, no outline, no shadow, no mouth,
      no limbs. Drawn by family/generate.mjs from the approved family-bots.py geometry -
      regenerate, do not edit paths. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
@@ -9,7 +9,7 @@
     android:viewportWidth="72"
     android:viewportHeight="72">
     <path
-        android:fillColor="@color/alive_cat_study"
+        android:fillColor="@color/alive_fam_study"
         android:pathData="M 36 7 C 36 7 58 30 58 44 C 58 58 48 66 36 66 C 24 66 14 58 14 44 C 14 30 36 7 36 7 Z" />
     <path
         android:fillColor="@color/flat_ink"

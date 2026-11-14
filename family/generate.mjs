@@ -486,17 +486,17 @@ const gloss = (p, shape) => {
 
 // ---------- the family ----------
 const MEMBERS = [
-    ['alive_member_study', '@color/alive_cat_study', 'teardrop', 'upright', true],
-    ['alive_member_reading', '@color/alive_cat_reading', 'dome', 'offset', false],
-    ['alive_member_exercise', '@color/alive_cat_exercise', 'circle', 'wide', true],
-    ['alive_member_walking', '@color/alive_cat_walking', 'bean', 'tilt', false],
-    ['alive_member_cleaning', '@color/alive_cat_cleaning', 'square', 'upright', false],
-    ['alive_member_creative', '@color/alive_cat_creative', 'cloud', 'offset', true],
-    ['alive_member_coding', '@color/alive_cat_coding', 'hexagon', 'tilt', false],
-    ['alive_member_writing', '@color/alive_cat_writing', 'triangle', 'upright', true],
-    ['alive_member_mindfulness', '@color/alive_cat_mindfulness', 'pill', 'wide', false],
-    ['alive_member_social', '@color/alive_cat_social', 'pentagon', 'offset', true],
-    ['alive_member_work', '@color/alive_cat_work', 'tallblob', 'tilt', false]
+    ['alive_member_study', '@color/alive_fam_study', 'teardrop', 'upright', true],
+    ['alive_member_reading', '@color/alive_fam_reading', 'dome', 'offset', false],
+    ['alive_member_exercise', '@color/alive_fam_exercise', 'circle', 'wide', true],
+    ['alive_member_walking', '@color/alive_fam_walking', 'bean', 'tilt', false],
+    ['alive_member_cleaning', '@color/alive_fam_cleaning', 'square', 'upright', false],
+    ['alive_member_creative', '@color/alive_fam_creative', 'cloud', 'offset', true],
+    ['alive_member_coding', '@color/alive_fam_coding', 'hexagon', 'tilt', false],
+    ['alive_member_writing', '@color/alive_fam_writing', 'triangle', 'upright', true],
+    ['alive_member_mindfulness', '@color/alive_fam_mindfulness', 'pill', 'wide', false],
+    ['alive_member_social', '@color/alive_fam_social', 'pentagon', 'offset', true],
+    ['alive_member_work', '@color/alive_fam_work', 'tallblob', 'tilt', false]
 ];
 
 const STATES = [
@@ -504,7 +504,7 @@ const STATES = [
     ['alive_state_near', '@color/alive_traffic_yellow', 'star', 'tilt', false],
     ['alive_state_spent', '@color/alive_traffic_red', 'octagon', 'offset', false],
     ['alive_state_recovery', '@color/flat_field_leaf', 'cross', 'wide', true],
-    ['alive_state_unknown', '@color/alive_cat_cleaning', 'hollow', 'one', false],
+    ['alive_state_unknown', '@color/alive_fam_cleaning', 'hollow', 'one', false],
     ['alive_state_rest', INK, 'crescent', 'closed', false]
 ];
 
