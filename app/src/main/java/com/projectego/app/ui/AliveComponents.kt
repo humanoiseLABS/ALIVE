@@ -258,6 +258,8 @@ class AliveComponents(private val context: Context) {
      */
     class EqualRow(context: Context) : LinearLayout(context) {
 
+        private val managedCells = mutableSetOf<View>()
+
         init {
             orientation = HORIZONTAL
             isBaselineAligned = false
@@ -268,6 +270,18 @@ class AliveComponents(private val context: Context) {
         }
 
         override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+            managedCells.retainAll { it.parent === this }
+            for (index in 0 until childCount) {
+                val child = getChildAt(index)
+                val lp = child.layoutParams as? LayoutParams ?: continue
+                if (child in managedCells) {
+                    // Restore WRAP_CONTENT before re-measuring so dynamic text growth
+                    // or shrinking stays measured honestly on every pass.
+                    lp.height = LayoutParams.WRAP_CONTENT
+                } else if (child.visibility != View.GONE && lp.height == LayoutParams.WRAP_CONTENT) {
+                    managedCells += child
+                }
+            }
             super.onMeasure(widthMeasureSpec, heightMeasureSpec)
             val cells = (0 until childCount).filter { index ->
                 val child = getChildAt(index)
@@ -275,8 +289,7 @@ class AliveComponents(private val context: Context) {
                 // its neighbours. A spacer is MATCH_PARENT by design - and inside a
                 // ScrollView that measures to the viewport, which is how two stat
                 // tiles once ate a whole page.
-                child.visibility != View.GONE &&
-                    (child.layoutParams as? LayoutParams)?.height == LayoutParams.WRAP_CONTENT
+                child.visibility != View.GONE && child in managedCells
             }
             val tallest = cells.maxOfOrNull { getChildAt(it).measuredHeight } ?: 0
             if (tallest == 0) return
@@ -675,7 +688,8 @@ class AliveComponents(private val context: Context) {
         value: CharSequence,
         @ColorInt face: Int = palette.tile,
         unit: CharSequence? = null,
-        @DrawableRes mark: Int? = null
+        @DrawableRes mark: Int? = null,
+        stackUnit: Boolean = false
     ): LinearLayout = column().apply {
         background = field(face, dimens.radiusTile.toFloat())
         // One inset on all four sides, and every word in the tile takes its colour
@@ -688,6 +702,10 @@ class AliveComponents(private val context: Context) {
         addView(vgap(dimens.pairGap))
         if (unit == null && mark == null) {
             addView(number(value).apply { setTextColor(on) })
+        } else if (stackUnit && mark == null && unit != null) {
+            addView(number(value).apply { setTextColor(on) })
+            addView(vgap(dimens.xs))
+            addView(meta(unit).apply { setTextColor(on) })
         } else {
             val figure = number(value).apply { setTextColor(on) }
             addView(
