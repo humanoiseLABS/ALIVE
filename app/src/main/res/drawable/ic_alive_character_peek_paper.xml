@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Peeking white/paper companion sitting flush on the Rose custom mission card. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="56dp"
+    android:height="34dp"
+    android:viewportWidth="72"
+    android:viewportHeight="44">
+    <path
+        android:fillColor="@color/flat_paper"
+        android:pathData="M 36 8 C 51 8 56 16 56 28 C 63 28 65 32 65 35 C 65 38 63 41 56 41 L 56 44 L 16 44 L 16 41 C 9 41 7 38 7 35 C 7 32 9 28 16 28 C 16 16 21 8 36 8 Z" />
+    <path
+        android:fillColor="@color/flat_ink"
+        android:pathData="M 28.75 21 C 30.27 21 31.5 22.23 31.5 23.75 L 31.5 29.25 C 31.5 30.77 30.27 32 28.75 32 C 27.23 32 26 30.77 26 29.25 L 26 23.75 C 26 22.23 27.23 21 28.75 21 Z M 43.25 21 C 44.77 21 46 22.23 46 23.75 L 46 29.25 C 46 30.77 44.77 32 43.25 32 C 41.73 32 40.5 30.77 40.5 29.25 L 40.5 23.75 C 40.5 22.23 41.73 21 43.25 21 Z" />
+</vector>

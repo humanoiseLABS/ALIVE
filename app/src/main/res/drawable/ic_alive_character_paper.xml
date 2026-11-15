@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The same settled sprite as ic_alive_character, in paper: the approved Misi
-     draws its "write your own" card with a white critter on the rose field. -->
+<!-- White/paper variant of the flat ALIVE companion. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="48dp"
     android:height="48dp"
-    android:viewportWidth="16"
-    android:viewportHeight="16">
+    android:viewportWidth="72"
+    android:viewportHeight="72">
     <path
         android:fillColor="@color/flat_paper"
-        android:pathData="M5,3h6v1h-6zM4,4h8v1h-8zM4,5h8v1h-8zM4,6h8v1h-8zM2,7h2v1h-2zM4,7h8v1h-8zM12,7h2v1h-2zM2,8h2v1h-2zM4,8h8v1h-8zM12,8h2v1h-2zM4,9h8v1h-8zM5,10h6v1h-6zM5,11h2v1h-2zM9,11h2v1h-2zM5,12h2v1h-2zM9,12h2v1h-2z" />
+        android:pathData="M 36 12 C 51 12 56 20 56 32 C 63 32 65 36 65 39 C 65 42 63 45 56 45 C 56 51 54 53 51 54 L 51 59 C 51 62 49 63 46 63 C 43 63 41 62 41 59 L 41 55 C 38 56 34 56 31 55 L 31 59 C 31 62 29 63 26 63 C 23 63 21 62 21 59 L 21 54 C 18 53 16 51 16 45 C 9 45 7 42 7 39 C 7 36 9 32 16 32 C 16 20 21 12 36 12 Z" />
     <path
         android:fillColor="@color/flat_ink"
-        android:pathData="M5,5h2v3h-2zM9,5h2v3h-2z" />
+        android:pathData="M 28.75 26 C 30.27 26 31.5 27.23 31.5 28.75 L 31.5 34.25 C 31.5 35.77 30.27 37 28.75 37 C 27.23 37 26 35.77 26 34.25 L 26 28.75 C 26 27.23 27.23 26 28.75 26 Z M 43.25 26 C 44.77 26 46 27.23 46 28.75 L 46 34.25 C 46 35.77 44.77 37 43.25 37 C 41.73 37 40.5 35.77 40.5 34.25 L 40.5 28.75 C 40.5 27.23 41.73 26 43.25 26 Z" />
 </vector>
