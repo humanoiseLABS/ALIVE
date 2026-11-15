@@ -235,14 +235,14 @@ class MainActivityVictoryTest {
         val activity = controller.get()
         val content = activity.findViewById<ViewGroup>(android.R.id.content)
 
-        // Turn on debug Dev panel and re-render dashboard.
-        activity.javaClass.getDeclaredField("showDevPanel").apply {
-            isAccessible = true
-            setBoolean(activity, true)
-        }
-        activity.javaClass.getDeclaredMethod("renderDashboard").apply {
-            isAccessible = true
-            invoke(activity)
+        // 5 quick taps on Beranda greeting reveal the debug Dev panel.
+        assertNull(findTextView(content, activity.getString(R.string.dev_preview_victory)))
+        val greetingMethod = activity.javaClass.getDeclaredMethod("greetingNow").apply { isAccessible = true }
+        repeat(5) {
+            val greetingText = greetingMethod.invoke(activity) as String
+            val greetingView = findTextView(content, greetingText)
+            assertNotNull("Greeting header must exist on Beranda", greetingView)
+            greetingView!!.performClick()
         }
         Shadows.shadowOf(Looper.getMainLooper()).idle()
 

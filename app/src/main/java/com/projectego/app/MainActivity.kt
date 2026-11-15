@@ -1382,6 +1382,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     },
                     onOpenFocus = { openFocusEntry() },
+                    onGreetingTap = if (BuildConfig.DEBUG) ({ handleDevTap() }) else null,
                     characterDrawableRes = companion.drawableRes
                 )
             )
@@ -4887,6 +4888,19 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         )
+    }
+
+    private fun handleDevTap() {
+        if (!BuildConfig.DEBUG) return
+        val now = System.currentTimeMillis()
+        if (now - lastDevTapTime > 2_000L) devTapCount = 0
+        lastDevTapTime = now
+        devTapCount++
+        if (devTapCount >= 5) {
+            devTapCount = 0
+            showDevPanel = !showDevPanel
+            renderDashboard()
+        }
     }
 
     private fun renderDevPanel() {

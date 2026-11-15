@@ -48,6 +48,7 @@ object BerandaScreen {
         val onGrowth: () -> Unit,
         val onFocus: () -> Unit,
         val onOpenFocus: (() -> Unit)? = null,
+        val onGreetingTap: (() -> Unit)? = null,
         @param:DrawableRes val characterDrawableRes: Int = R.drawable.alive_member_creative
     )
 
@@ -58,7 +59,11 @@ object BerandaScreen {
     fun build(context: Context, ui: AliveComponents, data: Data): LinearLayout {
         val column = ui.column()
 
-        column.addView(ui.h1(data.greeting))
+        column.addView(
+            ui.h1(data.greeting).apply {
+                data.onGreetingTap?.let { handler -> setOnClickListener { handler() } }
+            }
+        )
         column.addView(ui.vgap(ui.dimens.lineGap))
         column.addView(ui.note(data.subLine))
 
