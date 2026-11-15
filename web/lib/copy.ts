@@ -1,14 +1,22 @@
+import type { DayStateKind, MemberKind } from '@/components/FlatMarks'
+
 /**
- * Everything the site says, in the two languages ALIVE speaks.
- *
- * Indonesian first: it is the product's own voice and the reason it exists.
- * English is a translation of that voice, not a second copy written beside it -
- * when a line changes in one, the other has to change too, which is what the
- * shared shape enforces at compile time.
- *
- * The beats are the old site's seven panels, kept in order. The claims inside
- * them are the app's: what ALIVE counts, what it locks, what it never uploads.
+ * Bilingual content dictionary for ALIVE (`id` primary, `en` paired via `typeof id`).
+ * Synchronized with Android Pass-2 Editorial Toybox sections; zero em dashes.
  */
+
+export type HeroMemberEntry = {
+  kind: MemberKind
+  name: string
+  note: string
+}
+
+export type DayStateEntry = {
+  code: string
+  label: string
+  body: string
+  pillClass: string
+}
 
 const id = {
   meta: {
@@ -19,201 +27,214 @@ const id = {
   },
 
   nav: {
+    menuLabel: 'Navigasi utama',
+    toy: 'Simulasi',
+    guardian: 'Guardian',
+    privacy: 'Privasi',
     download: 'Unduh APK',
-    langLabel: 'Bahasa',
-    story: 'Cerita'
+    langLabel: 'Bahasa'
   },
 
   hero: {
-    badge: '01 — keberadaan',
-    title: ['SADARI', 'WAKTUMU.'],
-    lead: 'HP-mu bukan musuhnya. Hari-hari yang hilang tanpa kamu sadari — itu dia.',
-    body:
-      'ALIVE menghitung waktu hiburan di layarmu, memberi kamu jatah harian, dan menutup app-nya sendiri saat jatah habis. Bukan untuk menghukum. Supaya yang memutuskan masih kamu, di saat kamu masih mau memutuskan.',
+    eyebrow: 'Android · Offline · Tanpa Akun',
+    title: ['Sadari waktumu.', 'Kendalikan layarmu.'],
+    lead: 'HP-mu bukan musuhnya. Malam-malam yang habis tanpa kamu sadari, itu masalahnya.',
+    body: 'ALIVE mencatat waktu hiburanmu, menjaga jatah harian yang kamu tetapkan saat masih jernih, dan menutup app-nya dengan tenang saat habis. Semua data tinggal di perangkatmu.',
     cta: 'Unduh ALIVE',
-    ctaNote: 'APK beta · ±5 MB · Android 8 ke atas',
-    scroll: 'gulir',
-    face: 'Karakter ALIVE melambai'
+    secondaryCta: 'Janji privasi',
+    ctaNote: 'alive.apk · ±5 MB · Android 8.0 ke atas',
+    companionAlt: 'Karakter pendamping ALIVE berwarna pink lembut dengan mata kapsul hitam',
+    familyHint: 'Klik karakter ALIVE untuk lihat perannya:',
+    members: [
+      { kind: 'study', name: 'Study', note: 'Tetes kuning emas untuk sesi belajar terfokus.' },
+      { kind: 'reading', name: 'Reading', note: 'Kubah biru tenang bagi jam membaca tanpa feed.' },
+      { kind: 'creative', name: 'Creative', note: 'Awan pink untuk bikin karya, bukan cuma konsumsi.' },
+      { kind: 'coding', name: 'Coding', note: 'Heksagon ungu saat tenggelam merangkai kode.' },
+      { kind: 'mindfulness', name: 'Mindfulness', note: 'Kapsul lilac untuk jeda napas dan refleksi malam.' },
+      { kind: 'exercise', name: 'Exercise', note: 'Bola hijau segar mengantar waktu gerak fisik.' }
+    ] as HeroMemberEntry[]
   },
 
-  loop: {
-    badge: '02 — looping',
-    title: ['SCROLL', 'TANPA SADAR.'],
-    lead: 'Tiga hal ini yang bikin satu malam habis tanpa sisa.',
-    items: [
+  toybox: {
+    badge: 'Simulasi batas harian',
+    title: 'Hitung malammu. Lihat sisanya.',
+    lead: 'Geser kebiasaan scroll malam dan batas jatahmu. Bentuk status harian ALIVE langsung merespons.',
+    scrollLabel: 'Kebiasaan scroll hiburan per malam',
+    limitLabel: 'Batas harian yang kamu pilih',
+    realTag: 'Nyata',
+    minutesUnit: 'menit',
+    hoursUnit: 'jam',
+    perMonthSuffix: '/ bulan waktu hidup kembali',
+    zeroResultTitle: 'Batas harian terjaga utuh',
+    zeroResultSub: 'Kebiasaanmu masih di bawah atau tepat pada jatah. Tidak ada menit yang bocor.',
+    mathNote: 'Hitungan langsung: selisih menit harian x 30 hari apabila jatah dijaga konsisten.',
+    barScrollLabel: 'Kebiasaan scroll',
+    barLimitLabel: 'Batas jatah',
+    restToggle: 'Simulasikan mode tidur malam (Rest)',
+    statePanelLabel: 'Status ALIVE sekarang',
+    states: {
+      normal: {
+        code: 'TERJAGA',
+        label: 'Normal · Aman di jalur',
+        body: 'Masih ada ruang napas nyaman. ALIVE diam di latar tanpa gangguan.',
+        pillClass: 'bg-g-mint text-flat-ink'
+      },
+      near: {
+        code: '30M TERAKHIR',
+        label: 'Menjelang habis',
+        body: 'Bintang kuning menyapa singkat di dalam app: 30 menit tersisa malam ini.',
+        pillClass: 'bg-field-butter text-flat-ink'
+      },
+      spent: {
+        code: 'JATAH HABIS',
+        label: 'Tutup · Hiburan dikunci',
+        body: 'Oktagon merah menutup app hiburan dengan tenang. Chat penting dan app kerja tetap aman.',
+        pillClass: 'bg-red-pale text-flat-ink'
+      },
+      recovery: {
+        code: 'PEMULIHAN',
+        label: 'Time Bank & Pemulihan aktif',
+        body: 'Pemakaian jauh melewati batas. Hari pemulihan dan Time Bank membantumu balik besok tanpa hukuman.',
+        pillClass: 'bg-field-mint text-flat-ink'
+      },
+      rest: {
+        code: 'ISTIRAHAT',
+        label: 'Mode tidur malam aktif',
+        body: 'Hari ditutup dengan tenang. Layar kembali sunyi supaya besok mulai jernih.',
+        pillClass: 'bg-flat-soft text-flat-ink'
+      }
+    } as Record<DayStateKind, DayStateEntry>
+  },
+
+  specLedger: {
+    proofLabel: 'Rekam layar satu malam nyata',
+    proofFigure: '3 jam 33 menit',
+    proofAllowance: '152% dari jatah hiburan',
+    proofScreen: '4j 58m total layar',
+    proofNote: 'Telepon, chat penting, dan peta tidak pernah memotong jatah. Hanya hiburan yang kamu batasi.',
+    apps: [
+      { name: 'Chrome', minutes: '1j 33m', share: 48 },
+      { name: 'TikTok', minutes: '1j 12m', share: 34 },
+      { name: 'WhatsApp', minutes: '43m (tak dipotong)', share: 18 }
+    ],
+    ledgerTitle: 'Cara ALIVE menahan tanpa terasa mengurung',
+    rows: [
       {
-        name: 'Kelelahan dopamin',
-        body:
-          'Stimulasi mikro terus-menerus menguras jalur reward di otak. Motivasi untuk usaha yang nyata ikut kering.'
+        num: '01',
+        name: 'Peringatan lembut di menit ke-30 terakhir',
+        body: 'Isyarat sunyi muncul di app terbuka, bukan notifikasi agresif yang memicu kelelahan dopamin.'
       },
       {
-        name: 'Atensi yang pecah',
-        body:
-          'Otak menyesuaikan diri ke rangsangan 15 detik. Fokus dalam, memori, dan daya tahan berpikir tergerus.'
+        num: '02',
+        name: 'Tutup otomatis saat jatah habis',
+        body: 'Feed berhenti sendiri agar atensi tidak terus terpecah sampai larut. Chat keluarga & alat kerja tetap bebas.'
       },
       {
-        name: 'Cemas kronis pasif',
-        body:
-          'Banjir judul sensasional menaikkan stres tanpa kamu sadari, dan merusak kualitas tidur.'
+        num: '03',
+        name: 'Time Bank & rantai pemulihan',
+        body: 'Menit sisa dari hari tenang ditabung ke Time Bank. Terlewat satu malam tetap dihargai lewat hari pemulihan.'
+      },
+      {
+        num: '04',
+        name: 'Ruang pengganti setelah layar mati',
+        body: 'Timer Fokus, Misi berbukti, Widget home screen, dan 11 warna keluarga ALIVE mengisi ruang kosongnya.'
       }
     ],
-    note:
-      'Tiga hal di atas bukan temuan ALIVE — itu hasil penelitian yang sudah ada. Kami cuma bikin alat yang membuat angka-angka itu kelihatan di HP sendiri.'
+    catLabel: '12 hue kategori misi Android ALIVE'
   },
 
-  awareness: {
-    badge: '03 — sadar',
-    title: '3 JAM 33 MENIT',
-    lead: 'bukan statistik. satu malam.',
-    body:
-      'Angka ini keluar dari salah satu hari pemakaian nyata. ALIVE tidak menasihatimu — dia cuma menghitung, lalu menunjukkannya apa adanya.',
-    meter: {
-      label: 'Hari ini',
-      allowance: '152% dari jatah',
-      screen: '4j58 layar',
-      apps: [
-        { name: 'Chrome', minutes: '1 jam 33 menit' },
-        { name: 'TikTok', minutes: '1 jam 12 menit' },
-        { name: 'WhatsApp', minutes: '43 menit' }
-      ]
-    },
-    facts: [
-      { name: 'Jatah hiburan', body: 'Pagi kamu tentuin batasnya. Malam dia yang ingat.' },
-      { name: 'Time Bank', body: 'Hari tanpa hiburan menabung menit buat hari yang berat.' },
-      { name: 'Beruntun', body: 'Hari yang kamu jaga dihitung sebagai satu rantai, bukan satu kemenangan.' }
-    ]
-  },
-
-  realization: {
-    badge: '04 — realisasi',
-    title: ['BERAPA BANYAK', 'HIDUPMU?'],
-    lead: 'Waktu hiburan bukan waktu luang. Itu jam yang nggak balik.',
-    body:
-      'Sekali kamu lihat angkanya, kamu nggak bisa pura-pura tidak tahu. Dari situ pilihan mulai ada.',
-    privacy: {
-      title: 'Semua yang ALIVE tahu tetap di sini.',
-      body:
-        'Nggak ada akun. Nggak ada server. Nggak ada yang meng-upload harimu. Yang dihitung hanya app yang benar-benar ALIVE tutup — chat, kerja, dan app yang kamu pakai buat fokus nggak pernah memotong jatah.',
-      marks: ['Tanpa akun', 'Tanpa sinkronisasi', 'Tanpa iklan']
-    }
-  },
-
-  takeover: {
-    alt: 'Poster pixel: HP raksasa bermuka monster dengan tangan panjang menjulur ke karakter pink kecil di bawahnya',
-    line: 'Yang pegang kendali sekarang bukan kamu.',
-    note: 'Ini yang ALIVE lihat setiap hari. Bukan buat nakut-nakutin — supaya kelihatan.'
-  },
-
-  choice: {
-    badge: '06 — pilihan',
-    title: ['INI BUKAN', 'SALAH HP-MU.'],
-    lead: 'Kamu nggak lemah, dan layarnya nggak jahat.',
-    body:
-      'Yang hilang cuma satu: batas yang kamu tetapkan sendiri, di saat kamu masih mau menetapkannya. ALIVE menyimpan batas itu buat kamu, lalu menjaganya saat kamu sudah tidak sanggup.',
-    steps: [
+  guardianBand: {
+    badge: 'Pendamping batas · Guardian',
+    title: ['Jangan biarkan', 'Guardian keluar.'],
+    lead: 'Selama janjimu utuh, Guardian diam di latar. Tameng crimson bermata kapsul ini baru maju saat penjagaan dimatikan atau batas dilangkahi.',
+    poseGroupLabel: 'Pilih ekspresi Guardian',
+    altPrefix: 'Karakter Guardian ALIVE berbentuk tameng crimson bermata kapsul hitam',
+    poses: [
       {
-        name: '30 menit sebelum habis',
-        body: 'Satu peringatan tenang, muncul di dalam app yang lagi kamu buka. Bukan notifikasi yang bisa di-swipe.'
+        mood: 'idle' as const,
+        label: 'Siaga',
+        code: 'ACTIVE',
+        title: 'Menjaga tenang di latar belakang.',
+        body: 'Perlindungan aktif dan batasmu utuh. Nol gangguan.'
       },
       {
-        name: 'Jatah habis',
-        body: 'App hiburannya tertutup sendiri. Telepon, chat, dan app kerja tetap terbuka — itu bukan yang sedang kamu hindari.'
+        mood: 'alert' as const,
+        label: 'Waspada',
+        code: 'DEGRADED',
+        title: 'Perlindungan sedang dimatikan.',
+        body: 'Guardian mencatat layanan aksesibilitas berhenti sebelum jatah bocor.'
       },
       {
-        name: 'Hari pemulihan',
-        body: 'Sehari tanpa hiburan tetap dihitung. Kamu nggak dihukum karena pernah kelepasan; rantai boleh dimulai lagi.'
+        mood: 'recovery' as const,
+        label: 'Pemulihan',
+        code: 'RECOVERY',
+        title: 'Batas terlewat tanpa pengawasan.',
+        body: 'Kartu pemulihan muncul untuk mengajakmu balik ke jalur dengan sadar.'
+      },
+      {
+        mood: 'restored' as const,
+        label: 'Utuh lagi',
+        code: 'RESTORED',
+        title: 'Kembali menjaga setelah pemulihan.',
+        body: 'Begitu perlindungan menyala lagi, rantai penjagaan langsung utuh.'
       }
-    ]
-  },
-
-  guardian: {
-    badge: '07 — penjaga',
-    title: ['JANGAN BIARKAN', 'GUARDIAN KELUAR'],
-    lead: 'Selama kamu jaga janjimu sendiri, kamu nggak akan pernah lihat dia.',
-    body:
-      'Orang-orang yang memakai ALIVE punya satu cerita yang sama. Kalau harimu lepas dari batas yang kamu tetapkan sendiri, ada yang datang. Nggak marah, nggak menghukum — dia cuma berdiri di situ sampai kamu kembali.',
+    ],
+    stepsTitle: 'Tiga langkah kehadirannya',
     places: [
       {
-        name: 'Tanda pertama',
-        body: 'Sebuah notifikasi yang datang dan nggak mau pergi.'
+        name: 'Notifikasi persisten',
+        body: 'Hadir tenang memberi tanda saat layanan aksesibilitas dimatikan.'
       },
       {
-        name: 'Tanda kedua',
-        body: 'Satu kartu di halaman utama, dengan satu tombol untuk kembali ke jalur.'
+        name: 'Kartu pemulihan peach',
+        body: 'Satu tombol langsung di Beranda untuk menyambung janji lagi.'
       },
       {
-        name: 'Tanda ketiga',
-        body: 'Sosok yang berdiri sebentar di tengah layar, di atas apa pun yang sedang kamu buka.'
+        name: 'Berdiri di muka layar',
+        body: 'Hadir sebentar di depan app hiburan sampai kamu menutupnya sadar.'
       }
     ],
-    honest:
-      'Tidak ada yang tahu persis kapan dia datang. Yang pasti: dia datang kalau kamu melanggar janjimu sendiri.',
-    alt: 'Sosok pixel berjubah hitam bertanduk, bermata amber, dengan tongkat berlampu'
+    honest: 'Jaga janjimu, dia tidak akan pernah mengganggu.'
   },
 
-  room: {
-    badge: '08 — ruang',
-    title: ['SISAKAN', 'RUANG.'],
-    lead: 'Menutup satu pintu bukan tujuan. Membuka satu jam iya.',
-    body:
-      'ALIVE sekalian memberi tempat buat jam yang tersisa, supaya “berhenti” tidak berakhir jadi melamun di dinding.',
-    features: [
-      {
-        name: 'Sesi fokus',
-        body: '30, 60, 90, atau 120 menit dengan daftar app yang boleh dipakai. Keluar dari daftar itu, ALIVE tegur.'
-      },
-      {
-        name: 'Misi harian',
-        body: 'Membaca, jalan kaki, beres-beres, olahraga — selesai atau tidak dinilai dari bukti yang kamu kasih, bukan dari perasaan.'
-      },
-      {
-        name: 'Statistik',
-        body: 'Sehari dipotong blok tiga jam, per app, dan total layar — termasuk yang tidak memotong jatah.'
-      },
-      {
-        name: 'Widget',
-        body: 'Angka hari itu ada di home screen, jadi kamu lihat sebelum memutuskan buka app-nya.'
-      }
-    ]
-  },
-
-  download: {
-    badge: '09 — selesai',
-    title: ['NIKMATI', 'HIDUPMU.'],
-    lead: 'Satu unduhan, tanpa akun.',
+  privacyDownload: {
+    privacyBadge: 'Privasi & Kendali Lokal',
+    privacyTitle: 'Semua yang ALIVE tahu tetap di HP-mu.',
+    privacyBody: 'Tanpa izin internet di AndroidManifest, tanpa akun, tanpa server, dan tanpa backup awan untuk riwayat harian.',
+    privacyMarks: ['Tanpa akun', 'Tanpa server', 'Tanpa izin internet'],
+    privacyLink: 'Baca Kebijakan Privasi lengkap',
+    downloadBadge: 'Unduh Beta APK',
+    title: 'Mulai kendalikan waktumu hari ini.',
     file: {
       name: 'alive.apk',
       size: '±5 MB',
-      requires: 'Android 8.0 (API 26) ke atas'
+      requires: 'Android 8.0 (API 26)+'
     },
-    cta: 'Unduh APK',
-    honest:
-      'ALIVE disebar sebagai APK beta lewat GitHub Releases: Android akan menanyakan izin “sumber tidak dikenal” sebelum memasang, dan belum ada pembaruan otomatis — tapi tombol ini selalu menunjuk rilis terbaru. Versi Play Store sedang disiapkan.',
-    permissions: {
-      title: 'Dua izin yang diminta',
-      usage: {
-        name: 'Data penggunaan',
-        body: 'Buat menghitung berapa lama app hiburan ada di layar. Dibaca lokal, tidak pernah dikirim.'
+    cta: 'Unduh APK Terbaru',
+    honest: 'Beta APK dibagikan lewat GitHub Releases; Play Store sedang disiapkan.',
+    permissions: [
+      {
+        name: 'Usage Access',
+        body: 'Membaca total menit hiburan secara lokal.'
       },
-      access: {
-        name: 'Aksesibilitas',
-        body: 'Buat menutup app hiburan saat jatah habis. Ini juga yang membuat ALIVE bisa melihat app mana yang sedang terbuka — karena itu dia jujur soal datanya di atas.'
+      {
+        name: 'Accessibility',
+        body: 'Menutup app hiburan saat jatah selesai atau di jam Fokus.'
       }
-    }
+    ]
   },
 
   footer: {
     line: 'ALIVE',
     sub: 'Sadari waktumu, kendalikan layarmu.',
     promise: 'Tanpa akun · tanpa server · tanpa izin internet.',
-    legal: '© 2026 proyek independen soal atensi',
+    legal: '© 2026 proyek independen tentang atensi',
     links: 'Tautan',
-    privacy: 'Kebijakan privasi',
+    privacy: 'Kebijakan Privasi',
     contact: 'Kontak'
   }
 }
 
-/** The same sentences, in English. `typeof id` is the contract. */
 const en: typeof id = {
   meta: {
     brand: 'ALIVE',
@@ -223,204 +244,219 @@ const en: typeof id = {
   },
 
   nav: {
+    menuLabel: 'Primary navigation',
+    toy: 'Simulator',
+    guardian: 'Guardian',
+    privacy: 'Privacy',
     download: 'Download APK',
-    langLabel: 'Language',
-    story: 'Story'
+    langLabel: 'Language'
   },
 
   hero: {
-    badge: '01 — existence',
-    title: ['KNOW', 'YOUR TIME.'],
-    lead: 'Your phone is not the enemy. The days that went missing without you noticing are.',
-    body:
-      'ALIVE counts the entertainment time on your screen, gives you a daily allowance, and closes those apps itself when it runs out. Not to punish you — so that the one deciding is still you, while deciding is still something you want to do.',
+    eyebrow: 'Android · Offline · No Account',
+    title: ['Know your time.', 'Own your screen.'],
+    lead: 'Your phone is not the enemy. The evenings that vanish unnoticed are.',
+    body: 'ALIVE counts entertainment screen time, keeps the daily allowance you chose with a clear head, and closes those apps calmly when spent. Everything stays on-device.',
     cta: 'Download ALIVE',
-    ctaNote: 'Beta APK · ~5 MB · Android 8 and up',
-    scroll: 'scroll',
-    face: 'The ALIVE character waving'
-  },
-
-  loop: {
-    badge: '02 — the loop',
-    title: ['SCROLLING', 'UNCONSCIOUS.'],
-    lead: 'These three are what leave one evening with nothing to show for it.',
-    items: [
-      {
-        name: 'Dopamine exhaustion',
-        body:
-          'Constant micro-stimulation drains the brain’s reward pathways, and motivation for real effort dries up with them.'
-      },
-      {
-        name: 'Attention fragmentation',
-        body:
-          'The brain adapts to 15-second stimuli. Deep focus, memory and cognitive endurance erode.'
-      },
-      {
-        name: 'Passive chronic anxiety',
-        body:
-          'A flood of sensational headlines raises stress below the threshold of noticing, and sleep pays for it.'
-      }
-    ],
-    note:
-      'Those three are not ALIVE’s findings — they are published research. ALIVE is only the tool that makes the numbers show up on your own phone.'
-  },
-
-  awareness: {
-    badge: '03 — awareness',
-    title: '3 H 33 MIN',
-    lead: 'not a statistic. one evening.',
-    body:
-      'That figure came out of one real day of use. ALIVE does not lecture you — it counts, then shows you what it counted.',
-    meter: {
-      label: 'Today',
-      allowance: '152% of the allowance',
-      screen: '4h58 screen',
-      apps: [
-        { name: 'Chrome', minutes: '1 h 33 min' },
-        { name: 'TikTok', minutes: '1 h 12 min' },
-        { name: 'WhatsApp', minutes: '43 min' }
-      ]
-    },
-    facts: [
-      { name: 'Entertainment allowance', body: 'You set the limit in the morning. It remembers for the evening.' },
-      { name: 'Time Bank', body: 'A day without entertainment saves minutes for a day that needs them.' },
-      { name: 'Streak', body: 'A day you held counts as part of a chain, not as one win.' }
+    secondaryCta: 'Privacy promise',
+    ctaNote: 'alive.apk · ~5 MB · Android 8.0+',
+    companionAlt: 'Soft pink ALIVE companion character with black capsule eyes',
+    familyHint: 'Click an ALIVE character to inspect its role:',
+    members: [
+      { kind: 'study', name: 'Study', note: 'Warm gold teardrop built for focused study blocks.' },
+      { kind: 'reading', name: 'Reading', note: 'Calm sky dome marking feed-free reading hours.' },
+      { kind: 'creative', name: 'Creative', note: 'Blossom pink cloud for making things instead of scrolling.' },
+      { kind: 'coding', name: 'Coding', note: 'Indigo hexagon for deep unbroken build sessions.' },
+      { kind: 'mindfulness', name: 'Mindfulness', note: 'Soft lilac capsule for evening quiet and reflection.' },
+      { kind: 'exercise', name: 'Exercise', note: 'Fresh green circle cheering real-world movement.' }
     ]
   },
 
-  realization: {
-    badge: '04 — realization',
-    title: ['HOW MUCH', 'OF YOUR LIFE?'],
-    lead: 'Entertainment time is not free time. It is hours that do not come back.',
-    body:
-      'Once you have seen the number you cannot unsee it. That is where a choice starts to exist.',
-    privacy: {
-      title: 'Everything ALIVE knows stays here.',
-      body:
-        'No account. No server. Nothing about your day is uploaded. Only the apps ALIVE actually closes spend your allowance — chat, work and the apps you focus with are never charged.',
-      marks: ['No account', 'No sync', 'No ads']
+  toybox: {
+    badge: 'Daily allowance simulator',
+    title: 'Measure your evening. See what returns.',
+    lead: 'Adjust your nightly scroll habit and chosen limit. Watch ALIVE’s daily state respond live.',
+    scrollLabel: 'Current nightly entertainment scroll',
+    limitLabel: 'Daily limit you set yourself',
+    realTag: 'Real log',
+    minutesUnit: 'min',
+    hoursUnit: 'hr',
+    perMonthSuffix: '/ month reclaimed',
+    zeroResultTitle: 'Allowance stays intact',
+    zeroResultSub: 'Your scroll time fits within your chosen boundary. Zero wasted hours.',
+    mathNote: 'Transparent math: (daily scroll minus daily cap) x 30 days when the limit holds.',
+    barScrollLabel: 'Nightly scroll',
+    barLimitLabel: 'Daily allowance',
+    restToggle: 'Preview night rest mode (Rest)',
+    statePanelLabel: 'Current ALIVE state',
+    states: {
+      normal: {
+        code: 'INTACT',
+        label: 'Normal · Steady on track',
+        body: 'Plenty of allowance left. ALIVE stays completely invisible in the background.',
+        pillClass: 'bg-g-mint text-flat-ink'
+      },
+      near: {
+        code: 'LAST 30M',
+        label: 'Running low',
+        body: 'Yellow star gives a quiet in-app cue when 30 minutes remain.',
+        pillClass: 'bg-field-butter text-flat-ink'
+      },
+      spent: {
+        code: 'SPENT',
+        label: 'Closed · Entertainment locked',
+        body: 'Red octagon closes capped feeds cleanly while chats, calls, and work apps remain open.',
+        pillClass: 'bg-red-pale text-flat-ink'
+      },
+      recovery: {
+        code: 'RECOVERY',
+        label: 'Time Bank & Recovery active',
+        body: 'Well past budget. Recovery days and Time Bank help reset tomorrow without harsh penalties.',
+        pillClass: 'bg-field-mint text-flat-ink'
+      },
+      rest: {
+        code: 'RESTING',
+        label: 'Night rest mode active',
+        body: 'Day closes peacefully so tomorrow begins unclouded.',
+        pillClass: 'bg-flat-soft text-flat-ink'
+      }
     }
   },
 
-  takeover: {
-    alt: 'Pixel poster: a giant phone with a monster face and long hands reaching down at a small pink character',
-    line: 'The one holding control right now is not you.',
-    note: 'This is what ALIVE sees every day. Not to frighten you — so that it can be seen.'
-  },
-
-  choice: {
-    badge: '06 — choice',
-    title: ['IT WAS NEVER', 'THE PHONE’S FAULT.'],
-    lead: 'You are not weak, and the screen is not evil.',
-    body:
-      'The only thing missing was a limit you set yourself, at a moment when you still wanted to set one. ALIVE keeps that limit for you and holds it when you no longer can.',
-    steps: [
+  specLedger: {
+    proofLabel: 'Real evening log snapshot',
+    proofFigure: '3 h 33 min',
+    proofAllowance: '152% of entertainment cap',
+    proofScreen: '4h 58m total screen',
+    proofNote: 'Calls, important chats, and maps never drain your allowance. Only apps you choose to cap.',
+    apps: [
+      { name: 'Chrome', minutes: '1h 33m', share: 48 },
+      { name: 'TikTok', minutes: '1h 12m', share: 34 },
+      { name: 'WhatsApp', minutes: '43m (never billed)', share: 18 }
+    ],
+    ledgerTitle: 'How ALIVE holds the line without nagging',
+    rows: [
       {
-        name: '30 minutes before',
-        body: 'One quiet warning, inside the app you are already in. Not a notification you can swipe away.'
+        num: '01',
+        name: 'Quiet 30-minute heads-up inside the feed',
+        body: 'Appears in context instead of noisy notifications, slowing dopamine fatigue early.'
       },
       {
-        name: 'Allowance spent',
-        body: 'The entertainment apps close themselves. Phone, chat and work apps stay open — those are not what you are avoiding.'
+        num: '02',
+        name: 'Smooth shut-off when allowance ends',
+        body: 'Entertainment stops automatically while messaging, calls, and work tools keep working.'
       },
       {
-        name: 'Recovery day',
-        body: 'A day without entertainment still counts. You are not punished for slipping; the chain can start again.'
-      }
-    ]
-  },
-
-  guardian: {
-    badge: '07 — the guardian',
-    title: ['DON’T LET THE', 'GUARDIAN OUT'],
-    lead: 'As long as you keep your own promise, you will never see it.',
-    body:
-      'Everyone who uses ALIVE tells the same story. When your day slips past the limit you set for yourself, something arrives. Not angry, not punishing — it simply stands there until you come back.',
-    places: [
-      {
-        name: 'The first sign',
-        body: 'A notification that arrives and will not leave.'
+        num: '03',
+        name: 'Time Bank & streak recovery',
+        body: 'Unused calm minutes save into Time Bank for heavier days without punishing streak wipes.'
       },
       {
-        name: 'The second sign',
-        body: 'A card on the home screen, with one button to get back on the line.'
-      },
-      {
-        name: 'The third sign',
-        body: 'A figure that stands in the middle of the screen for a moment, over whatever you have open.'
+        num: '04',
+        name: 'Room for reclaimed hours',
+        body: 'Focus timers, proof-based Missions, launcher Widget, and 11 family hues fill the space.'
       }
     ],
-    honest:
-      'Nobody knows exactly when it comes. What is certain: it comes when you break your own promise.',
-    alt: 'A pixel figure in a black horned hood with amber eyes, holding a lit staff'
+    catLabel: '12 Android ALIVE mission category hues'
   },
 
-  room: {
-    badge: '08 — make room',
-    title: ['LEAVE', 'ROOM.'],
-    lead: 'Closing one door was never the point. Opening an hour is.',
-    body:
-      'ALIVE also gives the hours it saves somewhere to go, so that “stop” does not end with staring at a wall.',
-    features: [
+  guardianBand: {
+    badge: 'Boundary Keeper · Guardian',
+    title: ['Don’t let the', 'Guardian step out.'],
+    lead: 'As long as you keep your own limit, Guardian stays quiet. This crimson capsule-eyed shield only steps forward when protection drops or caps are broken.',
+    poseGroupLabel: 'Pick Guardian expression',
+    altPrefix: 'ALIVE Guardian character shaped like a crimson shield with black capsule eyes',
+    poses: [
       {
-        name: 'Focus sessions',
-        body: '30, 60, 90 or 120 minutes with a list of apps the session allows. Leave that list and ALIVE says so.'
+        mood: 'idle' as const,
+        label: 'Ready',
+        code: 'ACTIVE',
+        title: 'Watching calmly in the background.',
+        body: 'Protection is running and your limit holds. Zero interruptions.'
       },
       {
-        name: 'Daily missions',
-        body: 'Reading, walking, tidying, exercise — done or not is judged by the evidence you give, not by how it felt.'
+        mood: 'alert' as const,
+        label: 'Alert',
+        code: 'DEGRADED',
+        title: 'Protection switched off.',
+        body: 'Guardian notices accessibility access stopped before minutes slip.'
       },
       {
-        name: 'Statistics',
-        body: 'A day cut into three-hour blocks, per app, and total screen time — including what never touched the allowance.'
+        mood: 'recovery' as const,
+        label: 'Recovery',
+        code: 'RECOVERY',
+        title: 'Cap crossed unguarded.',
+        body: 'Shows a gentle recovery prompt to bring your limit back.'
       },
       {
-        name: 'Home widget',
-        body: 'The day’s number sits on your home screen, so you see it before you decide to open the app.'
+        mood: 'restored' as const,
+        label: 'Restored',
+        code: 'RESTORED',
+        title: 'Protection back intact.',
+        body: 'Once access returns, your streak continuity resumes right away.'
       }
-    ]
+    ],
+    stepsTitle: 'Three steps when triggered',
+    places: [
+      {
+        name: 'Persistent status cue',
+        body: 'Surfaces calmly if accessibility service is disabled.'
+      },
+      {
+        name: 'Peach recovery card',
+        body: 'One-tap recovery prompt directly on your home board.'
+      },
+      {
+        name: 'Brief screen step-in',
+        body: 'Stands calmly over restricted apps until you close them.'
+      }
+    ],
+    honest: 'Keep your boundary and it stays completely out of sight.'
   },
 
-  download: {
-    badge: '09 — peace',
-    title: ['ENJOY', 'YOUR LIFE.'],
-    lead: 'One download, no account.',
+  privacyDownload: {
+    privacyBadge: 'Privacy & Local Control',
+    privacyTitle: 'Everything ALIVE knows stays on your phone.',
+    privacyBody: 'Zero internet permission in AndroidManifest, zero accounts, zero servers, and daily logs excluded from cloud backups.',
+    privacyMarks: ['No accounts', 'No servers', 'No internet permission'],
+    privacyLink: 'Read full Privacy Policy',
+    downloadBadge: 'Download Beta APK',
+    title: 'Take back your evenings today.',
     file: {
       name: 'alive.apk',
       size: '~5 MB',
-      requires: 'Android 8.0 (API 26) and up'
+      requires: 'Android 8.0 (API 26)+'
     },
-    cta: 'Download APK',
-    honest:
-      'ALIVE ships as a beta APK through GitHub Releases: Android will ask about unknown sources before it installs, and there is no automatic update yet — but this button always points at the newest release. The Play Store version is on the way.',
-    permissions: {
-      title: 'The two permissions it asks for',
-      usage: {
-        name: 'Usage access',
-        body: 'To count how long an entertainment app is on screen. Read locally, never sent anywhere.'
+    cta: 'Download Latest APK',
+    honest: 'Beta APK distributed via GitHub Releases; Google Play listing is in progress.',
+    permissions: [
+      {
+        name: 'Usage Access',
+        body: 'Counts daily entertainment minutes strictly locally.'
       },
-      access: {
+      {
         name: 'Accessibility',
-        body: 'To close entertainment apps when the allowance is gone. It is also how ALIVE can see which app is open — which is why it says plainly, above, what it does with that.'
+        body: 'Closes capped apps cleanly at limit end or during Focus.'
       }
-    }
+    ]
   },
 
   footer: {
     line: 'ALIVE',
-    sub: 'Know your time. Control your screen.',
-    promise: 'No account · no server · no internet permission.',
-    legal: '© 2026 an independent project about attention',
+    sub: 'Know your time. Own your screen.',
+    promise: 'No accounts · no servers · no internet permission.',
+    legal: '© 2026 an independent project on attention',
     links: 'Links',
-    privacy: 'Privacy policy',
+    privacy: 'Privacy Policy',
     contact: 'Contact'
   }
 }
 
-export const dictionaries = { id, en } as const
-
-export type Lang = keyof typeof dictionaries
+export type Lang = 'id' | 'en'
 export type Copy = typeof id
+
+export const dictionaries: Record<Lang, Copy> = { id, en }
+export const defaultLang: Lang = 'id'
 
 export const langs: { code: Lang; label: string }[] = [
   { code: 'id', label: 'ID' },

@@ -5,11 +5,15 @@ import { LangProvider } from '@/components/LangProvider'
 import { applicationJsonLd, basePath, brand, description, siteUrl } from '@/lib/site'
 
 /**
- * The three faces ALIVE actually uses, shipped from the same files the app
- * bundles. A website that loads a different Silkscreen is a website that drifts.
+ * Two type voices matching Android `res/values/type.xml`: Space Grotesk
+ * (Semibold & Bold) for numbers/headings and Manrope (Regular/Medium/Bold) for
+ * calm reading copy. The pixel voice retired with Pass-2 Flat redesign.
  */
 const display = localFont({
-  src: '../public/fonts/silkscreen_bold.ttf',
+  src: [
+    { path: '../public/fonts/space_grotesk_semibold.ttf', weight: '600', style: 'normal' },
+    { path: '../public/fonts/space_grotesk_bold.ttf', weight: '700', style: 'normal' }
+  ],
   variable: '--font-display',
   display: 'swap'
 })
@@ -42,8 +46,8 @@ export const metadata: Metadata = {
    */
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'ALIVE — sadari waktumu, kendalikan layarmu',
-    template: `%s — ${brand}`
+    default: 'ALIVE: sadari waktumu, kendalikan layarmu',
+    template: `%s | ${brand}`
   },
   description,
   /** The address Google stores as this page's own, so a query string or a copy
@@ -108,7 +112,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#F5F1E8'
+  themeColor: '#FBFAF8'
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -117,7 +121,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="id"
       className={`${display.variable} ${head.variable} ${bodyRegular.variable}`}
     >
-      <body className="bg-paper font-body text-ink antialiased">
+      <body className="bg-flat-ground font-body text-flat-ink antialiased">
         {/* Said once, in the vocabulary a search engine reads, next to the
             human-readable page rather than instead of it. */}
         <script

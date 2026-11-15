@@ -1,47 +1,34 @@
 'use client'
 
 import Header from './Header'
-import { SectionAwareness, SectionHero, SectionLoop } from './sections/Story'
 import {
-  SectionChoice,
-  SectionDownload,
   SectionGuardian,
-  SectionRealization,
-  SectionRoom,
-  SectionTakeover,
+  SectionHero,
+  SectionPrivacyDownload,
+  SectionTimeToy,
   SiteFooter
-} from './sections/Answer'
+} from './sections/Beats'
 import { useCopy } from './LangProvider'
 
 /**
- * The whole page, in the app's order of speaking: the day, what eats it, the
- * number that proves it, the picture of who is driving, the choice, the room that
- * opens up, and the download.
+ * Editorial Toybox & Spec Artifact landing page aligned with Android Pass-2 ALIVE.
  */
 export default function Site() {
   const copy = useCopy()
 
   return (
     <>
-      <a
-        href="#existence"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-white focus:px-3 focus:py-2"
-      >
+      <a href="#main-content" className="skip-link">
         {copy.meta.skip}
       </a>
 
       <Header />
 
-      <main>
+      <main id="main-content" tabIndex={-1} className="outline-none">
         <SectionHero />
-        <SectionLoop />
-        <SectionAwareness />
-        <SectionRealization />
-        <SectionTakeover />
-        <SectionChoice />
+        <SectionTimeToy />
         <SectionGuardian />
-        <SectionRoom />
-        <SectionDownload />
+        <SectionPrivacyDownload />
       </main>
 
       <SiteFooter />

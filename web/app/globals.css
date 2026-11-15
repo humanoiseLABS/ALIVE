@@ -5,81 +5,326 @@
 @tailwind utilities;
 
 /*
- * The site is the app's front door, so it borrows the app's rules rather than
- * inventing a web version of them: paper and ink only, a bold edge on every
- * raised thing, a hard offset shadow instead of a blur, one pixel voice for
- * numbers, and no gradients, no grain, no glass. Motion is a press and a
- * reveal, never an entrance - the same calm-UX line the app holds.
+ * Pass-2 Flat Color-Field & Editorial Toybox system matching Android ALIVE
+ * (`colors.xml`, `dimens.xml`, `type.xml`, and `AliveMotion.kt`).
  */
 
-html {
-  scroll-behavior: smooth;
+:root {
+  --ease-liquid: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
 }
 
-body {
-  background: var(--alive-paper);
-  color: var(--alive-ink);
-  overflow-x: hidden;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5.5rem;
+  }
+
+  section[id],
+  h2[id] {
+    scroll-margin-top: 5.5rem;
+  }
+
+  body {
+    background: var(--alive-flat_ground);
+    color: var(--alive-flat_ink);
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: var(--alive-flat_field_sun);
+    color: var(--alive-flat_ink);
+  }
+
+  a[href],
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  [role='tab']:not([aria-disabled='true']),
+  select:not(:disabled),
+  summary {
+    cursor: pointer;
+  }
+
+  :disabled,
+  [aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--alive-flat_ink);
+    outline-offset: 3px;
+  }
+
+  [data-surface='dark'] :focus-visible {
+    outline-color: var(--alive-flat_tile);
+  }
 }
 
-::selection {
-  background: var(--alive-gold_reward_mid);
-  color: var(--alive-ink);
+@keyframes aliveHeroIn {
+  from {
+    opacity: 0.01;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes alivePop {
+  0% {
+    opacity: 0.72;
+    transform: translateY(10px) scale(0.88);
+  }
+  60% {
+    transform: translateY(-3px) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes aliveSwap {
+  from {
+    opacity: 0.2;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @layer components {
-  /*
-   * Two weights, copied from `surfaceFor()` in AliveComponents.kt. Content wears
-   * the MINOR one - a 2px edge and a 4px shadow - and a screen earns exactly one
-   * MAJOR, the way the app's `notice()` is the only object raised without being
-   * invited. A page where every card is MAJOR has no pile at all.
-   */
-  .card {
-    @apply rounded-card border-2 border-ink bg-white shadow-raise-sm;
+  .skip-link {
+    @apply sr-only;
   }
 
-  .card-major {
-    @apply rounded-card border-[3px] border-ink bg-white shadow-raise;
+  .skip-link:focus {
+    position: fixed;
+    left: 1rem;
+    top: 1rem;
+    z-index: 60;
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    padding: 0.625rem 1rem;
+    border-radius: 999px;
+    background: var(--alive-flat_ink);
+    color: var(--alive-flat_tile);
+    font-weight: 600;
+    clip: auto;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    white-space: nowrap;
   }
 
-  /* A tile: the same weight, the app's smaller corner. */
-  .card-sm {
-    @apply rounded-tile border-2 border-ink bg-white shadow-raise-sm;
+  /* Choreographed one-shot hero entrance (`--stagger` multiplier). */
+  .alive-hero-enter {
+    animation: aliveHeroIn 420ms var(--ease-liquid) both;
+    animation-delay: calc(var(--stagger, 0) * 65ms);
   }
 
-  /* The amber action: brighter than everything else and never beside gold. */
-  .btn {
-    @apply font-body text-base font-medium rounded-tile border-[3px] border-ink px-6 py-3
-      transition-transform duration-100 select-none;
+  /* Spring overshoot character & state pop on direct user interaction. */
+  .alive-pop {
+    animation: alivePop 380ms var(--ease-spring) both;
   }
 
-  .btn-primary {
-    @apply bg-amber text-ink shadow-raise-sm;
+  /* Gentle vertical text swap on state/character switches. */
+  .alive-swap {
+    animation: aliveSwap 260ms var(--ease-liquid) both;
   }
 
-  .btn-quiet {
-    @apply bg-white text-ink shadow-raise-sm;
+  /* Scroll-triggered one-shot choreography matching AliveMotion cascade timing. */
+  [data-reveal='waiting'] .reveal-child {
+    opacity: 0;
+    transform: translateY(20px) scale(0.985);
   }
 
-  /* Pressing a raised thing moves it onto its own shadow. */
-  .btn:active {
-    transform: translate(4px, 4px);
-    box-shadow: 0 0 0 0 var(--alive-ink);
+  [data-reveal='in'] .reveal-child {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition: opacity 420ms var(--ease-liquid), transform 480ms var(--ease-liquid);
+    transition-delay: calc(var(--stagger, 0) * 55ms);
   }
 
-  /* A thick ink rule between the parts of one card. */
-  .rule {
-    height: 3px;
-    background: var(--alive-ink);
+  [data-reveal='waiting'] .reveal-bar {
+    transform: scaleX(0);
+    transform-origin: left center;
   }
 
-  /* The small pixel badge: a category stated in one word. */
-  .badge {
-    @apply font-display rounded-step border-2 border-ink bg-white px-2 py-1 text-[10px] uppercase;
+  [data-reveal='in'] .reveal-bar {
+    transform: scaleX(1);
+    transform-origin: left center;
+    transition: transform 620ms var(--ease-liquid);
+    transition-delay: 140ms;
   }
 
-  .eyebrow {
-    @apply font-display text-xs uppercase tracking-[0.12em] text-ink-secondary;
+  .flat-card {
+    border-radius: 28px;
+  }
+
+  .flat-tile {
+    border-radius: 22px;
+  }
+
+  .flat-tile-white {
+    border-radius: 22px;
+    background: var(--alive-flat_tile);
+    border: 1px solid rgba(20, 20, 20, 0.06);
+  }
+
+  /* Liquid-spring tactile character tile for open-canvas exploration. */
+  .toy-character-btn {
+    border-radius: 22px;
+    transition:
+      transform 280ms var(--ease-spring),
+      background-color 160ms ease,
+      box-shadow 180ms ease;
+  }
+
+  .toy-character-btn:hover {
+    transform: translateY(-4px) scale(1.06);
+  }
+
+  .toy-character-btn:active {
+    transform: scale(0.93);
+  }
+
+  /* Native range slider tuned for Pass-2 matte contrast & tactile drag response. */
+  .toy-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 12px;
+    border-radius: 999px;
+    background: var(--alive-flat_tile);
+    border: 1px solid rgba(20, 20, 20, 0.14);
+    cursor: pointer;
+  }
+
+  .toy-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background: var(--alive-flat_ink);
+    border: 3px solid var(--alive-flat_tile);
+    cursor: pointer;
+    transition: transform 240ms var(--ease-spring);
+  }
+
+  .toy-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.14);
+  }
+
+  .toy-slider::-webkit-slider-thumb:active {
+    transform: scale(0.96);
+  }
+
+  .toy-slider::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background: var(--alive-flat_ink);
+    border: 3px solid var(--alive-flat_tile);
+    cursor: pointer;
+    transition: transform 240ms var(--ease-spring);
+  }
+
+  /* Pass-2 capsule actions (`BerandaScreen`, `ProfilScreen`, `GuardianScreen`). */
+  .pill-btn {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    padding: 0.6875rem 1.5rem;
+    font-family: var(--font-body), sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.2;
+    user-select: none;
+    transition:
+      background-color 160ms ease,
+      transform 260ms var(--ease-spring),
+      opacity 140ms ease;
+  }
+
+  .pill-btn:hover:not(:disabled):not([aria-disabled='true']) {
+    transform: translateY(-1px);
+  }
+
+  .pill-btn-primary {
+    background: var(--alive-flat_ink);
+    color: var(--alive-flat_tile);
+  }
+
+  .pill-btn-primary:hover:not(:disabled):not([aria-disabled='true']) {
+    background: #2b2b2a;
+  }
+
+  .pill-btn-quiet {
+    background: var(--alive-flat_tile);
+    color: var(--alive-flat_ink);
+    border: 1px solid rgba(20, 20, 20, 0.12);
+  }
+
+  .pill-btn-quiet:hover:not(:disabled):not([aria-disabled='true']) {
+    background: var(--alive-flat_soft);
+  }
+
+  .pill-btn:active:not(:disabled):not([aria-disabled='true']) {
+    transform: scale(0.96);
+  }
+
+  .nav-link {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--alive-ink_secondary);
+    transition: color 140ms ease, background-color 140ms ease, transform 200ms var(--ease-liquid);
+  }
+
+  .nav-link:hover {
+    background: var(--alive-flat_soft);
+    color: var(--alive-flat_ink);
+  }
+
+  .footer-link {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    color: var(--alive-ink_secondary);
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 4px;
+    transition: color 140ms ease;
+  }
+
+  .footer-link:hover {
+    color: var(--alive-flat_ink);
+  }
+
+  .eyebrow-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    padding: 0.375rem 0.875rem;
+    font-family: var(--font-head), sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
 }
 
@@ -88,11 +333,19 @@ body {
     scroll-behavior: auto;
   }
 
+  [data-reveal='waiting'] .reveal-child,
+  [data-reveal='waiting'] .reveal-bar {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
   }
 }

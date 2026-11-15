@@ -54,6 +54,9 @@ export const basePath =
  */
 export const apkUrl = process.env.NEXT_PUBLIC_APK_URL
 
+/** Fallback destination when a local preview runs without NEXT_PUBLIC_APK_URL. */
+export const releasePageUrl = 'https://github.com/ALIVEbyHUMANOISE/ALIVE/releases/latest'
+
 export const brand = 'ALIVE'
 
 /** The same sentence the app's own first screen makes. One place, one wording. */
@@ -85,7 +88,7 @@ export const applicationJsonLd = {
   url: `${siteUrl}/`,
   description,
   image: `${siteUrl}/images/og-preview.png`,
-  downloadUrl: apkUrl,
+  downloadUrl: apkUrl ?? releasePageUrl,
   applicationCategory: 'LifestyleApplication',
   operatingSystem: 'Android 8.0 (API 26) dan yang lebih baru',
   inLanguage: ['id', 'en'],
