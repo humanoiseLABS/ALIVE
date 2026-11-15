@@ -207,6 +207,9 @@
     <string name="quest_physical_how">ALIVE can\'t see this one. The clock is real; the rest is your word. The button opens after %1$d minutes.</string>
     <string name="quest_gate_left">%1$d minutes to go before your word counts.</string>
     <string name="quest_gate_open">That\'s the time. Say you\'re done.</string>
+    <string name="quest_countdown_left_short">Left</string>
+    <string name="quest_countdown_ready_short">Ready</string>
+    <string name="quest_countdown_start_short">Target</string>
     <string name="quest_declare_done">I\'m done</string>
     <string name="quest_declare_failed">ALIVE couldn\'t record that.</string>
 
@@ -303,6 +306,7 @@
     <string name="focus_next">When the time is up, the session simply ends.</string>
     <string name="focus_extend">Extend 15 minutes</string>
     <string name="focus_extend_support">Takes 15 minutes from your Time Bank.</string>
+    <string name="focus_extend_bank_short">Bank · %1$d min</string>
     <string name="focus_extended_toast">Extended by 15 minutes.</string>
 
     <!-- ============ PROFILE ============ -->
@@ -732,6 +736,7 @@
     <string name="beranda_streak_days">%1$d-day streak</string>
     <string name="beranda_tomorrow_safe">Tomorrow is safe</string>
     <string name="beranda_tomorrow_open">Tomorrow is not safe yet</string>
+    <string name="beranda_closed_until_tomorrow">Until tomorrow</string>
     <string name="quest_filter_today">Today</string>
     <string name="quest_custom_kicker">Your mission</string>
     <string name="quest_custom_title">Write your own</string>

@@ -1,22 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- ALIVE face, expression: Angry Full. The critical-alert variant: bigger
-     red burst overhead, side bursts, and a turned-down mouth on top of the
-     narrow eyes. Body grid identical to ic_alive_character. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="48dp"
-    android:height="48dp"
-    android:viewportWidth="16"
-    android:viewportHeight="16">
+    android:width="72dp"
+    android:height="72dp"
+    android:viewportWidth="72"
+    android:viewportHeight="72">
     <path
         android:fillColor="@color/alive_pink_soft"
-        android:pathData="M5,3h6v1h-6zM4,4h8v1h-8zM4,5h8v1h-8zM4,6h8v1h-8zM2,7h2v1h-2zM4,7h8v1h-8zM12,7h2v1h-2zM2,8h2v1h-2zM4,8h8v1h-8zM12,8h2v1h-2zM4,9h8v1h-8zM5,10h6v1h-6zM5,11h2v1h-2zM9,11h2v1h-2zM5,12h2v1h-2zM9,12h2v1h-2z" />
+        android:pathData="M 36 12 C 51 12 56 20 56 32 C 63 32 65 36 65 39 C 65 42 63 45 56 45 C 56 51 54 53 51 54 L 51 59 C 51 62 49 63 46 63 C 43 63 41 62 41 59 L 41 55 C 38 56 34 56 31 55 L 31 59 C 31 62 29 63 26 63 C 23 63 21 62 21 59 L 21 54 C 18 53 16 51 16 45 C 9 45 7 42 7 39 C 7 36 9 32 16 32 C 16 20 21 12 36 12 Z" />
     <path
         android:fillColor="@color/flat_ink"
-        android:pathData="M5,5h2v1h-2zM5,6h1v1h-1zM9,5h2v1h-2zM10,6h1v1h-1zM6,8h1v1h-1zM9,8h1v1h-1zM7,9h2v1h-2z" />
+        android:pathData="M 23.0 27.5 C 23.4 26.5 24.6 26.2 25.6 26.6 L 32.0 29.8 C 33.0 30.3 33.4 31.4 33.0 32.6 C 32.8 35.8 30.7 38.0 27.8 38.0 C 24.6 38.0 22.6 35.4 22.6 31.6 C 22.6 29.8 22.7 28.4 23.0 27.5 Z" />
     <path
-        android:fillColor="@color/alive_red_short_dark"
-        android:pathData="M7,0h1v3h-1zM4,1h7v1h-7z" />
+        android:fillColor="@color/flat_ink"
+        android:pathData="M 49.0 27.5 C 48.6 26.5 47.4 26.2 46.4 26.6 L 40.0 29.8 C 39.0 30.3 38.6 31.4 39.0 32.6 C 39.2 35.8 41.3 38.0 44.2 38.0 C 47.4 38.0 49.4 35.4 49.4 31.6 C 49.4 29.8 49.3 28.4 49.0 27.5 Z" />
     <path
-        android:fillColor="@color/alive_red_short_mid"
-        android:pathData="M3,0h1v1h-1zM11,0h1v1h-1zM3,2h1v1h-1zM11,2h1v1h-1zM1,4h1v1h-1zM0,5h3v1h-3zM1,6h1v1h-1zM14,4h1v1h-1zM13,5h3v1h-3zM14,6h1v1h-1z" />
+        android:fillColor="@color/flat_ink"
+        android:pathData="M 29.8 47.8 C 29.1 47.1 29.1 46.0 29.6 45.2 C 31.3 42.5 33.6 41.5 36.0 41.5 C 38.4 41.5 40.7 42.5 42.4 45.2 C 42.9 46.0 42.9 47.1 42.2 47.8 C 41.4 48.5 40.2 48.2 39.6 47.3 C 38.5 45.7 37.3 45.1 36.0 45.1 C 34.7 45.1 33.5 45.7 32.4 47.3 C 31.8 48.2 30.6 48.5 29.8 47.8 Z" />
 </vector>

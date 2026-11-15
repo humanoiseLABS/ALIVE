@@ -193,6 +193,9 @@
     <string name="quest_physical_how">ALIVE tidak bisa melihat misi ini. Jamnya nyata; sisanya kepercayaan. Tombolnya terbuka setelah %1$d menit.</string>
     <string name="quest_gate_left">%1$d menit lagi sebelum kata-katamu dihitung.</string>
     <string name="quest_gate_open">Waktunya sudah lewat. Katakan kamu selesai.</string>
+    <string name="quest_countdown_left_short">Tersisa</string>
+    <string name="quest_countdown_ready_short">Siap</string>
+    <string name="quest_countdown_start_short">Target</string>
     <string name="quest_declare_done">Saya selesai</string>
     <string name="quest_declare_failed">ALIVE tidak bisa mencatat itu.</string>
 
@@ -282,6 +285,7 @@
     <string name="focus_next">Saat waktunya habis, sesinya selesai begitu saja.</string>
     <string name="focus_extend">Perpanjang 15 menit</string>
     <string name="focus_extend_support">Mengambil 15 menit dari Bank Waktumu.</string>
+    <string name="focus_extend_bank_short">Bank · %1$d mnt</string>
     <string name="focus_extended_toast">Diperpanjang 15 menit.</string>
 
     <!-- ============ PROFIL ============ -->
@@ -675,6 +679,7 @@
     <string name="beranda_streak_days">%1$d hari beruntun</string>
     <string name="beranda_tomorrow_safe">Besok aman</string>
     <string name="beranda_tomorrow_open">Besok belum aman</string>
+    <string name="beranda_closed_until_tomorrow">Sampai besok</string>
     <string name="quest_filter_today">Hari ini</string>
     <string name="quest_custom_kicker">Misi kamu</string>
     <string name="quest_custom_title">Tulis sendiri</string>

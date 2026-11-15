@@ -26,6 +26,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import org.robolectric.shadows.ShadowChoreographer
+import java.time.Duration
 import java.util.concurrent.TimeUnit
 
 @RunWith(RobolectricTestRunner::class)
@@ -102,6 +104,10 @@ class CompanionVictoryOverlayTest {
         assertTrue(texts.contains(themedContext.getString(R.string.victory_tile_bond_label, "Creative")))
         assertTrue(texts.contains(themedContext.getString(R.string.victory_tile_bond_delta, 2)))
         assertTrue(texts.contains(themedContext.getString(R.string.bond_rank_line, 2, themedContext.getString(R.string.bond_rank_2_name), 1, 10)))
+
+        val scrim = overlay.getChildAt(0)
+        assertEquals("scrim must span full overlay width", overlay.width, scrim.width)
+        assertEquals("scrim must span full overlay height", overlay.height, scrim.height)
 
         val card = overlay.findViewWithTag<View>(CompanionVictoryOverlay.TAG_CARD)
         assertNotNull(card)
@@ -249,6 +255,109 @@ class CompanionVictoryOverlayTest {
 
         assertEquals(0, dismissed)
         assertFalse(overlay.hasPendingTimersOrAnimatorsForTesting())
+    }
+
+    @Test
+    fun `card wraps content tightly without full-height stretch and confetti layer stays non-clickable`() {
+        val event = VictoryEvent(
+            eventId = "quest:compact-bounds",
+            source = VictorySource.QUEST,
+            memberId = "mindfulness",
+            companionId = "creative",
+            title = "Meditasi 10 Menit",
+            baseMinutes = 10L,
+            synergyBonusMinutes = 2L,
+            durationMinutes = 0L,
+            synergyMatched = true,
+            newlyAwakened = true,
+            bondDelta = 2,
+            bondXpBefore = 1,
+            bondXpAfter = 3,
+            rankBefore = 1,
+            rankAfter = 1,
+            growthStageUp = false,
+            growthLevelAfter = 1
+        )
+
+        val overlay = CompanionVictoryOverlay(themedContext, ui)
+        overlay.show(host, event, remainingQueuedCount = 0) {}
+        layoutHost(widthPx = 1080, heightPx = 2400)
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(900L, TimeUnit.MILLISECONDS)
+
+        val card = overlay.findViewWithTag<View>(CompanionVictoryOverlay.TAG_CARD)
+        assertNotNull(card)
+        assertTrue(
+            "victory card (${card!!.height}px) must wrap content instead of stretching toward host height (${host.height}px)",
+            card.height in 1..(host.height * 3 / 4)
+        )
+
+        val bar = overlay.findViewWithTag<View>(CompanionVictoryOverlay.TAG_BOND_BAR)
+        assertNotNull(bar)
+        val expectedBarMinPx = (10f * themedContext.resources.displayMetrics.density).toInt()
+        assertTrue("liquid bond bar height (${bar!!.height}) must be >= $expectedBarMinPx", bar.height >= expectedBarMinPx)
+
+        val confetti = overlay.getChildAt(overlay.childCount - 1)
+        assertEquals(overlay.width, confetti.width)
+        assertEquals(overlay.height, confetti.height)
+        assertFalse("confetti overlay must not steal clicks", confetti.isClickable)
+        assertFalse("confetti overlay must not take focus", confetti.isFocusable)
+    }
+
+    @Test
+    fun `ceremony animates mid-flight progression and settles cleanly without leaked timers`() {
+        val wasPaused = ShadowChoreographer.isPaused()
+        val prevDelay = ShadowChoreographer.getFrameDelay()
+        try {
+            layoutHost(widthPx = 1080, heightPx = 2400)
+            Shadows.shadowOf(Looper.getMainLooper()).idle()
+
+            ShadowChoreographer.setPaused(true)
+            ShadowChoreographer.setFrameDelay(Duration.ofMillis(16))
+
+            val event = VictoryEvent(
+                eventId = "quest:mid-flight",
+                source = VictorySource.QUEST,
+                memberId = "mindfulness",
+                companionId = "creative",
+                title = "Meditasi 10 Menit",
+                baseMinutes = 10L,
+                synergyBonusMinutes = 2L,
+                durationMinutes = 0L,
+                synergyMatched = true,
+                newlyAwakened = true,
+                bondDelta = 2,
+                bondXpBefore = 1,
+                bondXpAfter = 3,
+                rankBefore = 1,
+                rankAfter = 1,
+                growthStageUp = false,
+                growthLevelAfter = 1
+            )
+
+            val overlay = CompanionVictoryOverlay(themedContext, ui)
+            overlay.show(host, event, remainingQueuedCount = 0) {}
+
+            // Step 22 frames (~352ms): bar is mid-sweep (0.2 -> 0.6) and confetti is active
+            repeat(22) {
+                Shadows.shadowOf(Looper.getMainLooper()).idleFor(16L, TimeUnit.MILLISECONDS)
+            }
+            val midShare = overlay.currentBondProgressShare()
+            assertTrue("bar share mid-flight ($midShare) should be progressing between 0.2 and 0.6", midShare in 0.21f..0.59f)
+            assertTrue("confetti/aura animators should still be running at 352ms", overlay.hasPendingTimersOrAnimatorsForTesting())
+
+            // Advance past full ceremony duration (~2.56s) and verify full clean settlement
+            repeat(150) {
+                Shadows.shadowOf(Looper.getMainLooper()).idleFor(16L, TimeUnit.MILLISECONDS)
+            }
+            assertEquals(0.6f, overlay.currentBondProgressShare(), 0.02f)
+            assertFalse("all finite ceremony animators must settle cleanly", overlay.hasPendingTimersOrAnimatorsForTesting())
+            val texts = collectTexts(overlay)
+            assertTrue(texts.contains(themedContext.getString(R.string.victory_tile_minutes_gain, 12)))
+            assertTrue(texts.contains(themedContext.getString(R.string.victory_tile_bond_delta, 2)))
+        } finally {
+            ShadowChoreographer.setPaused(wasPaused)
+            ShadowChoreographer.setFrameDelay(prevDelay)
+        }
     }
 
     private fun layoutHost(widthPx: Int, heightPx: Int) {

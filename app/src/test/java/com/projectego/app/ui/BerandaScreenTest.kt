@@ -1,9 +1,13 @@
 package com.projectego.app.ui
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.drawable.GradientDrawable
+import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.test.core.app.ApplicationProvider
@@ -12,8 +16,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows
 import org.robolectric.annotation.Config
+import java.util.concurrent.TimeUnit
 
 /**
  * Beranda, as the approved pass-2 render states it.
@@ -37,6 +44,7 @@ class BerandaScreenTest {
     private var growth = 0
     private var focus = 0
     private var openFocus = 0
+    private var timeBank = 0
 
     private fun build(
         remaining: Long = 57L,
@@ -49,7 +57,8 @@ class BerandaScreenTest {
         tomorrowSafe: Boolean = false,
         closed: Boolean = false,
         critical: Boolean = false,
-        actionLabel: String? = "Lanjutkan misi"
+        actionLabel: String? = "Lanjutkan misi",
+        bankMinutes: Long = 0L
     ): View = BerandaScreen.build(
         context,
         ui,
@@ -72,7 +81,9 @@ class BerandaScreenTest {
             onAction = { action += 1 },
             onGrowth = { growth += 1 },
             onFocus = { focus += 1 },
-            onOpenFocus = { openFocus += 1 }
+            onOpenFocus = { openFocus += 1 },
+            bankMinutes = bankMinutes,
+            onTimeBank = { timeBank += 1 }
         )
     )
 
@@ -234,5 +245,85 @@ class BerandaScreenTest {
         val shown = texts(page)
         assertTrue("shown=$shown", shown.contains(context.getString(R.string.beranda_streak_days, 2)))
         assertTrue(shown.contains(context.getString(R.string.beranda_tomorrow_open)))
+    }
+
+    @Test
+    fun `header companion avatar opens growth sheet when tapped`() {
+        val page = build() as ViewGroup
+        val headerRow = page.getChildAt(0) as ViewGroup
+        val avatar = (0 until headerRow.childCount)
+            .map { headerRow.getChildAt(it) }
+            .filterIsInstance<ImageView>()
+            .firstOrNull()
+        requireNotNull(avatar)
+        assertTrue(avatar.isClickable)
+        avatar.performClick()
+        assertEquals(1, growth)
+    }
+
+    @Test
+    fun `closed board shows quiet until-tomorrow cue and bank chip next to meter`() {
+        val page = build(remaining = 0L, limit = 0L, closed = true, actionLabel = null, bankMinutes = 15L)
+        val shown = texts(page)
+        assertTrue(shown.contains(context.getString(R.string.beranda_closed_until_tomorrow)))
+        val expectedChip = context.getString(R.string.focus_extend_bank_short, 15L)
+        val chip = firstText(page, expectedChip)
+        requireNotNull(chip)
+        assertTrue(chip.isClickable)
+        chip.performClick()
+        assertEquals(1, timeBank)
+        assertTrue(allViews(page).any { it is BerandaScreen.MeterBar })
+    }
+
+    @Test
+    fun `unified streak card distributes seven day faces evenly across measured width`() {
+        val page = build(streak = 3)
+        val widthPx = 1080
+        page.measure(
+            View.MeasureSpec.makeMeasureSpec(widthPx, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        )
+        page.layout(0, 0, page.measuredWidth, page.measuredHeight)
+        val row = allViews(page).firstOrNull { view ->
+            val group = view as? ViewGroup ?: return@firstOrNull false
+            view.isClickable && group.childCount == 7 &&
+                (0 until group.childCount).all { group.getChildAt(it) is android.widget.FrameLayout }
+        } as ViewGroup
+        val firstDisc = row.getChildAt(0)
+        val lastDisc = row.getChildAt(6)
+        assertTrue("row=${row.width} lastRight=${lastDisc.right}", lastDisc.right > firstDisc.right)
+        val firstGap = row.getChildAt(1).left - firstDisc.right
+        val lastGap = lastDisc.left - row.getChildAt(5).right
+        assertTrue("gaps should spread evenly: first=$firstGap last=$lastGap", kotlin.math.abs(firstGap - lastGap) <= 2)
+    }
+
+    @Test
+    fun `meter bar animates sheen while attached and draws cleanly through attach and detach`() {
+        val activity = Robolectric.buildActivity(androidx.appcompat.app.AppCompatActivity::class.java).setup().get()
+        val themed = ContextThemeWrapper(activity, R.style.Theme_ProjectEgo)
+        val meter = BerandaScreen.MeterBar(
+            themed,
+            AliveComponents(themed),
+            fraction = 0.75f,
+            accentColor = AliveComponents(themed).palette.flatMint
+        )
+        val root = android.widget.FrameLayout(themed)
+        root.addView(meter, ViewGroup.LayoutParams(400, 36))
+        activity.setContentView(root)
+        meter.measure(
+            View.MeasureSpec.makeMeasureSpec(400, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(36, View.MeasureSpec.EXACTLY)
+        )
+        meter.layout(0, 0, 400, 36)
+
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(650L, TimeUnit.MILLISECONDS)
+        assertEquals(0.75f, meter.displayFraction, 0.05f)
+
+        val bmp = Bitmap.createBitmap(400, 36, Bitmap.Config.ARGB_8888)
+        meter.draw(Canvas(bmp))
+
+        root.removeView(meter)
+        Shadows.shadowOf(Looper.getMainLooper()).idle()
+        assertEquals(0.75f, meter.displayFraction, 0.001f)
     }
 }

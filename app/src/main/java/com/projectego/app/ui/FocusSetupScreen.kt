@@ -60,20 +60,25 @@ object FocusSetupScreen {
      * The card's ring. [fraction] is the share of an hour the session takes, so
      * the picture answers "how big a block is this" the moment a length changes.
      */
-    class Ring(context: Context, ui: AliveComponents) : View(context) {
+    class Ring(
+        context: Context,
+        ui: AliveComponents,
+        diameterDp: Int = RING_DP,
+        strokeDp: Int = RING_STROKE_DP
+    ) : View(context) {
 
         private val track = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
-            strokeWidth = ui.dimens.dp(RING_STROKE_DP).toFloat()
+            strokeWidth = ui.dimens.dp(strokeDp).toFloat()
             color = ColorUtils.setAlphaComponent(ui.palette.flatPaper, 180)
         }
         private val arc = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
-            strokeWidth = ui.dimens.dp(RING_STROKE_DP).toFloat()
+            strokeWidth = ui.dimens.dp(strokeDp).toFloat()
             strokeCap = Paint.Cap.ROUND
             color = ui.palette.ink
         }
-        private val ringSizePx = ui.dimens.dp(RING_DP)
+        private val ringSizePx = ui.dimens.dp(diameterDp)
         private val shape = RectF()
         private val sweepEase = PathInterpolator(0.22f, 1.0f, 0.36f, 1.0f)
         private var displayFraction: Float = 0f

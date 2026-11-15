@@ -61,10 +61,10 @@
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:backgroundDimEnabled">true</item>
-        <item name="android:backgroundDimAmount">0.28</item>
+        <item name="android:backgroundDimAmount">0.48</item>
         <item name="android:windowCloseOnTouchOutside">true</item>
-        <item name="android:windowMinWidthMajor">86%</item>
-        <item name="android:windowMinWidthMinor">86%</item>
+        <item name="android:windowMinWidthMajor">88%</item>
+        <item name="android:windowMinWidthMinor">88%</item>
         <item name="android:windowAnimationStyle">@null</item>
     </style>
 

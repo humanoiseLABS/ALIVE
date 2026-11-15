@@ -68,7 +68,6 @@ import com.projectego.app.domain.FocusAppPolicy
 import com.projectego.app.domain.GalaxyCatalog
 import com.projectego.app.domain.NightContract
 import com.projectego.app.domain.PhysicalQuestPolicy
-import com.projectego.app.domain.PhysicalQuestVerifier
 import com.projectego.app.domain.QuestDayProgress
 import com.projectego.app.domain.QuestStartCoordinator
 import com.projectego.app.domain.QuestVerificationCoordinator
@@ -94,11 +93,11 @@ import com.projectego.app.service.QuestDeadlineWatch
 import com.projectego.app.service.QuestWatch
 import com.projectego.app.model.TimeStatus
 import com.projectego.app.model.UsageDay
-import com.projectego.app.model.VerificationMethod
 import com.projectego.app.ui.AliveComponents
 import com.projectego.app.ui.AliveFace
 import com.projectego.app.data.PillSettings
 import com.projectego.app.domain.PillAccent
+import com.projectego.app.ui.ActiveFocusScreen
 import com.projectego.app.ui.AliveMotion
 import com.projectego.app.ui.AliveNavBar
 import com.projectego.app.ui.AlivePanel
@@ -115,6 +114,7 @@ import com.projectego.app.ui.BrutalistDonut
 import com.projectego.app.ui.ChartMetric
 import com.projectego.app.ui.ChartRange
 import com.projectego.app.ui.CompanionVictoryOverlay
+import com.projectego.app.ui.CurrentQuestStatusCard
 import com.projectego.app.ui.DayBar
 import com.projectego.app.ui.DayBarKind
 import com.projectego.app.ui.Durations
@@ -135,7 +135,6 @@ import com.projectego.app.ui.StatusTone
 import com.projectego.app.ui.widget.AliveStatsWidgetProvider
 import com.projectego.app.ui.SurfaceWeight
 import com.projectego.app.ui.UsageChartStates
-import com.projectego.app.ui.VerificationReasonClass
 import com.projectego.app.ui.WelcomeActivity
 import java.time.LocalDate
 import java.time.LocalTime
@@ -1383,7 +1382,9 @@ class MainActivity : AppCompatActivity() {
                     },
                     onOpenFocus = { openFocusEntry() },
                     onGreetingTap = if (BuildConfig.DEBUG) ({ handleDevTap() }) else null,
-                    characterDrawableRes = companion.drawableRes
+                    characterDrawableRes = companion.drawableRes,
+                    bankMinutes = report.timeBank.availableMinutes,
+                    onTimeBank = { openTimeBankSheet() }
                 )
             )
         )
@@ -1515,153 +1516,30 @@ class MainActivity : AppCompatActivity() {
         withHeader: Boolean,
         weight: SurfaceWeight = SurfaceWeight.MINOR
     ): LinearLayout {
-        val block = ui.block(weight, AliveStates.attemptTone(attempt.state))
-
-        if (withHeader) {
-            block.addView(ui.sectionHeader(getString(R.string.quest_current)))
-            block.addView(ui.vgap(ui.dimens.lineGap))
-        }
-
-        // The face follows the attempt: while the mission is in flight the tile
-        // wears the mission's own pose from the sheet, and every terminal state
-        // is the character's reaction to the verdict - one is always in flight
-        // in this block, inside the tile that keeps the category hue.
-        val hero = AliveStates.questHeroSpriteFor(quest.category)
-        val face = when (attempt.state) {
-            QuestAttemptState.COMMITTED, QuestAttemptState.IN_PROGRESS ->
-                hero ?: AliveFace.NORMAL
-            else -> state.signals?.let { AliveStates.faceFor(it) } ?: AliveFace.NORMAL
-        }
-        block.addView(
-            ui.iconTile(
-                ContextCompat.getColor(this, QuestHues.quest(quest.category)),
-                AliveStates.faceSpriteFor(face),
-                ui.dimens.character
-            ).apply { contentDescription = getString(AliveStates.faceDescription(face)) }
-        )
-        block.addView(ui.vgap(ui.dimens.lineGap))
-
-        block.addView(ui.lead(quest.title))
-        block.addView(ui.vgap(ui.dimens.pairGap))
-        block.addView(ui.note(quest.description))
-        block.addView(ui.vgap(ui.dimens.groupGap))
-
         val available = state.signals?.reclaimedAvailableMinutes ?: 0L
-        if (attempt.state == QuestAttemptState.REWARDED) {
-            // The payout reads as a chip, not as a sentence: the word is the fact,
-            // the gold square is the amount, and the line below says where it went.
-            val rewardLine = ui.row()
-            rewardLine.addView(ui.lead(getString(R.string.quest_finished_label)))
-            rewardLine.addView(ui.hgap(ui.dimens.m))
-            val claimedTotal = questRepository.lastClaimedTotalMinutes(attempt.attemptId)
-                ?: attempt.rewardMinutes ?: quest.rewardMinutes
-            rewardLine.addView(ui.rewardChip(getString(R.string.unit_minutes_gain, claimedTotal)))
-            block.addView(rewardLine)
-            celebrateReward(block, attempt)
-        } else if (attempt.state == QuestAttemptState.FAILED) {
-            // The verdict takes the heaviest voice, not the heading face: the
-            // mission's own title is already a Lead, and two headings stacked on
-            // one card read as one wall of bold with no order in it.
-            block.addView(ui.error(getString(AliveStates.attemptHeadline(attempt.state))))
-        } else {
-            block.addView(ui.lead(getString(AliveStates.attemptHeadline(attempt.state))))
-        }
-
-        // A physical quest in flight is the one state whose support line has to be
-        // recomputed rather than looked up: what is true about it changes with the
-        // clock, and "nothing to press" would be a lie with a button below it.
-        val physicalWait = attempt.method == VerificationMethod.PHYSICAL &&
-            attempt.state == QuestAttemptState.IN_PROGRESS
-        val gateLeft = if (physicalWait) {
-            PhysicalQuestVerifier.remainingMinutes(
-                attempt.activityStartTimestamp,
-                System.currentTimeMillis(),
-                attempt.committedDurationMinutes
+        val claimedTotal = questRepository.lastClaimedTotalMinutes(attempt.attemptId)
+            ?: attempt.rewardMinutes ?: quest.rewardMinutes
+        return CurrentQuestStatusCard.build(
+            context = this,
+            ui = ui,
+            data = CurrentQuestStatusCard.Data(
+                attempt = attempt,
+                quest = quest,
+                withHeader = withHeader,
+                weight = weight,
+                reclaimedAvailableMinutes = available,
+                claimedTotalMinutes = claimedTotal,
+                onDeclareDone = { questVerificationCoordinator.declarePhysicalAttemptDone() },
+                onDeclareSuccess = {
+                    QuestDeadlineWatch.arm(this@MainActivity)
+                    renderDashboard()
+                    renderQuestSection()
+                },
+                onDeclareFailed = { toast(R.string.quest_declare_failed) },
+                onContinue = { openCurrentQuestPanel() },
+                onRewardPresented = { card -> celebrateReward(card, attempt) }
             )
-        } else 0L
-
-        val support = when {
-            physicalWait -> getString(
-                if (gateLeft > 0L) R.string.quest_gate_left else R.string.quest_gate_open,
-                gateLeft
-            )
-            // VERIFIED is not REWARDED: the minutes have counted, not landed.
-            attempt.state == QuestAttemptState.VERIFIED -> getString(
-                if (attempt.method == VerificationMethod.PHYSICAL) {
-                    R.string.verified_reason_signals
-                } else {
-                    AliveStates.verifiedSupport()
-                }
-            )
-            attempt.state == QuestAttemptState.REWARDED -> getString(R.string.attempt_rewarded_total, available)
-            else -> getString(AliveStates.attemptSupport(attempt.state))
-        }
-        block.addView(ui.vgap(ui.dimens.lineGap))
-        block.addView(ui.note(support))
-
-        // Said once, and only when it is true: a mission the clock closed is not
-        // the same event as a mission the person closed, and the card would be
-        // inventing a press that never happened if it let them read alike.
-        if (attempt.state == QuestAttemptState.REWARDED && attempt.autoSettled) {
-            block.addView(ui.vgap(ui.dimens.pairGap))
-            block.addView(ui.note(getString(R.string.quest_finished_auto)))
-        }
-
-        if (attempt.state == QuestAttemptState.FAILED) {
-            // A raw engine reason is never shown; only its honest family is.
-            // And the family is ruled off from the sentence above it in the
-            // quieter ink voice: what happened and why it happened are two
-            // things, and only one of them may be the loud one.
-            val reason = AliveStates.classifyFailure(attempt.verificationResult?.reason)
-            if (reason != VerificationReasonClass.UNKNOWN) {
-                block.addView(ui.vgap(ui.dimens.groupGap))
-                block.addView(ui.rowRule())
-                block.addView(ui.vgap(ui.dimens.lineGap))
-                block.addView(ui.reason(getString(AliveStates.failureSupport(reason))))
-            }
-        }
-
-        if (physicalWait) {
-            block.addView(ui.vgap(ui.dimens.groupGap))
-            block.addView(
-                ui.primary(getString(R.string.quest_declare_done)).apply {
-                    // Disabled is a statement about the clock, not a punishment, and
-                    // the line above says exactly how much clock is left.
-                    isEnabled = gateLeft == 0L
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    )
-                    setOnClickListener {
-                        if (questVerificationCoordinator.declarePhysicalAttemptDone()) {
-                            // The window has an owner's answer now, so the deadline
-                            // that was waiting to answer for it is stood down.
-                            QuestDeadlineWatch.arm(this@MainActivity)
-                            renderDashboard()
-                            renderQuestSection()
-                        } else {
-                            toast(R.string.quest_declare_failed)
-                        }
-                    }
-                }
-            )
-            // Said at the moment it is worth knowing: the button is live now, and
-            // what happens if it never gets pressed is a rule about the next ten
-            // minutes rather than about this one.
-            if (gateLeft == 0L) {
-                block.addView(ui.vgap(ui.dimens.pairGap))
-                block.addView(ui.note(getString(R.string.quest_auto_settle_note)))
-            }
-        }
-
-        if (!physicalWait && AliveStates.offersAction(attempt.state)) {
-            block.addView(ui.vgap(ui.dimens.groupGap))
-            block.addView(ui.secondary(getString(R.string.action_continue)).apply {
-                setOnClickListener { openCurrentQuestPanel() }
-            })
-        }
-
-        return block
+        )
     }
 
     /**
@@ -2778,27 +2656,9 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 )
-                if (!verifiable) {
-                    // Said under the button, not instead of it: the button works,
-                    // and what it promises is bounded by the clock and the quest's
-                    // own signals.
+                if (!verifiable && requirement.needsSteps && activityRecognitionDenied) {
                     column.addView(ui.vgap(ui.dimens.lineGap))
-                    column.addView(
-                        ui.note(
-                            getString(
-                                AliveStates.physicalQuestHowLine(requirement, stepsMeasurable),
-                                quest.estimatedDurationMinutes
-                            )
-                        )
-                    )
-                    // The other half of the deal, before it is taken on: this is a
-                    // mission that can finish without its owner saying so.
-                    column.addView(ui.vgap(ui.dimens.pairGap))
-                    column.addView(ui.note(getString(R.string.quest_auto_settle_note)))
-                    if (requirement.needsSteps && activityRecognitionDenied) {
-                        column.addView(ui.vgap(ui.dimens.pairGap))
-                        column.addView(ui.note(getString(R.string.quest_how_steps_permission)))
-                    }
+                    column.addView(ui.note(getString(R.string.quest_how_steps_permission)))
                 }
             }
         }
@@ -2894,11 +2754,6 @@ class MainActivity : AppCompatActivity() {
         column.addView(panelHeader(getString(AliveStates.categoryLabel(quest.category))))
         column.addView(buildQuestStatusBlock(attempt, quest, withHeader = false))
 
-        column.addView(ui.vgap(ui.dimens.groupGap))
-        column.addView(ui.sectionHeader(getString(R.string.quest_detail_how_title)))
-        column.addView(ui.vgap(ui.dimens.lineGap))
-        column.addView(ui.note(getString(R.string.focus_monitors)))
-
         openOverlay(scroll)
     }
 
@@ -2921,104 +2776,37 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * A running session, stated calmly: what it is, how much is left, what stays
-     * open, what happens when time runs out. No celebration, no counter to beat.
+     * A running session rendered via [ActiveFocusScreen]: countdown ring hero,
+     * goal identity card, two compact permission tiles, and extend action.
      */
     private fun buildFocusSessionInto(column: LinearLayout, session: FocusSession) {
-        val focusFace = AliveStates.focusPreviewSpriteFor(session.activityType)
-        val totalMs = (session.durationMinutes.coerceAtLeast(1L) * 60_000L).toFloat()
-        val remainingRatio = (session.getRemainingMinutes().coerceAtLeast(0L) * 60_000f / totalMs)
-            .coerceIn(0f, 1f)
-        val mascotBadge = ui.iconTile(
-            ContextCompat.getColor(this, QuestHues.focus(session.activityType)),
-            AliveStates.faceSpriteFor(focusFace),
-            ui.dimens.characterLarge
-        ).apply {
-            contentDescription = getString(AliveStates.faceDescription(focusFace))
-            AliveMotion.startBreathing(this, maxScale = 1.055f, periodMs = 2600L)
-        }
-        val ring = FocusSetupScreen.Ring(this, ui).apply {
-            fraction = remainingRatio
-        }
-        val hero = FrameLayout(this).apply {
-            background = GradientDrawable().apply {
-                setColor(ui.palette.fieldLilac)
-                cornerRadius = ui.dimens.radiusCard.toFloat()
-            }
-            setPadding(ui.dimens.dp(20), ui.dimens.dp(24), ui.dimens.dp(20), ui.dimens.dp(24))
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-            addView(
-                ring,
-                FrameLayout.LayoutParams(
-                    ui.dimens.dp(196),
-                    ui.dimens.dp(196),
-                    Gravity.CENTER
-                )
-            )
-            addView(
-                mascotBadge,
-                FrameLayout.LayoutParams(
-                    ui.dimens.characterLarge,
-                    ui.dimens.characterLarge,
-                    Gravity.CENTER
-                )
-            )
-        }
-        column.addView(hero)
-        column.addView(ui.vgap(ui.dimens.groupGap))
-        column.addView(ui.headline(getString(R.string.focus_active_heading, activityLabel(session.activityType))))
-        column.addView(ui.vgap(ui.dimens.groupGap))
-
-        column.addView(ui.timer(focusRemainingLine(session)))
-        column.addView(ui.vgap(ui.dimens.pairGap))
-        column.addView(ui.note(getString(R.string.focus_of_total, session.durationMinutes)))
-
-        column.addView(ui.vgap(ui.dimens.groupGap))
-        column.addView(ui.note(getString(R.string.focus_goal_quoted, session.goal)))
-
-        column.addView(ui.vgap(ui.dimens.groupGap))
-        column.addView(ui.sectionHeader(getString(R.string.focus_allowed_heading)))
-        column.addView(ui.vgap(ui.dimens.lineGap))
-        column.addView(
-            ui.note(
-                getString(
-                    R.string.focus_allowed_body,
-                    FocusAppPolicy.getApprovedPackages(session.activityType).size
-                )
-            )
-        )
-        column.addView(ui.vgap(ui.dimens.lineGap))
-        // ALIVE watches which app is foregrounded. That is the whole claim.
-        column.addView(ui.note(getString(R.string.focus_monitors)))
-        column.addView(ui.vgap(ui.dimens.lineGap))
-        column.addView(ui.note(getString(R.string.focus_next)))
-
         val bank = state.signals?.reclaimedAvailableMinutes ?: 0L
-        column.addView(ui.vgap(ui.dimens.groupGap))
         column.addView(
-            ui.secondary(getString(R.string.focus_extend)).apply {
-                isEnabled = bank >= 15
-                AliveMotion.attachPressSpring(this, pressedScale = 0.96f, hapticOnDown = isEnabled)
-                setOnClickListener {
-                    it.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
-                    AliveMotion.pulsePop(it, dipScale = 0.94f)
-                    if (focusSessionManager.extendFocusWithTimeBank(15)) {
-                        toast(R.string.focus_extended_toast)
-                        renderDashboard()
-                        scheduleForegroundFocusCheck(state.focusSession)
-                        renderQuestSection()
-                        openFocusSessionPanel()
-                    } else {
-                        toast(R.string.time_bank_not_enough)
+            ActiveFocusScreen.build(
+                context = this,
+                ui = ui,
+                data = ActiveFocusScreen.Data(
+                    activityType = session.activityType,
+                    goal = session.goal,
+                    durationMinutes = session.durationMinutes,
+                    startTimestampMs = session.startTimestamp,
+                    endTimestampMs = session.endTimestamp,
+                    allowedAppCount = FocusAppPolicy.getApprovedPackages(session.activityType).size,
+                    bankMinutes = bank,
+                    onExtend = {
+                        if (focusSessionManager.extendFocusWithTimeBank(15)) {
+                            toast(R.string.focus_extended_toast)
+                            renderDashboard()
+                            scheduleForegroundFocusCheck(state.focusSession)
+                            renderQuestSection()
+                            openFocusSessionPanel()
+                        } else {
+                            toast(R.string.time_bank_not_enough)
+                        }
                     }
-                }
-            }
+                )
+            )
         )
-        column.addView(ui.vgap(ui.dimens.lineGap))
-        column.addView(ui.note(getString(R.string.focus_extend_support)))
     }
 
     // ------------------------------------------------------------------

@@ -3,119 +3,138 @@ package com.projectego.app.ui
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.content.Context
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.LayerDrawable
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.LinearInterpolator
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.ColorInt
 import com.projectego.app.R
 
 /**
- * The first five seconds of the critical note: the field behind it turns red and
- * breathes, and the note refuses to be sent away.
- *
- * Two decisions worth stating, because both are measured rather than felt:
- *
- *  - The red is a *field*, and the words sit on the paper card inside it. Ink on
- *    `red_short_mid` measures 4.27:1, under the app's own floor, so a warning that
- *    wrote straight onto the red would be the one screen in ALIVE that quietly
- *    broke the rule the palette test enforces everywhere else.
- *  - The pulse is one breath per second, not a strobe: bright to deep and back,
- *    which is inside every photosensitivity guideline and still reads as movement
- *    from across a room. When the device says "remove animated transitions" the
- *    field stays the same red and simply stops moving.
- *
- * The countdown is the reason the note is not a trap: the user can see how long
- * the window lasts, and the app never claims a lock it cannot keep - HOME still
- * works, because Android does not let any app refuse it.
+ * Phase 1 of [CriticalAlertActivity]: a five-second non-dismissible urgency
+ * frame around a calm editorial readout so a hasty tap never skips the number.
  */
 object CriticalWarningCard {
 
-    /** How long the note holds the screen before it hands over to the card. */
     const val LOCK_SECONDS = 5
-
-    private const val TICK_MILLIS = 1_000L
-
-    /** Half a breath: out and back is one second, the slow end of safe. */
     private const val BREATH_MILLIS = 500L
+    private const val SECOND_MILLIS = 1_000L
 
-    /**
-     * The field's colour at one point of the breath.
-     *
-     * Pure and public so the gate can be tested without a running animator: with
-     * animations off the answer is the same red at every point, which is the whole
-     * promise of respecting the system setting.
-     */
-    fun fieldColour(progress: Float, animationsOn: Boolean, mid: Int, deep: Int): Int =
-        if (!animationsOn) mid else ArgbEvaluator().evaluate(progress, mid, deep) as Int
+    private val evaluator = ArgbEvaluator()
 
-    /**
-     * Builds the warning, already ticking. It starts and stops with its own
-     * attachment, so the Activity that hosts it owns no timers and nothing keeps
-     * ticking after the window is gone. (It used to say "the same way the
-     * hourglass mark does"; the mark stopped turning in Batch 4, so the
-     * comparison pointed at code that no longer exists.)
-     */
+    @ColorInt
+    fun fieldColour(
+        progress: Float,
+        animationsOn: Boolean,
+        @ColorInt mid: Int,
+        @ColorInt deep: Int
+    ): Int {
+        if (!animationsOn) return mid
+        return evaluator.evaluate(progress.coerceIn(0f, 1f), mid, deep) as Int
+    }
+
     fun build(
         context: Context,
         ui: AliveComponents,
         remainingMinutes: Long,
         onContinue: () -> Unit
     ): View {
+        val d = ui.dimens
         val mid = ui.palette.shortMid
         val deep = ui.palette.shortDark
+        val framePad = d.dp(8)
+        val innerRadius = (d.radiusCard - framePad).coerceAtLeast(d.dp(12)).toFloat()
 
-        // The MAJOR block: the one surface ALIVE raises on its own, in the colour
-        // the app already reserves for time that is running out.
-        val field = ui.tintedBlock(mid, SurfaceWeight.MAJOR)
-
-        val plate = ui.block(SurfaceWeight.MINOR).apply {
+        val field = ui.column().apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
+            background = CriticalCardChrome.surfaceDrawable(mid, d.radiusCard.toFloat())
+            setPadding(framePad, framePad, framePad, framePad)
         }
 
-        plate.addView(ui.sectionHeader(context.getString(R.string.alert_warning_eyebrow)))
-        plate.addView(ui.vgap(ui.dimens.lineGap))
+        val seconds = ui.sectionHeader(LOCK_SECONDS.toString()).apply {
+            setTextColor(ui.palette.shortDark)
+            setTypeface(typeface, Typeface.BOLD)
+            maxLines = 1
+        }
 
-        // The same figure treatment as the card that follows: the colour never
-        // carries the message on its own.
+        val countdownPill = ui.row().apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            gravity = Gravity.CENTER_VERTICAL
+            background = CriticalCardChrome.surfaceDrawable(
+                ui.palette.shortPale,
+                d.radiusPill.toFloat()
+            )
+            setPadding(d.m, d.dp(6), d.m, d.dp(6))
+            addView(seconds)
+            addView(ui.hgap(d.xs))
+            addView(
+                ui.metaSmall(context.getString(R.string.alert_warning_countdown)).apply {
+                    setTextColor(ui.palette.ink)
+                    maxLines = 1
+                }
+            )
+        }
+
+        val countdownBar = CriticalCardChrome.CapsuleProgressBar(
+            context = context,
+            trackColor = ui.palette.white,
+            fillColor = ui.palette.shortDark,
+            initialFraction = 1f
+        ).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                d.dp(8)
+            )
+        }
+
+        val plate = ui.column().apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            background = CriticalCardChrome.surfaceDrawable(ui.palette.white, innerRadius)
+            val pad = d.dp(18)
+            setPadding(pad, pad, pad, pad)
+        }
+
         plate.addView(
-            ui.row().apply {
-                gravity = Gravity.BOTTOM
-                addView(ui.timer(context.getString(R.string.stat_minutes, remainingMinutes)))
-                addView(
-                    ui.meta(context.getString(R.string.stat_min_left)).apply {
-                        setPadding(ui.dimens.s, 0, 0, ui.dimens.xs)
-                    }
-                )
+            CriticalCardChrome.headerRow(
+                context = context,
+                ui = ui,
+                eyebrowRes = R.string.alert_warning_eyebrow,
+                trailingBadge = countdownPill
+            )
+        )
+        plate.addView(ui.vgap(d.l))
+        plate.addView(
+            CriticalCardChrome.heroBoard(
+                context = context,
+                ui = ui,
+                remainingMinutes = remainingMinutes,
+                progressBar = countdownBar
+            )
+        )
+        plate.addView(ui.vgap(d.l))
+        plate.addView(
+            ui.lead(context.getString(R.string.alert_warning_body)).apply {
+                setTextColor(ui.palette.ink)
             }
         )
-
-        plate.addView(ui.vgap(ui.dimens.lineGap))
-        plate.addView(ui.note(context.getString(R.string.alert_warning_body)))
-
-        val seconds = ui.textTile(LOCK_SECONDS.toString(), ui.palette.shortPale)
-        plate.addView(ui.vgap(ui.dimens.groupGap))
-        plate.addView(
-            ui.row().apply {
-                gravity = Gravity.CENTER_VERTICAL
-                addView(seconds)
-                addView(ui.hgap(ui.dimens.m))
-                addView(ui.meta(context.getString(R.string.alert_warning_countdown)))
-            }
-        )
-
-        plate.addView(ui.vgap(ui.dimens.groupGap))
-        plate.addView(ui.accents(seed = 3))
 
         field.addView(plate)
-
-        hookTimer(ui, field, seconds, mid, deep, onContinue)
+        hookTimer(ui, field, seconds, countdownBar, mid, deep, onContinue)
         return field
     }
 
@@ -123,61 +142,78 @@ object CriticalWarningCard {
         ui: AliveComponents,
         field: LinearLayout,
         seconds: TextView,
-        mid: Int,
-        deep: Int,
+        countdownBar: CriticalCardChrome.CapsuleProgressBar,
+        @ColorInt mid: Int,
+        @ColorInt deep: Int,
         onContinue: () -> Unit
     ) {
         val handler = Handler(Looper.getMainLooper())
-        var left = LOCK_SECONDS
+        var remaining = LOCK_SECONDS
+        var finished = false
+        var breath: ValueAnimator? = null
+        var barAnimator: ValueAnimator? = null
+
+        fun stopAnimators() {
+            breath?.cancel()
+            breath = null
+            barAnimator?.cancel()
+            barAnimator = null
+            (field.background as? GradientDrawable)?.setColor(mid)
+        }
 
         val tick = object : Runnable {
             override fun run() {
-                left -= 1
-                if (left <= 0) {
+                if (finished) return
+                remaining -= 1
+                if (remaining > 0) {
+                    seconds.text = remaining.toString()
+                    if (!ui.animationsAllowed) {
+                        countdownBar.fraction = remaining.toFloat() / LOCK_SECONDS.toFloat()
+                    }
+                    handler.postDelayed(this, SECOND_MILLIS)
+                } else {
+                    finished = true
+                    countdownBar.fraction = 0f
+                    stopAnimators()
                     onContinue()
-                    return
                 }
-                seconds.text = left.toString()
-                handler.postDelayed(this, TICK_MILLIS)
             }
         }
 
         field.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-            private var breath: ValueAnimator? = null
+            override fun onViewAttachedToWindow(v: View) {
+                if (finished) return
+                handler.removeCallbacks(tick)
+                handler.postDelayed(tick, SECOND_MILLIS)
 
-            override fun onViewAttachedToWindow(view: View) {
-                if (ui.animationsAllowed) {
+                if (ui.animationsAllowed && breath == null) {
+                    val face = field.background as? GradientDrawable
                     breath = ValueAnimator.ofFloat(0f, 1f).apply {
                         duration = BREATH_MILLIS
-                        repeatCount = ValueAnimator.INFINITE
+                        repeatCount = LOCK_SECONDS * 2 - 1
                         repeatMode = ValueAnimator.REVERSE
-                        addUpdateListener { running ->
-                            faceOf(view)?.setColor(
-                                fieldColour(running.animatedFraction, true, mid, deep)
-                            )
+                        interpolator = AccelerateDecelerateInterpolator()
+                        addUpdateListener { anim ->
+                            val value = anim.animatedValue as Float
+                            face?.setColor(fieldColour(value, true, mid, deep))
+                        }
+                        start()
+                    }
+                    barAnimator = ValueAnimator.ofFloat(1f, 0f).apply {
+                        duration = LOCK_SECONDS * SECOND_MILLIS
+                        interpolator = LinearInterpolator()
+                        addUpdateListener { anim ->
+                            countdownBar.fraction = anim.animatedValue as Float
                         }
                         start()
                     }
                 }
-                handler.postDelayed(tick, TICK_MILLIS)
             }
 
-            override fun onViewDetachedFromWindow(view: View) {
-                handler.removeCallbacksAndMessages(null)
-                breath?.cancel()
-                breath = null
-                faceOf(view)?.setColor(mid)
+            override fun onViewDetachedFromWindow(v: View) {
+                handler.removeCallbacks(tick)
+                stopAnimators()
             }
         })
-    }
-
-    /**
-     * The red layer of the MAJOR block, which is the second layer of the pair the
-     * app builds for every raised surface: ink underneath, face on top.
-     */
-    private fun faceOf(view: View): GradientDrawable? = when (val bg = view.background) {
-        is GradientDrawable -> bg.apply { mutate() }
-        is LayerDrawable -> (bg.getDrawable(1) as? GradientDrawable)?.apply { mutate() }
-        else -> null
     }
 }
