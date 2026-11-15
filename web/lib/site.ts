@@ -55,7 +55,7 @@ export const basePath =
 export const apkUrl = process.env.NEXT_PUBLIC_APK_URL
 
 /** Fallback destination when a local preview runs without NEXT_PUBLIC_APK_URL. */
-export const releasePageUrl = 'https://github.com/ALIVEbyHUMANOISE/ALIVE/releases/latest'
+export const releasePageUrl = 'https://github.com/humanoiseLABS/ALIVE/releases/latest'
 
 export const brand = 'ALIVE'
 
