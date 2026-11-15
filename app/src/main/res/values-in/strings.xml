@@ -71,7 +71,7 @@
     <string name="action_continue">Lanjut</string>
     <string name="action_finish_life_mission">Selesaikan misi kehidupan!</string>
     <string name="action_back">Kembali</string>
-    <string name="action_start_quest">Mulai misi</string>
+    <string name="action_start_quest">Mulai misi →</string>
 
     <!-- ============ KEADAAN KOSONG ============ -->
     <string name="empty_heading">Belum ada apa pun</string>
@@ -104,7 +104,7 @@
     <string name="welcome_usage_label">Akses pemakaian</string>
     <string name="welcome_accessibility_label">Aksesibilitas</string>
     <string name="welcome_usage_why">Akses pemakaian adalah cara ALIVE menghitung menit di aplikasi hiburan — hanya totalnya, bukan isinya.</string>
-    <string name="welcome_next">Lanjut</string>
+    <string name="welcome_next">Lanjut →</string>
     <string name="welcome_chip_minutes">120 menit</string>
     <string name="welcome_chip_closed">ditutup</string>
     <string name="welcome_chip_mission">1 misi</string>
@@ -216,7 +216,7 @@
     <string name="quest_custom_pays_note">Bayarannya sama dengan misi katalog sepanjang itu, sekali.</string>
 
     <!-- ============ HALAMAN MISI ============ -->
-    <string name="quest_detail_duration_title">Menit</string>
+    <string name="quest_detail_duration_title">Durasi</string>
     <string name="quest_detail_how_title">Cara kerjanya</string>
     <string name="quest_detail_keeps_besok">Misi ini menjaga besok</string>
     <string name="quest_step_start">Kamu tekan mulai.</string>
@@ -406,7 +406,7 @@
     <string name="chart_subhead">Ke mana waktunya pergi.</string>
     <string name="chart_open">Pemakaian hari ini</string>
     <string name="chart_range_today">Hari ini</string>
-    <string name="chart_range_week">7 hari terakhir</string>
+    <string name="chart_range_week">7 hari</string>
     <string name="chart_range_month">Bulan ini</string>
     <string name="chart_axis_note">Tinggi batang dibandingkan dengan hari terbesar di rentang ini.</string>
     <string name="chart_coverage_eyebrow">Cakupan</string>
@@ -606,13 +606,13 @@
     <string name="profile_reminders_promise_off">Janji mati</string>
     <string name="profile_reminders_open">Buka pengingat</string>
     <string name="reminders_heading">Pengingat</string>
-    <string name="reminders_subhead">Dua hal yang datang tanpa dipanggil: air, dan janji malam.</string>
+    <string name="reminders_subhead">Dua hal yang datang tanpa dipanggil.</string>
     <string name="reminders_water_heading">Minum</string>
     <string name="reminders_water_status_on">Nyala. Island akan naik dengan segelas air di kepala.</string>
     <string name="reminders_water_status_off">Mati. ALIVE diam soal air.</string>
-    <string name="reminders_water_next">Berikutnya: %1$s</string>
+    <string name="reminders_water_next">Berikutnya %1$s</string>
     <string name="reminders_water_interval">Seberapa sering</string>
-    <string name="reminders_minutes">%1$d mnt</string>
+    <string name="reminders_minutes">%1$d</string>
     <string name="reminders_water_hours">Jam aktif</string>
     <string name="reminders_hours">%1$02d–%2$02d</string>
     <string name="reminders_water_enable">Nyalakan pengingat minum</string>
@@ -631,7 +631,7 @@
     <string name="reminders_island_kicker">Island membuka sendiri</string>
     <string name="reminders_island_note">selama pill nyala</string>
     <string name="reminders_promise_note">Saat waktunya, island juga naik. Satu aksinya langsung membuka janji, tidak perlu mencari dulu.</string>
-    <string name="reminders_note">Island membuka sendiri untuk keduanya, selama pill melayangnya nyala. Bunyi pengingat lewat jalur alarm HP, jadi tetap kedengeran walau volume dering rendah.</string>
+    <string name="reminders_note">Pengingat datang di jam aktif, tidak di luar itu.</string>
     <string name="drink_notif_title">Waktunya minum</string>
     <string name="drink_notif_body">Segelas air, sekarang. ALIVE akan bertanya lagi nanti.</string>
     <string name="drink_action_done">Sudah minum</string>
@@ -671,10 +671,11 @@
     <string name="beranda_focus">Fokus</string>
     <string name="beranda_focus_today">Fokus hari ini</string>
     <string name="beranda_focus_fallback">Pilih misi hari ini</string>
+    <string name="beranda_focus_start">Mulai sesi fokus</string>
     <string name="beranda_streak_days">%1$d hari beruntun</string>
     <string name="beranda_tomorrow_safe">Besok aman</string>
     <string name="beranda_tomorrow_open">Besok belum aman</string>
-    <string name="quest_filter_today">Hari Ini</string>
+    <string name="quest_filter_today">Hari ini</string>
     <string name="quest_custom_kicker">Misi kamu</string>
     <string name="quest_custom_title">Tulis sendiri</string>
     <string name="quest_reward_chip">+%1$d</string>
@@ -710,6 +711,7 @@
     <string name="perm_alert_kicker">Belum lengkap</string>
     <string name="perm_alert_title">ALIVE belum bisa melihat yang dibutuhkan</string>
     <string name="perm_note">Hari tanpa penjaga tetap dicatat. ALIVE tidak berpura-pura hari itu aman.</string>
+    <string name="perm_subhead">Dua saklar sebelum semuanya bekerja.</string>
     <string name="focus_ring_time">%1$02d:00</string>
     <string name="focus_kicker_activity">Lagi ngapain</string>
     <string name="focus_kicker_allowed">Boleh dibuka</string>
@@ -723,4 +725,124 @@
     <string name="galaxy_chip_missions">%d misi</string>
     <string name="galaxy_chip_focus">%d mnt fokus</string>
     <string name="galaxy_continue">Lanjut →</string>
+
+    <!-- Pass 2 flat parity additions -->
+    <string name="quest_back_label">Misi</string>
+    <string name="profile_back_label">Profil</string>
+    <string name="focus_back_label">Fokus</string>
+    <string name="time_bank_claim_short">Klaim %1$d</string>
+    <string name="profile_promise_short">janji 21.00</string>
+    <string name="profile_water_and_promise">%1$s · %2$s</string>
+    <string name="quest_detail_reward_bank">bank</string>
+    <string name="quest_detail_level_of_three">dari 3</string>
+    <string name="guardian_kicker_stopped">Penjagaan berhenti</string>
+    <string name="guardian_kicker_restored">Penjagaan pulih</string>
+    <string name="guardian_kicker_active">Penjagaan nyala</string>
+    <string name="guardian_tile_since">Sejak</string>
+    <string name="guardian_tile_today">Hari ini</string>
+    <string name="guardian_tile_closed_unit">\u0020tertutup</string>
+    <string name="guardian_tile_left">Sisa jatah</string>
+    <string name="night_contract_eyebrow">Malam · 21.00</string>
+    <string name="night_contract_sub">Tiga ketukan sekarang, sementara kepala masih dingin.</string>
+    <string name="night_contract_row_allowance">Jatah besok</string>
+    <string name="night_contract_row_mission">Satu misi</string>
+    <string name="night_contract_allowance_value">%1$d menit</string>
+    <string name="night_contract_footer">Berlaku besok, bukan malam ini.</string>
+    <string name="time_bank_minutes_stacked">menit\ntersedia</string>
+    <string name="time_bank_tile_in">Masuk</string>
+    <string name="time_bank_tile_out">Keluar</string>
+    <string name="time_bank_tile_claimed">Klaim hari ini</string>
+    <string name="time_bank_claimed_fraction">%1$d/%2$d</string>
+    <string name="welcome_step_badge">%1$d / %2$d</string>
+    <string name="welcome_philosophy_sub">Niat yang lebih keras tidak bertahan. Jadi ALIVE berhenti meminta kamu memutuskan.</string>
+
+    <!-- Inspektor karakter Galaksi, pendamping aktif & shortcut -->
+    <string name="galaxy_companion_kicker">Pendamping · %1$s</string>
+    <string name="galaxy_overview_companion">Pendamping aktif: %1$s</string>
+    <string name="galaxy_tap_hint">Ketuk karakter di roda untuk lihat jejak atau mulai aktivitas.</string>
+    <string name="galaxy_badge_companion">Pendamping aktif</string>
+    <string name="galaxy_badge_awakened">Terbuka</string>
+    <string name="galaxy_badge_dormant">Tertidur</string>
+    <string name="galaxy_hub_count">%1$d jejak tercatat</string>
+    <string name="galaxy_hub_dormant">Belum pernah terjadi</string>
+    <string name="galaxy_trail_work">%1$d selesai · %2$d mnt fokus</string>
+    <string name="galaxy_trail_state_days">%1$d hari tercatat (40h)</string>
+    <string name="galaxy_set_companion">Jadikan pendamping</string>
+    <string name="galaxy_companion_active_pill">Pendamping aktif ✓</string>
+    <string name="galaxy_companion_locked_hint">Selesaikan 1x agar bisa dipilih jadi pendamping.</string>
+    <string name="galaxy_state_no_companion_hint">Cermin keadaan hari · merekam pola harimu.</string>
+    <string name="galaxy_action_focus">Mulai fokus %1$s →</string>
+    <string name="galaxy_action_quest">Lihat misi %1$s →</string>
+    <string name="galaxy_action_custom_quest">Tulis misi sendiri →</string>
+    <string name="galaxy_action_bank">Buka Bank Waktu →</string>
+    <string name="galaxy_action_permissions">Cek izin ALIVE →</string>
+    <string name="galaxy_action_reminders">Atur pengingat &amp; janji →</string>
+    <string name="galaxy_action_stats">Lihat di Statistik →</string>
+    <string name="galaxy_companion_selected_toast">%1$s sekarang menjadi pendampingmu</string>
+    <string name="galaxy_back_overview">Ringkasan</string>
+
+    <string name="galaxy_member_study_title">Belajar</string>
+    <string name="galaxy_member_study_line">Menemani sesi catatan, materi kuliah, dan bacaan serius tanpa pecah fokus.</string>
+    <string name="galaxy_member_reading_title">Membaca</string>
+    <string name="galaxy_member_reading_line">Menukar scroll dengan buku, artikel panjang, atau catatan tanpa suara bising.</string>
+    <string name="galaxy_member_exercise_title">Olahraga</string>
+    <string name="galaxy_member_exercise_line">Menggerakkan badan lepas dari layar supaya hari terasa lewat tenaga, bukan jempol.</string>
+    <string name="galaxy_member_walking_title">Jalan kaki</string>
+    <string name="galaxy_member_walking_line">Langkah fisik di luar lingkaran hiburan; sepuluh menit saja sudah menyegarkan.</string>
+    <string name="galaxy_member_cleaning_title">Bersih-bersih</string>
+    <string name="galaxy_member_cleaning_line">Merapikan meja, kamar, atau cucian — bukti kecil kamu memegang kendali ruangmu.</string>
+    <string name="galaxy_member_creative_title">Kreatif</string>
+    <string name="galaxy_member_creative_line">Pendamping bawaan sejak hari pertama. Untuk desain, musik, edit, atau berkarya.</string>
+    <string name="galaxy_member_coding_title">Ngoding</string>
+    <string name="galaxy_member_coding_line">Menjaga editor dan terminal tetap terbuka saat fokus sambil menutup hiburan.</string>
+    <string name="galaxy_member_writing_title">Menulis</string>
+    <string name="galaxy_member_writing_line">Ruang tenang untuk naskah, jurnal, atau dokumen tanpa dorongan pindah tab.</string>
+    <string name="galaxy_member_mindfulness_title">Mindfulness</string>
+    <string name="galaxy_member_mindfulness_line">Napas pelan, jeda, atau duduk tenang sebelum refleks meraih ponsel lagi.</string>
+    <string name="galaxy_member_social_title">Sosial</string>
+    <string name="galaxy_member_social_line">Obrolan nyata dan waktu bersama orang di sekitar, bukan di kolom komentar.</string>
+    <string name="galaxy_member_work_title">Kerja</string>
+    <string name="galaxy_member_work_line">Blok kerja untuk dokumen, email, serta misi yang kamu tulis dan tentukan sendiri.</string>
+
+    <string name="galaxy_state_normal_title">Hari aman</string>
+    <string name="galaxy_state_normal_line">Pemakaian hiburan masih longgar di bawah batas harian tanpa menyentuh zona merah.</string>
+    <string name="galaxy_state_near_title">Hampir mentok</string>
+    <string name="galaxy_state_near_line">Jatah sisa 30 menit atau kurang, saat ALIVE mulai mengingatkan sebelum tertutup.</string>
+    <string name="galaxy_state_spent_title">Jatah habis</string>
+    <string name="galaxy_state_spent_line">Batas hiburan tercapai dan aplikasi ditutup sampai esok atau klaim Bank Waktu.</string>
+    <string name="galaxy_state_recovery_title">Hari pemulihan</string>
+    <string name="galaxy_state_recovery_line">Hari tanpa jatah hiburan bawaan; hasil misi dan fokus mengalir ke Bank Waktu.</string>
+    <string name="galaxy_state_unknown_title">Belum terbaca</string>
+    <string name="galaxy_state_unknown_line">Hari tanpa catatan atau saat izin penjaga mati sehingga ALIVE tidak bisa melihat.</string>
+    <string name="galaxy_state_rest_title">Istirahat &amp; janji</string>
+    <string name="galaxy_state_rest_line">Istirahat yang diniatkan atau janji 21.00 yang dijaga — jeda tenang, bukan kegagalan.</string>
+
+    <!-- Bond pendamping, bonus sinergi & kartu selebrasi -->
+    <string name="bond_rank_1_name">Pemula</string>
+    <string name="bond_rank_2_name">Selaras</string>
+    <string name="bond_rank_3_name">Akrab</string>
+    <string name="bond_rank_4_name">Master</string>
+    <string name="bond_rank_line">Peringkat %1$d · %2$s · %3$d / %4$d XP</string>
+    <string name="bond_rank_master_line">Peringkat %1$d · %2$s · Penuh ✓</string>
+    <string name="bond_tile_sub">Peringkat %1$d · %2$s</string>
+    <string name="galaxy_synergy_rule">Sinergi saat jadi pendamping: +2 mnt Bank Waktu &amp; Bond ×2 saat aktivitas cocok.</string>
+
+    <string name="victory_kicker_quest">MISI TUNTAS</string>
+    <string name="victory_kicker_focus">FOKUS SELESAI</string>
+    <string name="victory_flare_awakened">KARAKTER BANGUN!</string>
+    <string name="victory_flare_rank_up">NAIK PANGKAT · RANK %1$d</string>
+    <string name="victory_flare_level_up">LEVEL %1$d TERCAPAI!</string>
+    <string name="victory_synergy_active">SINERGI AKTIF · %1$s</string>
+    <string name="victory_tile_bank_label">Bank Waktu</string>
+    <string name="victory_tile_focus_label">Durasi Fokus</string>
+    <string name="victory_tile_minutes_gain">+%1$d mnt</string>
+    <string name="victory_tile_minutes_duration">%1$d mnt</string>
+    <string name="victory_tile_synergy_note">+%1$d mnt sinergi</string>
+    <string name="victory_tile_quest_base_note">hadiah misi</string>
+    <string name="victory_tile_focus_note">%1$d mnt tuntas</string>
+    <string name="victory_tile_bond_label">Bond · %1$s</string>
+    <string name="victory_tile_bond_delta">+%1$d XP</string>
+    <string name="victory_cta_done">Mantap →</string>
+    <string name="victory_cta_next">Berikutnya (%1$d) →</string>
+    <string name="dev_preview_victory">Dev: Pratinjau Kartu Kemenangan</string>
 </resources>

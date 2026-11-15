@@ -75,7 +75,7 @@
     <string name="action_continue">Continue</string>
     <string name="action_finish_life_mission">Complete a life mission!</string>
     <string name="action_back">Back</string>
-    <string name="action_start_quest">Start quest</string>
+    <string name="action_start_quest">Start mission →</string>
 
     <!-- ============ EMPTY STATE ============ -->
     <string name="empty_heading">Nothing right now</string>
@@ -108,7 +108,7 @@
     <string name="welcome_usage_label">Usage access</string>
     <string name="welcome_accessibility_label">Accessibility</string>
     <string name="welcome_usage_why">Usage access is how ALIVE counts minutes in entertainment apps — totals, never content.</string>
-    <string name="welcome_next">Next</string>
+    <string name="welcome_next">Next →</string>
     <string name="welcome_chip_minutes">120 minutes</string>
     <string name="welcome_chip_closed">closed</string>
     <string name="welcome_chip_mission">1 mission</string>
@@ -235,7 +235,7 @@
     <string name="quest_custom_pays_note">It pays the same as a catalog quest of the same length, once.</string>
 
     <!-- ============ QUEST DETAIL (journal page) ============ -->
-    <string name="quest_detail_duration_title">Minutes</string>
+    <string name="quest_detail_duration_title">Duration</string>
     <string name="quest_detail_how_title">How it works</string>
     <string name="quest_detail_keeps_besok">This mission keeps tomorrow safe</string>
     <!-- Three numbered steps replace one paragraph, because the paragraph was the
@@ -442,7 +442,7 @@
     <string name="chart_subhead">Where the time went.</string>
     <string name="chart_open">Today\'s usage</string>
     <string name="chart_range_today">Today</string>
-    <string name="chart_range_week">Last 7 days</string>
+    <string name="chart_range_week">7 days</string>
     <string name="chart_range_month">This month</string>
     <string name="chart_axis_note">Bar heights are compared against the biggest day in this range.</string>
     <!-- The key under the chart: one row per kind of day, counted, and tappable. -->
@@ -662,13 +662,13 @@
     <string name="profile_reminders_promise_off">Promise off</string>
     <string name="profile_reminders_open">Open reminders</string>
     <string name="reminders_heading">Reminders</string>
-    <string name="reminders_subhead">Two things that arrive uninvited: water, and the promise at night.</string>
+    <string name="reminders_subhead">Two things that arrive uninvited.</string>
     <string name="reminders_water_heading">Water</string>
     <string name="reminders_water_status_on">On. The island will rise with a glass in mind.</string>
     <string name="reminders_water_status_off">Off. ALIVE stays quiet about water.</string>
-    <string name="reminders_water_next">Next: %1$s</string>
+    <string name="reminders_water_next">Next %1$s</string>
     <string name="reminders_water_interval">How often</string>
-    <string name="reminders_minutes">%1$d m</string>
+    <string name="reminders_minutes">%1$d</string>
     <string name="reminders_water_hours">Active hours</string>
     <string name="reminders_hours">%1$02d–%2$02d</string>
     <string name="reminders_water_enable">Turn on water reminders</string>
@@ -687,7 +687,7 @@
     <string name="reminders_island_kicker">Island opens itself</string>
     <string name="reminders_island_note">while the pill is on</string>
     <string name="reminders_promise_note">When it is time, the island rises too. Its one action opens the promise, so there is nothing to find first.</string>
-    <string name="reminders_note">The island expands by itself for both, as long as the floating pill is on. The reminder’s chime plays on the phone’s alarm volume, so it is heard even when the ringer is low.</string>
+    <string name="reminders_note">Reminders arrive during active hours, not outside them.</string>
     <string name="drink_notif_title">Time for water</string>
     <string name="drink_notif_body">A glass, now. ALIVE will ask again later.</string>
     <string name="drink_action_done">Drank it</string>
@@ -728,6 +728,7 @@
     <string name="beranda_focus">Focus</string>
     <string name="beranda_focus_today">Today\'s focus</string>
     <string name="beranda_focus_fallback">Pick today\'s mission</string>
+    <string name="beranda_focus_start">Start a focus session</string>
     <string name="beranda_streak_days">%1$d-day streak</string>
     <string name="beranda_tomorrow_safe">Tomorrow is safe</string>
     <string name="beranda_tomorrow_open">Tomorrow is not safe yet</string>
@@ -767,6 +768,7 @@
     <string name="perm_alert_kicker">Not complete</string>
     <string name="perm_alert_title">ALIVE cannot see what it needs</string>
     <string name="perm_note">A day without the guard is still recorded. ALIVE does not pretend that day was safe.</string>
+    <string name="perm_subhead">Two switches before everything works.</string>
     <string name="focus_ring_time">%1$02d:00</string>
     <string name="focus_kicker_activity">What you\'re doing</string>
     <string name="focus_kicker_allowed">Allowed to open</string>
@@ -780,4 +782,124 @@
     <string name="galaxy_chip_missions">%d missions</string>
     <string name="galaxy_chip_focus">%d min focus</string>
     <string name="galaxy_continue">Continue →</string>
+
+    <!-- Pass 2 flat parity additions -->
+    <string name="quest_back_label">Missions</string>
+    <string name="profile_back_label">Profile</string>
+    <string name="focus_back_label">Focus</string>
+    <string name="time_bank_claim_short">Claim %1$d</string>
+    <string name="profile_promise_short">promise 21.00</string>
+    <string name="profile_water_and_promise">%1$s · %2$s</string>
+    <string name="quest_detail_reward_bank">bank</string>
+    <string name="quest_detail_level_of_three">of 3</string>
+    <string name="guardian_kicker_stopped">Guard stopped</string>
+    <string name="guardian_kicker_restored">Guard restored</string>
+    <string name="guardian_kicker_active">Guard active</string>
+    <string name="guardian_tile_since">Since</string>
+    <string name="guardian_tile_today">Today</string>
+    <string name="guardian_tile_closed_unit">\u0020closed</string>
+    <string name="guardian_tile_left">Allowance left</string>
+    <string name="night_contract_eyebrow">Night · 21.00</string>
+    <string name="night_contract_sub">Three taps now, while your head is still clear.</string>
+    <string name="night_contract_row_allowance">Tomorrow\'s limit</string>
+    <string name="night_contract_row_mission">One mission</string>
+    <string name="night_contract_allowance_value">%1$d min</string>
+    <string name="night_contract_footer">Applies tomorrow, not tonight.</string>
+    <string name="time_bank_minutes_stacked">minutes\navailable</string>
+    <string name="time_bank_tile_in">In</string>
+    <string name="time_bank_tile_out">Out</string>
+    <string name="time_bank_tile_claimed">Claimed today</string>
+    <string name="time_bank_claimed_fraction">%1$d/%2$d</string>
+    <string name="welcome_step_badge">%1$d / %2$d</string>
+    <string name="welcome_philosophy_sub">Trying harder does not hold. So ALIVE stops asking you to decide.</string>
+
+    <!-- Galaxy character inspector, companion selection & habit shortcuts -->
+    <string name="galaxy_companion_kicker">Companion · %1$s</string>
+    <string name="galaxy_overview_companion">Active companion: %1$s</string>
+    <string name="galaxy_tap_hint">Tap any character on the wheel to inspect or launch.</string>
+    <string name="galaxy_badge_companion">Active companion</string>
+    <string name="galaxy_badge_awakened">Awakened</string>
+    <string name="galaxy_badge_dormant">Asleep</string>
+    <string name="galaxy_hub_count">%1$d recorded</string>
+    <string name="galaxy_hub_dormant">Not yet lived</string>
+    <string name="galaxy_trail_work">%1$d completed · %2$d min focus</string>
+    <string name="galaxy_trail_state_days">%1$d days recorded (40d)</string>
+    <string name="galaxy_set_companion">Set as companion</string>
+    <string name="galaxy_companion_active_pill">Active companion ✓</string>
+    <string name="galaxy_companion_locked_hint">Finish once to awaken as companion.</string>
+    <string name="galaxy_state_no_companion_hint">Day state mirror · tracks how your days unfolded.</string>
+    <string name="galaxy_action_focus">Start %1$s focus →</string>
+    <string name="galaxy_action_quest">Find %1$s missions →</string>
+    <string name="galaxy_action_custom_quest">Write your own mission →</string>
+    <string name="galaxy_action_bank">Open Time Bank →</string>
+    <string name="galaxy_action_permissions">Check permissions →</string>
+    <string name="galaxy_action_reminders">Open reminders &amp; promise →</string>
+    <string name="galaxy_action_stats">Open Statistics →</string>
+    <string name="galaxy_companion_selected_toast">%1$s is now your active companion</string>
+    <string name="galaxy_back_overview">Summary</string>
+
+    <string name="galaxy_member_study_title">Study</string>
+    <string name="galaxy_member_study_line">Stays beside notes, lectures, and slow reading without breaking your concentration.</string>
+    <string name="galaxy_member_reading_title">Reading</string>
+    <string name="galaxy_member_reading_line">Leaves the feed behind for a page, a chapter, or long-form articles.</string>
+    <string name="galaxy_member_exercise_title">Exercise</string>
+    <string name="galaxy_member_exercise_line">Moves your body off the screen so the day is carried in muscle, not thumb scrolls.</string>
+    <string name="galaxy_member_walking_title">Walking</string>
+    <string name="galaxy_member_walking_line">Step-verified walks outside the loop; even ten minutes resets the afternoon.</string>
+    <string name="galaxy_member_cleaning_title">Cleaning</string>
+    <string name="galaxy_member_cleaning_line">Tidying your room, desk, or dishes — small proof that you own your space.</string>
+    <string name="galaxy_member_creative_title">Creative</string>
+    <string name="galaxy_member_creative_line">Starter companion from Day 1. For sketching, music, editing, or making things.</string>
+    <string name="galaxy_member_coding_title">Coding</string>
+    <string name="galaxy_member_coding_line">Keeps editors and terminals open in focus sessions while entertainment stays closed.</string>
+    <string name="galaxy_member_writing_title">Writing</string>
+    <string name="galaxy_member_writing_line">Quiet room for drafting, journaling, or docs without tab-hopping impulses.</string>
+    <string name="galaxy_member_mindfulness_title">Mindfulness</string>
+    <string name="galaxy_member_mindfulness_line">Slow breathing, reflection, or sitting still before reaching back for the phone.</string>
+    <string name="galaxy_member_social_title">Social</string>
+    <string name="galaxy_member_social_line">Real conversation and shared time with someone present rather than in a feed.</string>
+    <string name="galaxy_member_work_title">Work</string>
+    <string name="galaxy_member_work_line">Dedicated blocks for docs, mail, and work output — plus custom tasks you write.</string>
+
+    <string name="galaxy_state_normal_title">Normal day</string>
+    <string name="galaxy_state_normal_line">Entertainment stayed comfortably inside your limit without triggering the red zone.</string>
+    <string name="galaxy_state_near_title">Near limit</string>
+    <string name="galaxy_state_near_line">Last stretch (30 minutes or less remaining) when ALIVE warns before closing.</string>
+    <string name="galaxy_state_spent_title">Spent day</string>
+    <string name="galaxy_state_spent_line">Allowance ran out and distraction apps closed until reset or claimed minutes.</string>
+    <string name="galaxy_state_recovery_title">Recovery day</string>
+    <string name="galaxy_state_recovery_line">Zero base entertainment day; reclaimed mission and focus time flows to Time Bank.</string>
+    <string name="galaxy_state_unknown_title">Unwatched</string>
+    <string name="galaxy_state_unknown_line">Days missing records or paused guard permissions so ALIVE could not see clearly.</string>
+    <string name="galaxy_state_rest_title">Rest &amp; promise</string>
+    <string name="galaxy_state_rest_line">Declared rest or kept 21:00 nightly promise — a calm pause, never counted as failure.</string>
+
+    <!-- Companion Bond tiers, Synergy bonus & Victory Ceremony overlay -->
+    <string name="bond_rank_1_name">Familiar</string>
+    <string name="bond_rank_2_name">Attuned</string>
+    <string name="bond_rank_3_name">Synced</string>
+    <string name="bond_rank_4_name">Master</string>
+    <string name="bond_rank_line">Rank %1$d · %2$s · %3$d / %4$d XP</string>
+    <string name="bond_rank_master_line">Rank %1$d · %2$s · Full ✓</string>
+    <string name="bond_tile_sub">Rank %1$d · %2$s</string>
+    <string name="galaxy_synergy_rule">Synergy as companion: +2m Time Bank &amp; 2x Bond XP when activity matches.</string>
+
+    <string name="victory_kicker_quest">MISSION COMPLETE</string>
+    <string name="victory_kicker_focus">FOCUS COMPLETE</string>
+    <string name="victory_flare_awakened">CHARACTER AWAKENED!</string>
+    <string name="victory_flare_rank_up">RANK UP · RANK %1$d</string>
+    <string name="victory_flare_level_up">LEVEL %1$d REACHED!</string>
+    <string name="victory_synergy_active">SYNERGY ACTIVE · %1$s</string>
+    <string name="victory_tile_bank_label">Time Bank</string>
+    <string name="victory_tile_focus_label">Focus duration</string>
+    <string name="victory_tile_minutes_gain">+%1$d min</string>
+    <string name="victory_tile_minutes_duration">%1$d min</string>
+    <string name="victory_tile_synergy_note">+%1$d min synergy</string>
+    <string name="victory_tile_quest_base_note">mission reward</string>
+    <string name="victory_tile_focus_note">%1$d min completed</string>
+    <string name="victory_tile_bond_label">Bond · %1$s</string>
+    <string name="victory_tile_bond_delta">+%1$d XP</string>
+    <string name="victory_cta_done">Awesome →</string>
+    <string name="victory_cta_next">Next (%1$d) →</string>
+    <string name="dev_preview_victory">Dev: Preview Victory Card</string>
 </resources>
