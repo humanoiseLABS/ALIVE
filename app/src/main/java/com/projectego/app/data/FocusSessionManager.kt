@@ -2,6 +2,7 @@
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.projectego.app.domain.CompanionSynergy
 import com.projectego.app.model.FocusActivityType
 import com.projectego.app.model.FocusSession
 import com.projectego.app.model.FocusState
@@ -76,6 +77,12 @@ class FocusSessionManager(
     private fun decodeOverride(raw: String?): Set<String>? =
         raw?.split(PACKAGE_SEPARATOR)?.filter { it.isNotBlank() }?.toSet()
 
+    private fun parseActivityType(raw: String?): FocusActivityType = try {
+        FocusActivityType.valueOf(raw ?: FocusActivityType.STUDY.name)
+    } catch (_: Exception) {
+        FocusActivityType.STUDY
+    }
+
     @Synchronized
     fun getFocusSession(): FocusSession? {
         val isActive = prefs.getBoolean(KEY_IS_ACTIVE, false)
@@ -86,25 +93,58 @@ class FocusSessionManager(
 
         // Check if session has expired naturally
         if (now >= endTimestamp) {
-            // Auto mark inactive
-            prefs.edit().putBoolean(KEY_IS_ACTIVE, false).apply()
+            val expiredActivity = parseActivityType(prefs.getString(KEY_ACTIVITY_TYPE, FocusActivityType.STUDY.name))
+            val expiredStart = prefs.getLong(KEY_START_TIMESTAMP, 0L)
+            val expiredMinutes = prefs.getLong(KEY_DURATION_MINUTES, 0L).let {
+                if (it > 0L) it else ((endTimestamp - expiredStart).coerceAtLeast(0L) / 60_000L)
+            }
+            val expiredGoal = prefs.getString(KEY_GOAL, "") ?: ""
+            val rawLinkedId = prefs.getString(KEY_LINKED_QUEST_ATTEMPT_ID, "")
+            val linkedQuestAttemptId = if (rawLinkedId.isNullOrEmpty()) null else rawLinkedId
+            val violationCount = prefs.getInt(KEY_VIOLATION_COUNT, 0)
+
+            // Synchronous commit under @Synchronized ensures concurrent callers cannot
+            // settle the same expiration more than once.
+            val committed = prefs.edit().putBoolean(KEY_IS_ACTIVE, false).commit()
+            if (!committed) return null
 
             // A session that reached its own end is a session that finished, and
             // that is the one thing the character grows on. It is counted on the
             // day it ended, not the day it was first read about - and it is not
             // counted at all when a session was replaced before its end, because
             // a replaced session did not finish.
-            CharacterGrowthRepository(context)
-                .recordFocusDay(LockStateManager.dayKeyOf(endTimestamp))
+            val growthRepo = CharacterGrowthRepository(context)
+            val growthBefore = growthRepo.stage()
+            growthRepo.recordFocusDay(LockStateManager.dayKeyOf(endTimestamp))
+            val growthAfter = growthRepo.stage()
+
+            val eligible = CompanionSynergy.isFocusEligible(
+                linkedQuestAttemptId = linkedQuestAttemptId,
+                violationCount = violationCount,
+                durationMinutes = expiredMinutes
+            )
+            if (eligible && expiredStart > 0L && endTimestamp > expiredStart) {
+                val settlement = CharacterFamilyRepository(context).recordFocusCompletionLive(
+                    dedupKey = CharacterFamilyRepository.focusDeduplicationKey(
+                        expiredStart,
+                        endTimestamp,
+                        expiredActivity
+                    ),
+                    activityType = expiredActivity,
+                    durationMinutes = expiredMinutes,
+                    goalTitle = expiredGoal,
+                    growthStageBefore = growthBefore,
+                    growthStageAfter = growthAfter,
+                    eligible = true
+                )
+                if (settlement.synergyBonusMinutes > 0L) {
+                    timeBankRepository.addEarnedMinutes(settlement.synergyBonusMinutes)
+                }
+            }
             return null
         }
 
-        val activityTypeName = prefs.getString(KEY_ACTIVITY_TYPE, FocusActivityType.STUDY.name)
-        val activityType = try {
-            FocusActivityType.valueOf(activityTypeName ?: FocusActivityType.STUDY.name)
-        } catch (_: Exception) {
-            FocusActivityType.STUDY
-        }
+        val activityType = parseActivityType(prefs.getString(KEY_ACTIVITY_TYPE, FocusActivityType.STUDY.name))
 
         val goal = prefs.getString(KEY_GOAL, "") ?: ""
         val durationMinutes = prefs.getLong(KEY_DURATION_MINUTES, 0L)

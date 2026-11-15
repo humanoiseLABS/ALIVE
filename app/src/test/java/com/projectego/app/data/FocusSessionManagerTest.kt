@@ -2,6 +2,7 @@ package com.projectego.app.data
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.projectego.app.data.CharacterFamilyRepository.VictorySource
 import com.projectego.app.model.FocusActivityType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -47,6 +48,8 @@ class FocusSessionManagerTest {
         context.getSharedPreferences("project_ego_time_bank", Context.MODE_PRIVATE)
             .edit().clear().apply()
         context.getSharedPreferences("project_ego_character_growth", Context.MODE_PRIVATE)
+            .edit().clear().apply()
+        context.getSharedPreferences(CharacterFamilyRepository.PREFS_NAME, Context.MODE_PRIVATE)
             .edit().clear().apply()
 
         timeBankRepository = TimeBankRepository(context)
@@ -612,5 +615,100 @@ class FocusSessionManagerTest {
             .edit().putString("key_windows_day", dayKey).apply()
 
         assertTrue(focusSessionManager.getTodayWindows().isEmpty())
+    }
+
+    private fun forceExpireCurrentFocusSession(durationMinutes: Long) {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val expiredEnd = System.currentTimeMillis() - 5_000L
+        val expiredStart = expiredEnd - durationMinutes * 60_000L
+        context.getSharedPreferences("project_ego_focus_session", Context.MODE_PRIVATE)
+            .edit()
+            .putLong("key_start_timestamp", expiredStart)
+            .putLong("key_end_timestamp", expiredEnd)
+            .commit()
+    }
+
+    @Test
+    fun `natural expiry of clean matching standalone focus credits +2m bonus, +2 bond xp, and queues once`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        assertTrue(focusSessionManager.startFocusSession(FocusActivityType.CREATIVE, "Vector craft", 25L))
+        forceExpireCurrentFocusSession(25L)
+
+        assertNull(focusSessionManager.getFocusSession())
+        assertEquals(2L, timeBankRepository.getTimeBank().earnedMinutes)
+
+        val familyRepo = CharacterFamilyRepository(context)
+        assertEquals(2, familyRepo.bondXp("creative"))
+        val pending = familyRepo.peekPendingVictory()
+        assertNotNull(pending)
+        assertEquals(VictorySource.FOCUS, pending!!.source)
+        assertTrue(pending.synergyMatched)
+        assertEquals(2L, pending.synergyBonusMinutes)
+        assertEquals(0L, pending.baseMinutes)
+        assertEquals(25L, pending.durationMinutes)
+        assertEquals("Vector craft", pending.title)
+
+        // Second read must stay idempotent.
+        assertNull(focusSessionManager.getFocusSession())
+        assertEquals(2L, timeBankRepository.getTimeBank().earnedMinutes)
+        assertEquals(2, familyRepo.bondXp("creative"))
+        assertEquals(1, familyRepo.pendingVictoryCount())
+    }
+
+    @Test
+    fun `natural expiry of clean non-matching standalone focus grants +1 bond xp, zero bonus, and awakens`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        assertTrue(focusSessionManager.startFocusSession(FocusActivityType.STUDY, "Read notes", 10L))
+        forceExpireCurrentFocusSession(10L)
+
+        assertNull(focusSessionManager.getFocusSession())
+        assertEquals(0L, timeBankRepository.getTimeBank().earnedMinutes)
+
+        val familyRepo = CharacterFamilyRepository(context)
+        assertEquals(1, familyRepo.bondXp("study"))
+        val pending = familyRepo.peekPendingVictory()
+        assertNotNull(pending)
+        assertEquals("study", pending!!.memberId)
+        assertFalse(pending.synergyMatched)
+        assertEquals(0L, pending.synergyBonusMinutes)
+        assertTrue(pending.newlyAwakened)
+    }
+
+    @Test
+    fun `expired linked focus, violated focus, and short test session earn zero bonus, zero bond, and zero queued victory`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val familyRepo = CharacterFamilyRepository(context)
+
+        // Linked digital-quest Focus
+        assertTrue(
+            focusSessionManager.startFocusSession(
+                activityType = FocusActivityType.CREATIVE,
+                goal = "Linked mission",
+                durationMinutes = 25L,
+                linkedQuestAttemptId = "att-linked-1"
+            )
+        )
+        forceExpireCurrentFocusSession(25L)
+        assertNull(focusSessionManager.getFocusSession())
+        assertEquals(0L, timeBankRepository.getTimeBank().earnedMinutes)
+        assertEquals(0, familyRepo.bondXp("creative"))
+        assertNull(familyRepo.peekPendingVictory())
+
+        // Violated Focus
+        assertTrue(focusSessionManager.startFocusSession(FocusActivityType.CREATIVE, "Broken focus", 25L))
+        assertTrue(focusSessionManager.recordViolation())
+        forceExpireCurrentFocusSession(25L)
+        assertNull(focusSessionManager.getFocusSession())
+        assertEquals(0L, timeBankRepository.getTimeBank().earnedMinutes)
+        assertEquals(0, familyRepo.bondXp("creative"))
+        assertNull(familyRepo.peekPendingVictory())
+
+        // Short <10m test session
+        assertTrue(focusSessionManager.startTestFocusSession(FocusActivityType.CREATIVE, "Test 15s", 15L))
+        forceExpireCurrentFocusSession(1L)
+        assertNull(focusSessionManager.getFocusSession())
+        assertEquals(0L, timeBankRepository.getTimeBank().earnedMinutes)
+        assertEquals(0, familyRepo.bondXp("creative"))
+        assertNull(familyRepo.peekPendingVictory())
     }
 }

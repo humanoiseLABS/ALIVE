@@ -151,7 +151,8 @@ class QuestDeadlineReceiver : BroadcastReceiver() {
         if (!settled || running == null) return
         if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return
 
-        val reward = quests.getCurrentAttempt()?.rewardMinutes ?: return
+        val attempt = quests.getCurrentAttempt() ?: return
+        val reward = quests.lastClaimedTotalMinutes(attempt.attemptId) ?: attempt.rewardMinutes ?: return
         val title = quests.getAllQuests().find { it.id == running.questId }?.title ?: return
         QuestDeadlineWatch.post(context, title, reward)
     }

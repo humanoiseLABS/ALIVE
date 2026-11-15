@@ -3,6 +3,7 @@ package com.projectego.app.data
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.projectego.app.model.QuestAttemptState
+import com.projectego.app.model.QuestCategory
 import com.projectego.app.model.QuestStatus
 import com.projectego.app.model.VerificationMethod
 import com.projectego.app.model.VerificationOutcome
@@ -59,6 +60,8 @@ class QuestRepositoryTest {
         context.getSharedPreferences("project_ego_quests", Context.MODE_PRIVATE)
             .edit().clear().apply()
         context.getSharedPreferences("project_ego_time_bank", Context.MODE_PRIVATE)
+            .edit().clear().apply()
+        context.getSharedPreferences(CharacterFamilyRepository.PREFS_NAME, Context.MODE_PRIVATE)
             .edit().clear().apply()
 
         timeBankRepository = TimeBankRepository(context)
@@ -694,5 +697,66 @@ class QuestRepositoryTest {
 
         assertFalse(linked)
         assertNull(questRepository.getCurrentAttempt())
+    }
+
+    @Test
+    fun `claimReward grants +2m companion synergy bonus, aligns history total, and queues victory while keeping base attempt reward`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        context.getSharedPreferences(QuestHistoryRepository.PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().clear().apply()
+        context.getSharedPreferences("project_ego_character_growth", Context.MODE_PRIVATE)
+            .edit().clear().apply()
+
+        val creativeQuest = questRepository.getAllQuests().first { it.category == QuestCategory.CREATIVE }
+        assertTrue(questRepository.commitQuest(creativeQuest.id, VerificationMethod.PHYSICAL, 20L))
+        assertTrue(questRepository.startAttempt())
+        assertTrue(questRepository.requestVerification())
+        assertTrue(questRepository.verifyQuest(VerificationOutcome.PASS, "Done"))
+
+        val reward = questRepository.claimReward()
+
+        assertEquals(creativeQuest.rewardMinutes + 2L, reward)
+        assertEquals(creativeQuest.rewardMinutes + 2L, timeBankRepository.getTimeBank().earnedMinutes)
+        assertEquals(creativeQuest.rewardMinutes, questRepository.getCurrentAttempt()?.rewardMinutes)
+
+        val dayKey = LockStateManager.dayKeyOf(System.currentTimeMillis())
+        val logged = QuestHistoryRepository(context).recent(dayKey)
+            .flatMap { it.completions }
+            .firstOrNull { it.questId == creativeQuest.id }
+        assertNotNull(logged)
+        assertEquals(creativeQuest.rewardMinutes + 2L, logged!!.minutes)
+
+        val familyRepo = CharacterFamilyRepository(context)
+        assertEquals(2, familyRepo.bondXp("creative"))
+        val pending = familyRepo.peekPendingVictory()
+        assertNotNull(pending)
+        assertTrue(pending!!.synergyMatched)
+        assertEquals(2L, pending.synergyBonusMinutes)
+        assertEquals(creativeQuest.rewardMinutes, pending.baseMinutes)
+    }
+
+    @Test
+    fun `claimReward grants zero synergy bonus for non-matching category and prevents double claim`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val walkQuest = questRepository.getAllQuests().first { it.category == QuestCategory.WALKING }
+        assertTrue(questRepository.commitQuest(walkQuest.id, VerificationMethod.PHYSICAL, 20L))
+        assertTrue(questRepository.startAttempt())
+        assertTrue(questRepository.requestVerification())
+        assertTrue(questRepository.verifyQuest(VerificationOutcome.PASS, "Walked"))
+
+        val firstClaim = questRepository.claimReward()
+        val secondClaim = questRepository.claimReward()
+
+        assertEquals(walkQuest.rewardMinutes, firstClaim)
+        assertNull(secondClaim)
+        assertEquals(walkQuest.rewardMinutes, timeBankRepository.getTimeBank().earnedMinutes)
+
+        val familyRepo = CharacterFamilyRepository(context)
+        assertEquals(1, familyRepo.bondXp("walking"))
+        assertEquals(1, familyRepo.pendingVictoryCount())
+        val pending = familyRepo.peekPendingVictory()!!
+        assertFalse(pending.synergyMatched)
+        assertEquals(0L, pending.synergyBonusMinutes)
+        assertTrue(pending.newlyAwakened)
     }
 }

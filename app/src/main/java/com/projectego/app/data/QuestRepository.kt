@@ -76,6 +76,8 @@ class QuestRepository(
     companion object {
         private const val KEY_ACTIVE_QUEST_ID = "key_active_quest_id"
         private const val KEY_COMPLETED_QUEST_IDS = "key_completed_quest_ids"
+        private const val KEY_LAST_REWARDED_ATTEMPT_ID = "key_last_rewarded_attempt_id"
+        private const val KEY_LAST_REWARDED_TOTAL_MINUTES = "key_last_rewarded_total_minutes"
 
         // The day the quest state above belongs to. Written whenever the
         // rollover runs, so the first read of a new day can tell that yesterday's
@@ -614,8 +616,6 @@ class QuestRepository(
             return null
         }
 
-        timeBankRepository.addEarnedMinutes(reward)
-
         val completedIds = getCompletedIds().toMutableSet()
         completedIds.add(current.questId)
         prefs.edit().putStringSet(KEY_COMPLETED_QUEST_IDS, completedIds).apply()
@@ -626,10 +626,31 @@ class QuestRepository(
         // the person their next day to a clock boundary.
         val landedOn = QuestDayAttribution.dayKeyOf(current)
 
+        val growthRepo = CharacterGrowthRepository(context)
+        val growthBefore = growthRepo.stage()
+
         // A kept day is decided by whether anything was earned on it, so this is
         // the one moment that fact gets written. apply() is enough here: a lost
         // marker can cost a day, it can never grant one.
         LockStateManager.recordQuestCompleted(context, landedOn)
+        val growthAfter = growthRepo.stage()
+
+        val resolvedTitle = titleOf(current.questId)
+        val completedCategory = getAllQuests()
+            .find { it.id == current.questId }
+            ?.category
+            ?: QuestCategory.OTHER
+        val settlement = CharacterFamilyRepository(context).recordQuestCompletionLive(
+            attemptId = current.attemptId,
+            category = completedCategory,
+            questTitle = resolvedTitle,
+            baseRewardMinutes = reward,
+            growthStageBefore = growthBefore,
+            growthStageAfter = growthAfter
+        )
+        val totalEarned = reward + settlement.synergyBonusMinutes
+
+        timeBankRepository.addEarnedMinutes(totalEarned)
 
         // The seven-day log counts the same event on the same day, so the history
         // and the judgement can never disagree about which night it was.
@@ -641,12 +662,24 @@ class QuestRepository(
             dayKey = landedOn,
             attemptId = current.attemptId,
             questId = current.questId,
-            title = titleOf(current.questId),
-            minutes = reward,
+            title = resolvedTitle,
+            minutes = totalEarned,
             completedAt = clock()
         )
+        prefs.edit()
+            .putString(KEY_LAST_REWARDED_ATTEMPT_ID, current.attemptId)
+            .putLong(KEY_LAST_REWARDED_TOTAL_MINUTES, totalEarned)
+            .apply()
 
-        return reward
+        return totalEarned
+    }
+
+    /** Actual credited total (base + companion synergy bonus) for [attemptId] when last claimed. */
+    fun lastClaimedTotalMinutes(attemptId: String): Long? {
+        if (attemptId.isBlank()) return null
+        if (prefs.getString(KEY_LAST_REWARDED_ATTEMPT_ID, null) != attemptId) return null
+        val stored = prefs.getLong(KEY_LAST_REWARDED_TOTAL_MINUTES, -1L)
+        return if (stored >= 0L) stored else null
     }
 
     private fun persistAttempt(attempt: QuestAttempt) {
