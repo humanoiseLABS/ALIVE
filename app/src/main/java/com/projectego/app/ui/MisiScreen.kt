@@ -49,7 +49,7 @@ object MisiScreen {
         QuestCategory.OTHER
     )
 
-    private const val ROW_PADDING_DP = 16
+    private const val ROW_PADDING_DP = 14
     private const val CHIP_HEIGHT_DP = 34
 
     fun build(context: Context, ui: AliveComponents, data: Data): LinearLayout {
@@ -187,8 +187,8 @@ object MisiScreen {
             addView(
                 ui.column().apply {
                     layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                    setPadding(ui.dimens.groupGap, 0, ui.dimens.groupGap, 0)
-                    addView(ui.lead(quest.title))
+                    setPadding(ui.dimens.dp(12), 0, ui.dimens.dp(10), 0)
+                    addView(ui.lead(quest.title).apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, 15.5f) })
                     addView(ui.vgap(ui.dimens.xs))
                     addView(
                         ui.note(quest.description).apply {
@@ -204,8 +204,8 @@ object MisiScreen {
                     setImageResource(R.drawable.ic_smiley_flat)
                     scaleType = ImageView.ScaleType.FIT_CENTER
                     contentDescription = null
-                    layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(18), ui.dimens.dp(18)).apply {
-                        marginStart = ui.dimens.lineGap
+                    layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(20), ui.dimens.dp(20)).apply {
+                        marginStart = ui.dimens.dp(10)
                     }
                 }
             )
@@ -237,28 +237,32 @@ object MisiScreen {
     private fun customCard(context: Context, ui: AliveComponents, data: Data): LinearLayout =
         ui.row().apply {
             background = field(ui.palette.fieldRose, ui.dimens.radiusTile)
-            gravity = Gravity.CENTER_VERTICAL
+            gravity = Gravity.BOTTOM
             setPadding(
                 ui.dimens.dp(ROW_PADDING_DP),
                 ui.dimens.dp(14),
                 ui.dimens.dp(14),
-                ui.dimens.dp(14)
+                0
             )
             isClickable = true
             setOnClickListener { data.onCustom() }
 
             addView(
                 ImageView(context).apply {
-                    setImageResource(R.drawable.ic_alive_character_paper)
-                    scaleType = ImageView.ScaleType.FIT_CENTER
+                    setImageResource(R.drawable.ic_alive_character_peek_paper)
+                    scaleType = ImageView.ScaleType.FIT_END
                     contentDescription = null
-                    layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(44), ui.dimens.dp(44))
+                    layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(56), ui.dimens.dp(34)).apply {
+                        gravity = Gravity.BOTTOM
+                    }
                 }
             )
             addView(
                 ui.column().apply {
-                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                    setPadding(ui.dimens.groupGap, 0, ui.dimens.groupGap, 0)
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                        gravity = Gravity.CENTER_VERTICAL
+                    }
+                    setPadding(ui.dimens.groupGap, 0, ui.dimens.groupGap, ui.dimens.dp(14))
                     addView(ui.kicker(context.getString(R.string.quest_custom_kicker)))
                     addView(ui.vgap(ui.dimens.xs))
                     addView(ui.lead(context.getString(R.string.quest_custom_title)))
@@ -276,7 +280,10 @@ object MisiScreen {
                         shape = GradientDrawable.OVAL
                         setColor(ui.palette.ink)
                     }
-                    layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(44), ui.dimens.dp(44))
+                    layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(44), ui.dimens.dp(44)).apply {
+                        gravity = Gravity.CENTER_VERTICAL
+                        bottomMargin = ui.dimens.dp(14)
+                    }
                 }
             )
         }

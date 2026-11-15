@@ -1,5 +1,8 @@
 package com.projectego.app.ui
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -9,8 +12,11 @@ import android.text.TextPaint
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.GestureDetector
+import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.OvershootInterpolator
+import android.view.animation.PathInterpolator
 import com.projectego.app.R
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -89,6 +95,13 @@ class BrutalistDonut(context: Context) : View(context) {
     private var slices: List<Slice> = emptyList()
     private var totalMinutes = 0L
     private var selected = -1
+    private var revealProgress = 1f
+    private var revealPending = false
+    private var revealAnimator: ValueAnimator? = null
+    private var selectionProgress = 1f
+    private var selectionAnimator: ValueAnimator? = null
+    private val sweepEase = PathInterpolator(0.22f, 1.0f, 0.36f, 1.0f)
+    private val liftSpring = OvershootInterpolator(1.6f)
 
     private val taps = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
         override fun onSingleTapUp(event: MotionEvent): Boolean {
@@ -101,7 +114,79 @@ class BrutalistDonut(context: Context) : View(context) {
         this.slices = slices
         this.totalMinutes = totalMinutes
         selected = -1
+        revealAnimator?.cancel()
+        selectionAnimator?.cancel()
+        selectionProgress = 1f
+        if (slices.isNotEmpty() && totalMinutes > 0L && isAttachedToWindow && AliveMotion.shouldAnimate(this)) {
+            startRevealAnimation(delayMs = 0L)
+        } else {
+            revealProgress = 1f
+            revealPending = slices.isNotEmpty() && totalMinutes > 0L
+        }
         invalidate()
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        if (revealPending && slices.isNotEmpty() && totalMinutes > 0L && AliveMotion.shouldAnimate(this)) {
+            revealPending = false
+            startRevealAnimation(delayMs = 80L)
+        }
+    }
+
+    override fun onDetachedFromWindow() {
+        revealAnimator?.cancel()
+        revealAnimator = null
+        selectionAnimator?.cancel()
+        selectionAnimator = null
+        revealProgress = 1f
+        selectionProgress = 1f
+        super.onDetachedFromWindow()
+    }
+
+    private fun startRevealAnimation(delayMs: Long) {
+        revealAnimator?.cancel()
+        revealProgress = 0f
+        revealAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            startDelay = delayMs
+            duration = REVEAL_DURATION_MS
+            interpolator = sweepEase
+            addUpdateListener { anim ->
+                revealProgress = anim.animatedValue as Float
+                invalidate()
+            }
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    revealProgress = 1f
+                    invalidate()
+                }
+            })
+            start()
+        }
+    }
+
+    private fun startSelectionAnimation() {
+        selectionAnimator?.cancel()
+        if (!isAttachedToWindow || !AliveMotion.shouldAnimate(this)) {
+            selectionProgress = 1f
+            return
+        }
+        selectionProgress = 0f
+        selectionAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = SELECTION_DURATION_MS
+            interpolator = liftSpring
+            addUpdateListener { anim ->
+                selectionProgress = anim.animatedValue as Float
+                invalidate()
+            }
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    selectionProgress = 1f
+                    invalidate()
+                }
+            })
+            start()
+        }
     }
 
     val selectedIndex: Int get() = selected
@@ -109,6 +194,7 @@ class BrutalistDonut(context: Context) : View(context) {
     /** Driven by the legend beside the ring, so both point at the same slice. */
     fun select(index: Int) {
         selected = if (index in slices.indices) index else -1
+        startSelectionAnimation()
         invalidate()
     }
 
@@ -130,13 +216,23 @@ class BrutalistDonut(context: Context) : View(context) {
         }
 
         var startAngle = -90f
+        val maxEndAngle = -90f + 360f * revealProgress.coerceIn(0f, 1f)
         slices.forEachIndexed { index, slice ->
-            val sweep = 360f * slice.minutes / totalMinutes
-            if (sweep <= 0f) return@forEachIndexed
+            val rawSweep = 360f * slice.minutes / totalMinutes
+            if (rawSweep <= 0f) return@forEachIndexed
+            val sweep = if (revealProgress >= 0.999f) {
+                rawSweep
+            } else {
+                (maxEndAngle - startAngle).coerceIn(0f, rawSweep)
+            }
+            if (sweep <= 0f) {
+                startAngle += rawSweep
+                return@forEachIndexed
+            }
             val isSelected = index == selected
             val dimmed = selected != -1 && !isSelected
-            val lift = if (isSelected) dp(6f) else 0f
-            val mid = Math.toRadians((startAngle + sweep / 2f).toDouble())
+            val lift = if (isSelected) dp(6f) * selectionProgress else 0f
+            val mid = Math.toRadians((startAngle + rawSweep / 2f).toDouble())
 
             bounds.set(
                 centreX - outer + (cos(mid) * lift).toFloat(),
@@ -146,10 +242,11 @@ class BrutalistDonut(context: Context) : View(context) {
             )
 
             face.color = slice.color
-            face.alpha = when {
-                dimmed -> DIMMED_ALPHA
-                slice.hatched -> AGGREGATE_ALPHA
-                else -> FULL_ALPHA
+            val baseAlpha = if (slice.hatched) AGGREGATE_ALPHA else FULL_ALPHA
+            face.alpha = if (dimmed) {
+                (baseAlpha - (baseAlpha - DIMMED_ALPHA) * selectionProgress.coerceIn(0f, 1f)).toInt()
+            } else {
+                baseAlpha
             }
 
             hole.set(bounds)
@@ -177,7 +274,7 @@ class BrutalistDonut(context: Context) : View(context) {
             }
             canvas.drawPath(path, face)
 
-            startAngle += sweep
+            startAngle += rawSweep
         }
 
         face.alpha = FULL_ALPHA
@@ -258,6 +355,8 @@ class BrutalistDonut(context: Context) : View(context) {
             val sweep = 360f * slice.minutes / totalMinutes
             if (angle >= swept && angle < swept + sweep) {
                 selected = if (selected == index) -1 else index
+                performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                startSelectionAnimation()
                 invalidate()
                 onSliceTapped?.invoke(selected)
                 return
@@ -323,5 +422,8 @@ class BrutalistDonut(context: Context) : View(context) {
         /** How many dashes the empty band breaks into, and how long each is. */
         const val EMPTY_DASHES = 14
         const val EMPTY_DASH_SWEEP = 16f
+
+        const val REVEAL_DURATION_MS = 460L
+        const val SELECTION_DURATION_MS = 210L
     }
 }

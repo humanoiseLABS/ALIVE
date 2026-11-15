@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.ColorUtils
+import androidx.core.view.WindowInsetsControllerCompat
 import com.projectego.app.R
 import com.projectego.app.data.WelcomeGate
 
@@ -49,12 +50,16 @@ class WelcomeActivity : AppCompatActivity() {
 
     private val ui by lazy { AliveComponents(this) }
     private var step = 0
+    private lateinit var rootFrame: FrameLayout
+    private lateinit var backdrop: FrameLayout
     private lateinit var content: AliveComponents.Stack
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         step = savedInstanceState?.getInt(KEY_STEP) ?: 0
 
+        rootFrame = FrameLayout(this)
+        backdrop = FrameLayout(this)
         content = ui.stack(ui.dimens.cardGap).apply {
             setPadding(
                 ui.dimens.pageHorizontal,
@@ -63,7 +68,24 @@ class WelcomeActivity : AppCompatActivity() {
                 ui.dimens.pageBottom
             )
         }
-        setContentView(ScrollView(this).apply { addView(content) })
+        rootFrame.addView(
+            backdrop,
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        )
+        rootFrame.addView(
+            ScrollView(this).apply {
+                isFillViewport = true
+                addView(content)
+            },
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        )
+        setContentView(rootFrame)
 
         // Forward is a button; back is back. Nobody is trapped: leaving from
         // the first screen just postpones this until the next cold start.
@@ -90,12 +112,23 @@ class WelcomeActivity : AppCompatActivity() {
     }
 
     private fun renderStep() {
+        backdrop.removeAllViews()
         content.removeAllViews()
-        // Pass 2 opens the welcome on deep; the two mechanics screens keep the
-        // page the app proper stands on.
         val paper = ContextCompat.getColor(this, R.color.flat_paper)
         val deep = ContextCompat.getColor(this, R.color.flat_deep)
-        (content.parent as? View)?.setBackgroundColor(if (step == 0) deep else ui.palette.canvas)
+        val ground = when (step) {
+            0 -> deep
+            1 -> ui.palette.groundLav
+            else -> ui.palette.groundButter
+        }
+        rootFrame.setBackgroundColor(ground)
+        window.statusBarColor = ground
+        window.navigationBarColor = ground
+        val lightChrome = step != 0
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            isAppearanceLightStatusBars = lightChrome
+            isAppearanceLightNavigationBars = lightChrome
+        }
         when (step) {
             0 -> buildPhilosophy(paper)
             1 -> buildMechanics()
@@ -115,36 +148,71 @@ class WelcomeActivity : AppCompatActivity() {
             }
         )
         content.addView(ui.vgap(ui.dimens.lineGap))
-        content.addView(welcomeChip("1/${LAST_STEP + 1}", ui.palette.fieldLilac))
+        content.addView(
+            welcomeChip(
+                getString(R.string.welcome_step_badge, step + 1, LAST_STEP + 1),
+                ContextCompat.getColor(this, R.color.flat_navy)
+            ).apply { setTextColor(paper) }
+        )
         content.addView(ui.vgap(ui.dimens.groupGap))
         content.addView(
-            ui.h1(getString(R.string.welcome_philosophy_h1)).apply { setTextColor(paper) }
-        )
-        content.addView(ui.vgap(ui.dimens.dp(16)))
-        content.addView(
-            ui.note(getString(R.string.welcome_body)).apply {
-                setTextColor(ColorUtils.setAlphaComponent(paper, 168))
+            ui.h1(getString(R.string.welcome_philosophy_h1)).apply {
+                setTextColor(paper)
+                setPadding(0, 0, ui.dimens.dp(64), 0)
             }
         )
-        content.addView(ui.vgap(ui.dimens.groupGap))
+        content.addView(ui.vgap(ui.dimens.dp(14)))
+        content.addView(
+            ui.note(getString(R.string.welcome_philosophy_sub)).apply {
+                setTextColor(ColorUtils.setAlphaComponent(paper, 175))
+                setPadding(0, 0, ui.dimens.dp(44), 0)
+            }
+        )
+        content.addView(ui.vgap(ui.dimens.dp(16)))
 
-        // The render fills the deep page with off-edge colour circles and the
-        // critter standing alone - no disc under it.
+        // Ambient off-edge circles sit behind the whole screen while the
+        // character stands centered with clear navy space around it.
+        backdrop.addView(
+            deepCircle(
+                hue = ui.palette.fieldLilac,
+                size = ui.dimens.dp(156),
+                gravity = Gravity.TOP or Gravity.END,
+                top = ui.dimens.dp(66),
+                right = ui.dimens.dp(-76)
+            )
+        )
+        backdrop.addView(
+            deepCircle(
+                hue = ui.palette.flatMint,
+                size = ui.dimens.dp(184),
+                gravity = Gravity.START or Gravity.CENTER_VERTICAL,
+                left = ui.dimens.dp(-96),
+                top = ui.dimens.dp(66)
+            )
+        )
+        backdrop.addView(
+            deepCircle(
+                hue = ui.palette.fieldButter,
+                size = ui.dimens.dp(154),
+                gravity = Gravity.BOTTOM or Gravity.END,
+                right = ui.dimens.dp(-54),
+                bottom = ui.dimens.dp(-92)
+            )
+        )
+
+        content.addView(ui.vgap(ui.dimens.dp(12)))
         val hero = FrameLayout(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                ui.dimens.dp(220)
+                ui.dimens.dp(148)
             )
         }
-        hero.addView(deepCircle(ui.palette.fieldLilac, ui.dimens.dp(150), Gravity.TOP or Gravity.END, ui.dimens.dp(-40), ui.dimens.dp(-30)))
-        hero.addView(deepCircle(ui.palette.flatMint, ui.dimens.dp(140), Gravity.START or Gravity.CENTER_VERTICAL, ui.dimens.dp(-60), 0))
-        hero.addView(deepCircle(ui.palette.fieldButter, ui.dimens.dp(120), Gravity.BOTTOM or Gravity.END, ui.dimens.dp(-30), ui.dimens.dp(30)))
         hero.addView(
             ImageView(this).apply {
-                setImageResource(R.drawable.alive_member_creative)
+                setImageResource(R.drawable.ic_alive_character)
                 scaleType = ImageView.ScaleType.FIT_CENTER
                 contentDescription = null
-                layoutParams = FrameLayout.LayoutParams(ui.dimens.dp(96), ui.dimens.dp(96)).apply {
+                layoutParams = FrameLayout.LayoutParams(ui.dimens.dp(112), ui.dimens.dp(112)).apply {
                     gravity = Gravity.CENTER
                 }
             }
@@ -187,7 +255,7 @@ class WelcomeActivity : AppCompatActivity() {
         )
         content.addView(ui.vgap(ui.dimens.groupGap))
         content.addView(
-            fullWidth(ui.secondary(getString(R.string.welcome_next) + " →")).apply {
+            fullWidth(ui.secondary(getString(R.string.welcome_next))).apply {
                 setOnClickListener {
                     step += 1
                     renderStep()
@@ -207,9 +275,21 @@ class WelcomeActivity : AppCompatActivity() {
                 setColor(face)
             }
             setPadding(ui.dimens.dp(12), ui.dimens.dp(7), ui.dimens.dp(12), ui.dimens.dp(7))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
         }
 
-    private fun deepCircle(hue: Int, size: Int, gravity: Int, dx: Int, dy: Int): View =
+    private fun deepCircle(
+        hue: Int,
+        size: Int,
+        gravity: Int,
+        left: Int = 0,
+        top: Int = 0,
+        right: Int = 0,
+        bottom: Int = 0
+    ): View =
         View(this).apply {
             background = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
@@ -217,34 +297,63 @@ class WelcomeActivity : AppCompatActivity() {
             }
             layoutParams = FrameLayout.LayoutParams(size, size).apply {
                 this.gravity = gravity
-                leftMargin = dx
-                topMargin = dy
+                leftMargin = left
+                topMargin = top
+                rightMargin = right
+                bottomMargin = bottom
             }
         }
 
     /** Screen two: the loop, stated as plainly as the clarity rule demands. */
     private fun buildMechanics() {
-        content.addView(ui.sectionHeader(getString(R.string.welcome_loop_heading)))
         content.addView(
-            ui.column().apply {
-                val lines = listOf(
-                    R.string.welcome_loop_1,
-                    R.string.welcome_loop_2,
-                    R.string.welcome_loop_3,
-                    R.string.welcome_loop_4
+            welcomeChip(
+                getString(R.string.welcome_step_badge, step + 1, LAST_STEP + 1),
+                ui.palette.fieldLilac
+            ).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
                 )
-                lines.forEachIndexed { index, line ->
-                    if (index > 0) addView(ui.vgap(ui.dimens.groupGap))
-                    addView(
-                        ui.row().apply {
-                            addView(ui.tag("%02d".format(index + 1)))
-                            addView(ui.hgap(ui.dimens.m))
-                            addView(ui.weighted(ui.body(getString(line))))
-                        }
-                    )
-                }
             }
         )
+        content.addView(ui.h1(getString(R.string.welcome_loop_heading)))
+        val stepCards = listOf(
+            R.string.welcome_loop_1 to ui.palette.fieldLilac,
+            R.string.welcome_loop_2 to ui.palette.flatMint,
+            R.string.welcome_loop_3 to ui.palette.fieldSky,
+            R.string.welcome_loop_4 to ui.palette.fieldButter
+        )
+        val groteskBold = ResourcesCompat.getFont(this, R.font.space_grotesk_bold)
+        stepCards.forEachIndexed { index, (line, hue) ->
+            content.addView(
+                ui.row().apply {
+                    background = GradientDrawable().apply {
+                        cornerRadius = ui.dimens.radiusTile.toFloat()
+                        setColor(hue)
+                    }
+                    gravity = Gravity.CENTER_VERTICAL
+                    setPadding(ui.dimens.dp(18), ui.dimens.dp(16), ui.dimens.dp(18), ui.dimens.dp(16))
+                    addView(
+                        TextView(this@WelcomeActivity).apply {
+                            text = "%02d".format(index + 1)
+                            gravity = Gravity.CENTER
+                            setTextSize(TypedValue.COMPLEX_UNIT_SP, 12.5f)
+                            typeface = groteskBold
+                            includeFontPadding = false
+                            setTextColor(ui.palette.ink)
+                            background = GradientDrawable().apply {
+                                shape = GradientDrawable.OVAL
+                                setColor(ui.palette.flatPaper)
+                            }
+                            layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(32), ui.dimens.dp(32))
+                        }
+                    )
+                    addView(ui.hgap(ui.dimens.dp(12)))
+                    addView(ui.weighted(ui.body(getString(line))))
+                }
+            )
+        }
         content.addView(ui.note(getString(R.string.welcome_loop_note)))
         content.addView(stepButton(R.string.welcome_next))
         content.addView(progressRow())
@@ -252,7 +361,18 @@ class WelcomeActivity : AppCompatActivity() {
 
     /** Screen three: the same two switches Home will keep asking about. */
     private fun buildPermissions() {
-        content.addView(ui.sectionHeader(getString(R.string.welcome_permissions_heading)))
+        content.addView(
+            welcomeChip(
+                getString(R.string.welcome_step_badge, step + 1, LAST_STEP + 1),
+                ui.palette.fieldPeach
+            ).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+        )
+        content.addView(ui.h1(getString(R.string.welcome_permissions_heading)))
         content.addView(
             permissionBlock(
                 label = getString(R.string.welcome_usage_label),
@@ -296,24 +416,33 @@ class WelcomeActivity : AppCompatActivity() {
         granted: Boolean,
         settingsAction: String,
         action: String
-    ): View = ui.block(SurfaceWeight.MINOR).apply {
+    ): View = ui.column().apply {
+        background = GradientDrawable().apply {
+            cornerRadius = ui.dimens.radiusCard.toFloat()
+            setColor(ui.palette.tile)
+        }
+        setPadding(ui.dimens.dp(20), ui.dimens.dp(20), ui.dimens.dp(20), ui.dimens.dp(20))
         addView(
             ui.row().apply {
-                addView(ui.lead(label))
+                gravity = Gravity.CENTER_VERTICAL
+                addView(ui.weighted(ui.lead(label)))
                 addView(
-                    ui.weighted(
-                        ui.meta(
-                            getString(
-                                if (granted) R.string.permissions_granted
-                                else R.string.permissions_not_granted
-                            )
-                        ).apply {
-                            gravity = Gravity.END
-                            setTextColor(
-                                if (granted) ui.palette.forest else ui.palette.inkMuted
-                            )
+                    TextView(this@WelcomeActivity).apply {
+                        text = getString(
+                            if (granted) R.string.permissions_granted
+                            else R.string.permissions_not_granted
+                        )
+                        gravity = Gravity.CENTER
+                        setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+                        typeface = ResourcesCompat.getFont(this@WelcomeActivity, R.font.space_grotesk_bold)
+                        includeFontPadding = false
+                        setTextColor(ui.palette.ink)
+                        background = GradientDrawable().apply {
+                            cornerRadius = ui.dimens.radiusPill.toFloat()
+                            setColor(if (granted) ui.palette.flatMint else ui.palette.soft)
                         }
-                    )
+                        setPadding(ui.dimens.dp(12), ui.dimens.dp(5), ui.dimens.dp(12), ui.dimens.dp(5))
+                    }
                 )
             }
         )

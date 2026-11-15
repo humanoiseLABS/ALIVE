@@ -260,6 +260,29 @@ class FocusSetupScreenTest {
     }
 
     @Test
+    fun `the three info tiles share one equal height even when one wraps`() {
+        val root = build()
+        val widthSpec = View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY)
+        val heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        root.measure(widthSpec, heightSpec)
+        root.layout(0, 0, root.measuredWidth, root.measuredHeight)
+
+        val row = firstText(root, context.getString(R.string.focus_kicker_activity))!!
+            .parent!! // tile
+            .parent as ViewGroup // EqualRow
+        assertTrue(row is AliveComponents.EqualRow)
+        val tiles = (0 until row.childCount)
+            .map { row.getChildAt(it) }
+            .filter { it is ViewGroup }
+        assertEquals(3, tiles.size)
+        val firstHeight = tiles[0].measuredHeight
+        assertTrue("measured height must be positive", firstHeight > 0)
+        tiles.forEachIndexed { idx, tile ->
+            assertEquals("tile $idx height", firstHeight, tile.measuredHeight)
+        }
+    }
+
+    @Test
     fun `the one action reports the press`() {
         val root = build()
 

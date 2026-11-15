@@ -36,6 +36,7 @@ class BerandaScreenTest {
     private var action = 0
     private var growth = 0
     private var focus = 0
+    private var openFocus = 0
 
     private fun build(
         remaining: Long = 57L,
@@ -70,7 +71,8 @@ class BerandaScreenTest {
             actionLabel = actionLabel,
             onAction = { action += 1 },
             onGrowth = { growth += 1 },
-            onFocus = { focus += 1 }
+            onFocus = { focus += 1 },
+            onOpenFocus = { openFocus += 1 }
         )
     )
 
@@ -196,6 +198,34 @@ class BerandaScreenTest {
         requireNotNull(card)
         card.performClick()
         assertEquals(1, focus)
+    }
+
+    @Test
+    fun `the focus fact tile opens focus setup`() {
+        val page = build()
+        val tile = backgrounds(page).firstOrNull { it.second == ui.palette.fieldAqua }?.first
+        requireNotNull(tile)
+        assertTrue(tile.isClickable)
+        tile.performClick()
+        assertEquals(1, openFocus)
+    }
+
+    @Test
+    fun `the three fact tiles share one equal height`() {
+        val page = build()
+        page.measure(
+            View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        )
+        val focusTile = backgrounds(page).firstOrNull { it.second == ui.palette.fieldAqua }?.first
+        requireNotNull(focusTile)
+        val row = focusTile.parent as ViewGroup
+        assertTrue(row is AliveComponents.EqualRow)
+        val tiles = (0 until row.childCount).map { row.getChildAt(it) }.filter { it is ViewGroup }
+        assertEquals(3, tiles.size)
+        val expectedHeight = tiles[0].measuredHeight
+        assertTrue(expectedHeight > 0)
+        tiles.forEach { assertEquals(expectedHeight, it.measuredHeight) }
     }
 
     @Test

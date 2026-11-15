@@ -88,6 +88,7 @@ class LockActivity : AppCompatActivity() {
         // shouting - the door says what happened and offers the way out.
         val paper = ContextCompat.getColor(this, R.color.flat_paper)
         val deep = ContextCompat.getColor(this, R.color.flat_deep)
+        val deepDeco = ContextCompat.getColor(this, R.color.flat_deep2)
 
         val page = ui.stack(ui.dimens.cardGap).apply {
             setPadding(
@@ -100,10 +101,10 @@ class LockActivity : AppCompatActivity() {
 
         page.addView(
             android.widget.ImageView(this).apply {
-                setImageResource(R.drawable.ic_alive_character)
+                setImageResource(R.drawable.ic_alive_face_sleepy)
                 scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
                 contentDescription = null
-                layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(96), ui.dimens.dp(96)).apply {
+                layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(92), ui.dimens.dp(92)).apply {
                     gravity = Gravity.CENTER_HORIZONTAL
                 }
             }
@@ -118,11 +119,15 @@ class LockActivity : AppCompatActivity() {
                         else -> R.string.lock_title_over
                     }
                 )
-            ).apply { setTextColor(paper) }
+            ).apply {
+                setTextColor(paper)
+                gravity = Gravity.CENTER_HORIZONTAL
+            }
         )
         page.addView(
             ui.note(getString(R.string.lock_intent)).apply {
-                setTextColor(ColorUtils.setAlphaComponent(paper, 168))
+                setTextColor(ColorUtils.setAlphaComponent(paper, 175))
+                gravity = Gravity.CENTER_HORIZONTAL
             }
         )
 
@@ -131,13 +136,13 @@ class LockActivity : AppCompatActivity() {
         val jatah = ui.row().apply {
             background = GradientDrawable().apply {
                 cornerRadius = ui.dimens.radiusCard.toFloat()
-                setColor(ContextCompat.getColor(this@LockActivity, R.color.flat_field_rose))
+                setColor(ContextCompat.getColor(this@LockActivity, R.color.flat_field_blossom))
             }
             gravity = Gravity.CENTER_VERTICAL
             setPadding(ui.dimens.dp(20), ui.dimens.dp(18), ui.dimens.dp(20), ui.dimens.dp(18))
             addView(
                 android.widget.ImageView(this@LockActivity).apply {
-                    setImageResource(R.drawable.ic_hourglass_flat)
+                    setImageResource(R.drawable.ic_line_clock)
                     scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
                     contentDescription = null
                     setPadding(ui.dimens.dp(9), ui.dimens.dp(9), ui.dimens.dp(9), ui.dimens.dp(9))
@@ -174,6 +179,9 @@ class LockActivity : AppCompatActivity() {
                     typeface = ResourcesCompat.getFont(this@LockActivity, R.font.space_grotesk_bold)
                     setTextColor(ui.palette.ink)
                     includeFontPadding = false
+                    maxLines = 1
+                    ellipsize = android.text.TextUtils.TruncateAt.END
+                    maxWidth = ui.dimens.dp(128)
                     background = GradientDrawable().apply {
                         cornerRadius = ui.dimens.radiusPill.toFloat()
                         setColor(paper)
@@ -182,7 +190,9 @@ class LockActivity : AppCompatActivity() {
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.WRAP_CONTENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
-                    )
+                    ).apply {
+                        marginStart = ui.dimens.dp(10)
+                    }
                 }
             )
         }
@@ -192,13 +202,13 @@ class LockActivity : AppCompatActivity() {
             ui.row().apply {
                 background = GradientDrawable().apply {
                     cornerRadius = ui.dimens.radiusCard.toFloat()
-                    setColor(ContextCompat.getColor(this@LockActivity, R.color.flat_field_butter))
+                    setColor(ContextCompat.getColor(this@LockActivity, R.color.flat_field_sun))
                 }
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(ui.dimens.dp(20), ui.dimens.dp(18), ui.dimens.dp(20), ui.dimens.dp(18))
                 addView(
                     android.widget.ImageView(this@LockActivity).apply {
-                        setImageResource(R.drawable.ic_smiley_flat)
+                        setImageResource(R.drawable.ic_face_neutral)
                         scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
                         contentDescription = null
                         setPadding(ui.dimens.dp(8), ui.dimens.dp(8), ui.dimens.dp(8), ui.dimens.dp(8))
@@ -256,19 +266,39 @@ class LockActivity : AppCompatActivity() {
 
         page.addView(
             ui.note(getString(R.string.lock_essential)).apply {
-                setTextColor(ColorUtils.setAlphaComponent(paper, 168))
+                setTextColor(ColorUtils.setAlphaComponent(paper, 175))
+                gravity = Gravity.CENTER_HORIZONTAL
             }
         )
 
-        // A scroll container is required: on a short display the buttons
-        // otherwise fall below the fold while back is still intercepted.
-        setContentView(
-            ScrollView(this).apply {
-                addView(page)
-                setBackgroundColor(deep)
-                isFillViewport = true
-            }
-        )
+        // Subtle top-left circle deco on the deep field + scroll container so
+        // buttons stay reachable even on short displays.
+        val root = android.widget.FrameLayout(this).apply {
+            setBackgroundColor(deep)
+            addView(
+                android.view.View(this@LockActivity).apply {
+                    background = GradientDrawable().apply {
+                        shape = GradientDrawable.OVAL
+                        setColor(deepDeco)
+                    }
+                    layoutParams = android.widget.FrameLayout.LayoutParams(
+                        ui.dimens.dp(220),
+                        ui.dimens.dp(220),
+                        Gravity.TOP or Gravity.START
+                    ).apply {
+                        leftMargin = ui.dimens.dp(-70)
+                        topMargin = ui.dimens.dp(-70)
+                    }
+                }
+            )
+            addView(
+                ScrollView(this@LockActivity).apply {
+                    addView(page)
+                    isFillViewport = true
+                }
+            )
+        }
+        setContentView(root)
     }
 
     private fun matchWidth(): LinearLayout.LayoutParams = LinearLayout.LayoutParams(

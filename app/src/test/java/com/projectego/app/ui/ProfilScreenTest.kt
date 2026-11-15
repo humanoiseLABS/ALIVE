@@ -144,4 +144,31 @@ class ProfilScreenTest {
         assertTrue(shown.contains("2 izin aktif"))
         assertTrue(shown.contains("Bahasa Indonesia · cahaya biru"))
     }
+
+    @Test
+    fun `claimable minutes label appears on the claim pill when greater than zero`() {
+        val page = ProfilScreen.build(
+            context,
+            ui,
+            ProfilScreen.Data(
+                level = 3,
+                scaleLine = "18 dari 70 poin",
+                streak = 2,
+                missions = 1,
+                focusSessions = 3,
+                bankMinutes = 135L,
+                remindersLine = "Air 90 mnt",
+                permissionsLine = "2 izin aktif",
+                languageLine = "Bahasa Indonesia · cahaya biru",
+                onGrowth = { growth += 1 },
+                onClaim = { claim += 1 },
+                onBank = { bank += 1 },
+                onReminders = { reminders += 1 },
+                onPermissions = { permissions += 1 },
+                onLanguage = { language += 1 },
+                claimableMinutes = 20L
+            )
+        )
+        assertTrue(texts(page).contains(context.getString(R.string.time_bank_claim_short, 20L)))
+    }
 }

@@ -1,5 +1,8 @@
 package com.projectego.app.ui
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -7,7 +10,10 @@ import android.graphics.RectF
 import android.graphics.drawable.GradientDrawable
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.HapticFeedbackConstants
 import android.view.View
+import android.view.animation.OvershootInterpolator
+import android.view.animation.PathInterpolator
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.RadioGroup
@@ -32,7 +38,7 @@ object FocusSetupScreen {
     /** The four lengths the approved setup offers; the engine accepts all of them. */
     val DURATIONS = listOf(15L, 25L, 45L, 60L)
 
-    private const val RING_DP = 210
+    private const val RING_DP = 196
     private const val RING_STROKE_DP = 14
     private const val TILE_PADDING_DP = 14
     private const val PILL_HEIGHT_DP = 48
@@ -59,7 +65,7 @@ object FocusSetupScreen {
         private val track = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
             strokeWidth = ui.dimens.dp(RING_STROKE_DP).toFloat()
-            color = ui.palette.soft
+            color = ColorUtils.setAlphaComponent(ui.palette.flatPaper, 180)
         }
         private val arc = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
@@ -67,18 +73,82 @@ object FocusSetupScreen {
             strokeCap = Paint.Cap.ROUND
             color = ui.palette.ink
         }
+        private val ringSizePx = ui.dimens.dp(RING_DP)
         private val shape = RectF()
+        private val sweepEase = PathInterpolator(0.22f, 1.0f, 0.36f, 1.0f)
+        private var displayFraction: Float = 0f
+        private var fractionAnimator: ValueAnimator? = null
 
         var fraction: Float = 0f
             set(value) {
-                field = value.coerceIn(0f, 1f)
-                invalidate()
+                val coerced = value.coerceIn(0f, 1f)
+                field = coerced
+                if (!isAttachedToWindow || !AliveMotion.shouldAnimate(this)) {
+                    fractionAnimator?.cancel()
+                    displayFraction = coerced
+                    invalidate()
+                } else {
+                    animateFractionTo(coerced, delayMs = 0L, durationMs = 340L, fromZero = false)
+                }
             }
 
         init {
-            layoutParams = LinearLayout.LayoutParams(
-                ui.dimens.dp(RING_DP),
-                ui.dimens.dp(RING_DP)
+            layoutParams = LinearLayout.LayoutParams(ringSizePx, ringSizePx)
+        }
+
+        override fun onAttachedToWindow() {
+            super.onAttachedToWindow()
+            if (AliveMotion.shouldAnimate(this)) {
+                animateFractionTo(fraction, delayMs = 80L, durationMs = 460L, fromZero = true)
+            } else {
+                displayFraction = fraction
+                invalidate()
+            }
+        }
+
+        override fun onDetachedFromWindow() {
+            fractionAnimator?.cancel()
+            fractionAnimator = null
+            displayFraction = fraction
+            super.onDetachedFromWindow()
+        }
+
+        private fun animateFractionTo(
+            target: Float,
+            delayMs: Long,
+            durationMs: Long,
+            fromZero: Boolean
+        ) {
+            fractionAnimator?.cancel()
+            val start = if (fromZero) 0f else displayFraction
+            if (kotlin.math.abs(target - start) < 0.001f) {
+                displayFraction = target
+                invalidate()
+                return
+            }
+            displayFraction = start
+            fractionAnimator = ValueAnimator.ofFloat(start, target).apply {
+                startDelay = delayMs
+                duration = durationMs
+                interpolator = sweepEase
+                addUpdateListener { anim ->
+                    displayFraction = anim.animatedValue as Float
+                    invalidate()
+                }
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        displayFraction = target
+                        invalidate()
+                    }
+                })
+                start()
+            }
+        }
+
+        override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+            setMeasuredDimension(
+                resolveSize(ringSizePx, widthMeasureSpec),
+                resolveSize(ringSizePx, heightMeasureSpec)
             )
         }
 
@@ -89,14 +159,14 @@ object FocusSetupScreen {
             val centreX = width / 2f
             val centreY = height / 2f
             canvas.drawCircle(centreX, centreY, (size - 2f * inset) / 2f, track)
-            if (fraction <= 0f) return
+            if (displayFraction <= 0f) return
             shape.set(
                 centreX - size / 2f + inset,
                 centreY - size / 2f + inset,
                 centreX + size / 2f - inset,
                 centreY + size / 2f - inset
             )
-            canvas.drawArc(shape, -90f, 360f * fraction, false, arc)
+            canvas.drawArc(shape, -90f, 360f * displayFraction, false, arc)
         }
     }
 
@@ -111,6 +181,34 @@ object FocusSetupScreen {
         ).apply {
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 40f)
         }
+        val timeBox = ui.column().apply {
+            gravity = Gravity.CENTER_HORIZONTAL
+            addView(time)
+            addView(ui.kicker(context.getString(R.string.unit_minutes_suffix)))
+            addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(v: View) {
+                    if (!AliveMotion.shouldAnimate(v)) return
+                    v.alpha = 0f
+                    v.scaleX = 0.88f
+                    v.scaleY = 0.88f
+                    v.animate()
+                        .alpha(1f)
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setStartDelay(100L)
+                        .setDuration(300L)
+                        .setInterpolator(OvershootInterpolator(1.3f))
+                        .start()
+                }
+
+                override fun onViewDetachedFromWindow(v: View) {
+                    v.animate().cancel()
+                    v.alpha = 1f
+                    v.scaleX = 1f
+                    v.scaleY = 1f
+                }
+            })
+        }
 
         column.addView(
             FrameLayout(context).apply {
@@ -119,17 +217,13 @@ object FocusSetupScreen {
                 addView(
                     ring,
                     FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.WRAP_CONTENT,
-                        FrameLayout.LayoutParams.WRAP_CONTENT,
+                        ui.dimens.dp(RING_DP),
+                        ui.dimens.dp(RING_DP),
                         Gravity.CENTER
                     )
                 )
                 addView(
-                    ui.column().apply {
-                        gravity = Gravity.CENTER_HORIZONTAL
-                        addView(time)
-                        addView(ui.kicker(context.getString(R.string.unit_minutes_suffix)))
-                    },
+                    timeBox,
                     FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.WRAP_CONTENT,
                         FrameLayout.LayoutParams.WRAP_CONTENT,
@@ -153,6 +247,41 @@ object FocusSetupScreen {
             visibility = View.GONE
             setPadding(0, ui.dimens.pairGap, 0, 0)
         }
+
+        fun toggleActivities(show: Boolean) {
+            activities.animate().cancel()
+            if (!activities.isAttachedToWindow || !AliveMotion.shouldAnimate(activities)) {
+                activities.alpha = 1f
+                activities.translationY = 0f
+                activities.visibility = if (show) View.VISIBLE else View.GONE
+                return
+            }
+            if (show) {
+                activities.alpha = 1f
+                activities.translationY = 0f
+                activities.visibility = View.VISIBLE
+                AliveMotion.cascadeChildren(
+                    activities,
+                    startIndex = 0,
+                    baseDelayMs = 0L,
+                    staggerMs = 28L
+                )
+            } else {
+                val liftPx = -ui.dimens.dp(6).toFloat()
+                activities.animate()
+                    .alpha(0f)
+                    .translationY(liftPx)
+                    .setDuration(150L)
+                    .setInterpolator(PathInterpolator(0.4f, 0f, 1f, 1f))
+                    .withEndAction {
+                        activities.visibility = View.GONE
+                        activities.alpha = 1f
+                        activities.translationY = 0f
+                    }
+                    .start()
+            }
+        }
+
         data.activities.forEachIndexed { index, type ->
             activities.addView(
                 ui.tileOption(
@@ -166,10 +295,14 @@ object FocusSetupScreen {
                 ).apply {
                     id = 100 + index
                     isChecked = type == data.activity
+                    AliveMotion.attachPressSpring(this, pressedScale = 0.97f)
                     // Picking the activity that is already picked changes no
                     // radio, so the group's listener would never hear it. The
                     // answer still has to fold the list.
-                    setOnClickListener { activities.visibility = View.GONE }
+                    setOnClickListener {
+                        it.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                        toggleActivities(false)
+                    }
                     layoutParams = RadioGroup.LayoutParams(
                         RadioGroup.LayoutParams.MATCH_PARENT,
                         RadioGroup.LayoutParams.WRAP_CONTENT
@@ -180,30 +313,31 @@ object FocusSetupScreen {
             )
         }
 
-        val tiles = ui.row()
-        tiles.addView(
-            tile(
-                context, ui,
-                kicker = context.getString(R.string.focus_kicker_activity),
-                value = activityValue,
-                face = ui.palette.flatMint
-            ).apply {
-                isClickable = true
-                setOnClickListener {
-                    activities.visibility =
-                        if (activities.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-                }
+        val activityTile = tile(
+            context, ui,
+            kicker = context.getString(R.string.focus_kicker_activity),
+            value = activityValue,
+            face = ui.palette.flatMint
+        ).apply {
+            isClickable = true
+            AliveMotion.attachPressSpring(this, pressedScale = 0.95f)
+            setOnClickListener {
+                it.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                AliveMotion.pulsePop(it, dipScale = 0.95f)
+                toggleActivities(activities.visibility != View.VISIBLE)
             }
+        }
+        val allowedTile = tile(
+            context, ui,
+            kicker = context.getString(R.string.focus_kicker_allowed),
+            value = allowedValue,
+            face = ui.palette.fieldSky
         )
+
+        val tiles = ui.equalRow()
+        tiles.addView(activityTile)
         tiles.addView(ui.hgap(ui.dimens.dp(10)))
-        tiles.addView(
-            tile(
-                context, ui,
-                kicker = context.getString(R.string.focus_kicker_allowed),
-                value = allowedValue,
-                face = ui.palette.fieldSky
-            )
-        )
+        tiles.addView(allowedTile)
         tiles.addView(ui.hgap(ui.dimens.dp(10)))
         tiles.addView(
             tile(
@@ -221,7 +355,9 @@ object FocusSetupScreen {
             activityValue.text = activityLabel(context, type)
             allowedValue.text =
                 context.getString(R.string.focus_allowed_count, data.allowedApps(type))
-            activities.visibility = View.GONE
+            toggleActivities(false)
+            AliveMotion.pulsePop(activityTile, dipScale = 0.94f)
+            AliveMotion.pulsePop(allowedTile, dipScale = 0.94f)
             data.onActivity(type)
         }
 
@@ -230,6 +366,11 @@ object FocusSetupScreen {
         column.addView(ui.vgap(ui.dimens.lineGap))
 
         val goal = ui.input(context.getString(R.string.focus_goal_hint)).apply {
+            minHeight = ui.dimens.dp(52)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
             setText(data.goal)
             addTextChangedListener(afterTextChanged = { text ->
                 data.onGoal(text?.toString()?.trim().orEmpty())
@@ -242,8 +383,19 @@ object FocusSetupScreen {
         val pills = data.durations.map { minutes ->
             pill(context, ui, minutes, minutes == data.durationMinutes)
         }
-        val pillRow = ui.row()
+        var currentMinutes = data.durationMinutes
+        var minutesAnimator: ValueAnimator? = null
+        val pillRow = ui.row().apply {
+            addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(v: View) = Unit
+                override fun onViewDetachedFromWindow(v: View) {
+                    minutesAnimator?.cancel()
+                    minutesAnimator = null
+                }
+            })
+        }
         pills.forEachIndexed { index, pill ->
+            AliveMotion.attachPressSpring(pill, pressedScale = 0.92f)
             pillRow.addView(
                 pill.apply {
                     layoutParams = LinearLayout.LayoutParams(
@@ -258,10 +410,38 @@ object FocusSetupScreen {
 
         pills.zip(data.durations).forEach { (pill, minutes) ->
             pill.setOnClickListener {
+                it.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                AliveMotion.pulsePop(it, dipScale = 0.90f)
                 pillRow.children().forEach { other ->
                     paintPill(other as TextView, ui, (other.tag as Long) == minutes)
                 }
-                time.text = context.getString(R.string.focus_ring_time, minutes)
+                val fromMinutes = currentMinutes
+                currentMinutes = minutes
+                if (!pillRow.isAttachedToWindow || !AliveMotion.shouldAnimate(pillRow) || fromMinutes == minutes) {
+                    minutesAnimator?.cancel()
+                    time.text = context.getString(R.string.focus_ring_time, minutes)
+                } else {
+                    minutesAnimator?.cancel()
+                    AliveMotion.pulsePop(timeBox, dipScale = 1.07f, durationMs = 240L)
+                    minutesAnimator = ValueAnimator.ofInt(fromMinutes.toInt(), minutes.toInt()).apply {
+                        duration = 260L
+                        interpolator = PathInterpolator(0.22f, 1.0f, 0.36f, 1.0f)
+                        addUpdateListener { anim ->
+                            val shown = (anim.animatedValue as Int).toLong()
+                            time.text = context.getString(R.string.focus_ring_time, shown)
+                        }
+                        addListener(object : AnimatorListenerAdapter() {
+                            override fun onAnimationEnd(animation: Animator) {
+                                time.text = context.getString(R.string.focus_ring_time, minutes)
+                            }
+
+                            override fun onAnimationCancel(animation: Animator) {
+                                time.text = context.getString(R.string.focus_ring_time, minutes)
+                            }
+                        })
+                        start()
+                    }
+                }
                 ring.fraction = minutes.toFloat() / 60f
                 data.onDuration(minutes)
             }
@@ -274,6 +454,7 @@ object FocusSetupScreen {
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 )
+                AliveMotion.attachPressSpring(this, pressedScale = 0.96f, hapticOnDown = true)
                 setOnClickListener { data.onStart() }
             }
         )
@@ -314,10 +495,12 @@ object FocusSetupScreen {
     }
 
     private fun paintPill(pill: TextView, ui: AliveComponents, chosen: Boolean) {
-        pill.background = field(if (chosen) ui.palette.ink else ui.palette.tile, ui.dimens.dp(999))
-        pill.setTextColor(
-            if (chosen) ui.palette.paper else ColorUtils.setAlphaComponent(ui.palette.ink, 0x99)
-        )
+        val targetBg = if (chosen) ui.palette.ink else ui.palette.tile
+        val targetFg = if (chosen) ui.palette.paper else ColorUtils.setAlphaComponent(ui.palette.ink, 0x99)
+        if (pill.background !is GradientDrawable) {
+            pill.background = field(targetBg, ui.dimens.dp(999))
+        }
+        AliveMotion.morphPillColors(pill, targetBg, targetFg)
     }
 
     private fun activityLabel(context: Context, type: FocusActivityType): String =

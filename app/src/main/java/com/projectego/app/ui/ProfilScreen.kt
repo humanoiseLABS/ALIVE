@@ -9,6 +9,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.DrawableRes
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.ColorUtils
 import com.projectego.app.R
@@ -36,7 +37,10 @@ object ProfilScreen {
         val onBank: () -> Unit,
         val onReminders: () -> Unit,
         val onPermissions: () -> Unit,
-        val onLanguage: () -> Unit
+        val onLanguage: () -> Unit,
+        val claimableMinutes: Long = 0L,
+        @param:DrawableRes val characterDrawableRes: Int = R.drawable.alive_member_creative,
+        val companionName: String? = null
     )
 
     private const val PAD = 20
@@ -99,7 +103,7 @@ object ProfilScreen {
         val top = ui.row().apply { gravity = Gravity.CENTER_VERTICAL }
         top.addView(
             ImageView(context).apply {
-                setImageResource(R.drawable.ic_alive_character)
+                setImageResource(data.characterDrawableRes)
                 scaleType = ImageView.ScaleType.FIT_CENTER
                 contentDescription = null
                 layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(64), ui.dimens.dp(64))
@@ -109,7 +113,12 @@ object ProfilScreen {
             ui.column().apply {
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 setPadding(ui.dimens.groupGap, 0, ui.dimens.groupGap, 0)
-                addView(ui.kicker(context.getString(R.string.growth_heading)))
+                addView(
+                    ui.kicker(
+                        data.companionName?.let { context.getString(R.string.galaxy_companion_kicker, it) }
+                            ?: context.getString(R.string.growth_heading)
+                    )
+                )
                 addView(ui.vgap(ui.dimens.xs))
                 addView(ui.headline(context.getString(R.string.growth_level, data.level)))
                 addView(ui.vgap(ui.dimens.xs))
@@ -132,20 +141,20 @@ object ProfilScreen {
 
         card.addView(ui.vgap(ui.dimens.groupGap))
         val chips = ui.row()
-        val rows: List<Pair<String, Int>> = listOf(
-            context.getString(R.string.profile_chip_days, data.streak) to ui.palette.flatPaper,
-            context.getString(R.string.profile_chip_missions, data.missions) to ui.palette.flatMint,
-            context.getString(R.string.profile_chip_focus, data.focusSessions) to ui.palette.fieldSky
+        val rows: List<Triple<String, Int, Int>> = listOf(
+            Triple(context.getString(R.string.profile_chip_days, data.streak), ui.palette.flatPaper, R.drawable.ic_smiley_flat),
+            Triple(context.getString(R.string.profile_chip_missions, data.missions), ui.palette.flatMint, R.drawable.ic_smiley_flat),
+            Triple(context.getString(R.string.profile_chip_focus, data.focusSessions), ui.palette.fieldSky, R.drawable.ic_face_neutral)
         )
-        rows.forEachIndexed { index, (label, face) ->
+        rows.forEachIndexed { index, (label, face, iconRes) ->
             if (index > 0) chips.addView(ui.hgap(ui.dimens.dp(8)))
-            chips.addView(chip(context, ui, label, face))
+            chips.addView(chip(context, ui, label, face, iconRes))
         }
         card.addView(chips)
         return card
     }
 
-    private fun chip(context: Context, ui: AliveComponents, label: String, face: Int): LinearLayout =
+    private fun chip(context: Context, ui: AliveComponents, label: String, face: Int, iconRes: Int): LinearLayout =
         ui.row().apply {
             background = field(face, ui.dimens.radiusPill)
             gravity = Gravity.CENTER_VERTICAL
@@ -157,7 +166,7 @@ object ProfilScreen {
             addView(
                 if (face == ui.palette.flatPaper) {
                     ImageView(context).apply {
-                        setImageResource(R.drawable.ic_smiley_flat)
+                        setImageResource(iconRes)
                         scaleType = ImageView.ScaleType.FIT_CENTER
                         contentDescription = null
                         layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(16), ui.dimens.dp(16)).apply {
@@ -175,7 +184,7 @@ object ProfilScreen {
                         }
                         addView(
                             ImageView(context).apply {
-                                setImageResource(R.drawable.ic_smiley_flat)
+                                setImageResource(iconRes)
                                 scaleType = ImageView.ScaleType.FIT_CENTER
                                 contentDescription = null
                                 layoutParams = FrameLayout.LayoutParams(ui.dimens.dp(14), ui.dimens.dp(14), Gravity.CENTER)
@@ -235,7 +244,11 @@ object ProfilScreen {
             )
             addView(
                 TextView(context).apply {
-                    text = context.getString(R.string.time_bank_claim_action_off)
+                    text = if (data.claimableMinutes > 0L) {
+                        context.getString(R.string.time_bank_claim_short, data.claimableMinutes)
+                    } else {
+                        context.getString(R.string.time_bank_claim_action_off)
+                    }
                     gravity = Gravity.CENTER
                     setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
                     typeface = ResourcesCompat.getFont(context, R.font.space_grotesk_bold)
@@ -288,10 +301,15 @@ object ProfilScreen {
         addView(
             ui.column().apply {
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                setPadding(ui.dimens.groupGap, 0, ui.dimens.groupGap, 0)
-                addView(ui.lead(title))
+                setPadding(ui.dimens.dp(12), 0, ui.dimens.dp(8), 0)
+                addView(ui.lead(title).apply { setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 15.5f) })
                 addView(ui.vgap(ui.dimens.xs))
-                addView(ui.note(support).apply { maxLines = 1 })
+                addView(
+                    ui.note(support).apply {
+                        maxLines = 1
+                        ellipsize = android.text.TextUtils.TruncateAt.END
+                    }
+                )
             }
         )
         addView(
@@ -301,7 +319,7 @@ object ProfilScreen {
                 gravity = Gravity.CENTER
                 background = GradientDrawable().apply {
                     shape = GradientDrawable.OVAL
-                    setColor(ui.palette.ground)
+                    setColor(ui.palette.soft)
                 }
                 layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(34), ui.dimens.dp(34))
             }

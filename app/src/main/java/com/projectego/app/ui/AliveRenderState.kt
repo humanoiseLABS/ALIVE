@@ -24,7 +24,10 @@ enum class AlivePanel {
     QUEST_HISTORY,
 
     /** Water and tomorrow's promise: when they speak, and whether they may. */
-    REMINDERS
+    REMINDERS,
+
+    /** Full-page Guardian status when accessibility watch stopped or needs repair. */
+    GUARDIAN
 }
 
 /**

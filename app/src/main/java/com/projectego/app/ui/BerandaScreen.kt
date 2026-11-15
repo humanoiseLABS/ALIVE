@@ -5,11 +5,13 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.drawable.GradientDrawable
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.DrawableRes
 import com.projectego.app.R
 
 /**
@@ -44,7 +46,9 @@ object BerandaScreen {
         val actionLabel: String?,
         val onAction: (() -> Unit)?,
         val onGrowth: () -> Unit,
-        val onFocus: () -> Unit
+        val onFocus: () -> Unit,
+        val onOpenFocus: (() -> Unit)? = null,
+        @param:DrawableRes val characterDrawableRes: Int = R.drawable.alive_member_creative
     )
 
     private const val TILE_PADDING_DP = 16
@@ -65,9 +69,14 @@ object BerandaScreen {
         column.addView(facts(context, ui, data))
 
         if (data.actionLabel != null && data.onAction != null) {
+            val actionText = if (data.actionLabel.endsWith("→")) {
+                data.actionLabel
+            } else {
+                "${data.actionLabel} →"
+            }
             column.addView(ui.vgap(ui.dimens.dp(FIELD_GAP_DP)))
             column.addView(
-                ui.primary("${data.actionLabel} →").apply {
+                ui.primary(actionText).apply {
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
@@ -165,7 +174,7 @@ object BerandaScreen {
     // ---------- the three facts ----------
 
     private fun facts(context: Context, ui: AliveComponents, data: Data): LinearLayout =
-        ui.row().apply {
+        ui.equalRow().apply {
             addView(
                 fact(
                     context, ui, R.string.stat_used, data.usedMinutes,
@@ -186,7 +195,13 @@ object BerandaScreen {
                 fact(
                     context, ui, R.string.beranda_focus, data.focusMinutes,
                     context.getString(R.string.unit_minutes_short), ui.palette.fieldAqua
-                )
+                ).apply {
+                    data.onOpenFocus?.let { openFocus ->
+                        isClickable = true
+                        isFocusable = true
+                        setOnClickListener { openFocus() }
+                    }
+                }
             )
         }
 
@@ -270,16 +285,31 @@ object BerandaScreen {
 
     private fun streakCard(context: Context, ui: AliveComponents, data: Data): LinearLayout =
         ui.row().apply {
-            background = field(ui.palette.fieldButter, ui.dimens.radiusCard)
+            background = field(ui.palette.fieldButter, ui.dimens.radiusPill)
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(ui.dimens.dp(BOARD_PADDING_DP), ui.dimens.dp(16), ui.dimens.dp(BOARD_PADDING_DP), ui.dimens.dp(16))
+            minimumHeight = ui.dimens.dp(56)
+            setPadding(ui.dimens.dp(16), ui.dimens.dp(12), ui.dimens.dp(18), ui.dimens.dp(12))
             addView(
                 ImageView(context).apply {
-                    setImageResource(R.drawable.ic_alive_character)
-                    scaleType = ImageView.ScaleType.FIT_CENTER
-                    contentDescription = null
-                    layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(34), ui.dimens.dp(34)).apply {
-                        marginEnd = ui.dimens.dp(10)
+                    if (data.streak > 0) {
+                        setImageResource(data.characterDrawableRes)
+                        scaleType = ImageView.ScaleType.FIT_CENTER
+                        contentDescription = null
+                        layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(28), ui.dimens.dp(28)).apply {
+                            marginEnd = ui.dimens.dp(12)
+                        }
+                    } else {
+                        setImageResource(R.drawable.ic_face_neutral)
+                        scaleType = ImageView.ScaleType.FIT_CENTER
+                        contentDescription = null
+                        setPadding(ui.dimens.dp(6), ui.dimens.dp(6), ui.dimens.dp(6), ui.dimens.dp(6))
+                        background = GradientDrawable().apply {
+                            shape = GradientDrawable.OVAL
+                            setColor(ui.palette.flatPaper)
+                        }
+                        layoutParams = LinearLayout.LayoutParams(ui.dimens.dp(28), ui.dimens.dp(28)).apply {
+                            marginEnd = ui.dimens.dp(12)
+                        }
                     }
                 }
             )
@@ -296,6 +326,7 @@ object BerandaScreen {
                         else R.string.beranda_tomorrow_open
                     )
                 ).apply {
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
                     isAllCaps = false
                     alpha = if (data.tomorrowSafe) 1f else 0.55f
                 }

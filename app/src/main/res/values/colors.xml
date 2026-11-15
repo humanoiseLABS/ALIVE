@@ -186,5 +186,9 @@
     <color name="flat_g_butter">#FBF3DC</color>
     <color name="flat_g_sky">#E6EEF9</color>
     <color name="flat_g_peach">#FDEDE4</color>
+
+    <!-- Bottom sheet dim overlay (34% ink) and sheet drag handle (#E2DED8) -->
+    <color name="flat_scrim">#57141414</color>
+    <color name="flat_sheet_handle">#E2DED8</color>
 </resources>
 
